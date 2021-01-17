@@ -1,0 +1,13 @@
+# Blacklist all files and directories
+/*
+
+# But not the README or the gitignore itself
+!.gitignore
+!README.org
+
+# Include the init files
+!early-init.el
+!init.el
+
+# And the configuration
+!config/
