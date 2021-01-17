@@ -94,7 +94,7 @@
   (setq-default cursor-type 'bar) ; default cursor as bar
   (setq-default frame-title-format '("%b")) ; window title is the buffer name
 
-  (setq linum-format "%4d ") ; line number format
+  (setq linum-format "%4d:%c ") ; line number format
   (show-paren-mode 1) ; show closing parens by default
 
   (menu-bar-mode -1) ; disable the menubar
