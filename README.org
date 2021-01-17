@@ -1,0 +1,6 @@
+#+TITLE: C4 (CRJr's Coding Command Center)
+#+DATE: 2021-01-17
+#+AUTHOR: Chatman R. Jr
+
+This repo contains my personal configuration for Emacs for my day to day
+coding needs.
