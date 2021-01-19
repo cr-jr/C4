@@ -29,11 +29,11 @@
   "Chatman R. Jr"
   "crjr.code@protonmail.com")
 (c4/base)
+(c4/theming 'modus-vivendi)
 (c4/typography "Input" 12)
-(c4/theming 'doom-outrun-electric)
 (c4/exwm)
 (c4/projects "~/Workbench")
 (c4/git)
 
 (provide 'init)
-;;; init.el ends here
+;;;; init.el ends here

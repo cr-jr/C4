@@ -94,7 +94,8 @@
   (setq-default cursor-type 'bar) ; default cursor as bar
   (setq-default frame-title-format '("%b")) ; window title is the buffer name
 
-  (setq linum-format "%4d:%c ") ; line number format
+  (setq linum-format "%4d ") ; line number format
+  (column-number-mode 1)
   (show-paren-mode 1) ; show closing parens by default
 
   (menu-bar-mode -1) ; disable the menubar
@@ -126,24 +127,29 @@
   (use-package all-the-icons))
 
 ;;; UI settings
-(defun c4/theming (theme &optional modeline)
-  "A module for setting a theme and modeline."
+(defun c4/theming (theme)
+  "A module for setting a theme and configuring the modeline."
   (setq theme-sym (symbol-name theme))
-  (setq modeline-sym (symbol-name modeline))
 
-  (if (string= modeline-sym "doom")
-      (use-package doom-modeline
-	:hook (window-setup . doom-modeline-mode))
-    (use-package smart-mode-line
-      :init
-      (setq sml/theme 'respectful)
-      (setq sml/no-confirm-load-theme t)
-      :config (sml/setup)))
+  (use-package smart-mode-line
+    :init
+    (setq sml/theme 'respectful)
+    (setq sml/no-confirm-load-theme t)
+    (setq sml/name-width 64)
+    (setq sml/mode-width 'full)
+    :config
+    (sml/setup)
+    (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":C4:") t)
+    (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Projects:") t)
+    (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
 
   (cond ((string-prefix-p "modus" theme-sym)
 	 (use-package modus-themes
 	   :config
 	   (load-theme theme t)))
+  ((string-prefix-p "minimal" theme-sym)
+    (use-package minimal-theme
+      :config (load-theme theme t)))
 	((string-prefix-p "doom" theme-sym)
 	 (use-package doom-themes
 	   :config (load-theme theme t)))
@@ -311,7 +317,7 @@
 (defun c4/mnemonics ()
   (c4/leader-key-def
     ;; Global
-    "`" '(vterm :which-key "open a new terminal")
+    "'" '(vterm :which-key "open terminal")
     "u" '(universal-argument :which-key "command modifier")
 
     ;; Buffer
@@ -348,6 +354,14 @@
     "hm" '(:ignore t :which-key "manual")
     "hmm" '(info-emacs-manual :which-key "emacs")
 
+    ;; Projects
+    "p" '(:ignore t :which-key "project")
+    "p'" '(projectile-run-vterm :which-key "open terminal")
+    "pp" '(counsel-projectile-switch-project :which-key "switch")
+    "pf" '(counsel-projectile-find-file :which-key "find file")
+    "pg" '(:ignore t :which-key "git")
+    "pgs" '(magit-status :which-key "status")
+
     ;; Session
     "q" '(:ignore t :which-key "quit")
     "qq" '(save-buffers-kill-emacs :which-key "and save")
@@ -356,6 +370,7 @@
     ;; Search
     "s" '(:ignore t :which-key "search")
     "sb" '(swiper :which-key "buffer")
+    "sp" '(counsel-projectile-rg :which-key "project")
 
     ;; Toggle
     "t" '(:ignore t :which-key "toggle")
@@ -373,9 +388,7 @@
     "wF" '(exwm-layout-toggle-fullscreen :which-key "fullscreen")
     "ws" '(:ignore t :which-key "split")
     "wss" '(evil-window-split :which-key "horizontal")
-    "wsS" '(evil-window-vsplit :which-key "vertical")
-    "wsb" '(evil-window-new :which-key "buffer")
-    "wsB" '(evil-window-vnew :which-key "buffer vertical")))
+    "wsS" '(evil-window-vsplit :which-key "vertical")))
 
 (defun c4/find-config ()
   "Open files in config directory."
