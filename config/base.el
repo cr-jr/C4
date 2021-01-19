@@ -360,7 +360,15 @@
     "pp" '(counsel-projectile-switch-project :which-key "switch")
     "pf" '(counsel-projectile-find-file :which-key "find file")
     "pg" '(:ignore t :which-key "git")
-    "pgs" '(magit-status :which-key "status")
+    "pgc" '(magit-commit :which-key "commit")
+    "pgd" '(magit-diff :which-key "diff")
+    "pgg" '(magit-status :which-key "status")
+    "pgi" '(magit-init :which-key "init")
+    "pgp" '(magit-push :which-key "push")
+    "pgP" '(magit-pull :which-key "pull")
+    "pgr" '(magit-remote :which-key "remote")
+    "pgs" '(magit-stage :which-key "stage")
+    "pgS" '(magit-stage-file :which-key "stage file")
 
     ;; Session
     "q" '(:ignore t :which-key "quit")
