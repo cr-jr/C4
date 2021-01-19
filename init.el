@@ -33,7 +33,7 @@
 (c4/typography "Input" 12)
 (c4/exwm)
 (c4/projects "~/Workbench")
-(c4/git)
+(c4/git "cr-jr")
 
 (provide 'init)
 ;;;; init.el ends here

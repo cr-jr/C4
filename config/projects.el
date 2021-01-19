@@ -26,10 +26,20 @@
     :config
     (counsel-projectile-mode)))
 
-(defun c4/git ()
+(defun c4/git (user)
   (use-package magit
     :custom
-    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)))
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+  (use-package forge
+    :after magit
+    :config
+    (setq auth-sources '("~/.authinfo"))
+    (ghub-request "GET" "/user" nil
+      :forge 'github
+      :host "api.github.com"
+      :username user
+      :auth 'forge)))
 
 (provide 'projects)
 ;;;; projects.el ends here
