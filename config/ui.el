@@ -40,7 +40,7 @@
 
     (setq exwm-workspace-warp-cursor t)
 
-    (setq mouse-autoselect-window t
+    (setq mouse-autoselect-window nil
       focus-follows-mouse t)
 
     (setq exwm-input-prefix-keys
