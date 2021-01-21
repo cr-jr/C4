@@ -28,12 +28,17 @@
 (c4/user
   "Chatman R. Jr"
   "crjr.code@protonmail.com")
-(c4/base)
-(c4/theming 'modus-vivendi)
+(c4/ui)
+(c4/theming 'minimal-light)
 (c4/typography "Input" 12)
 (c4/exwm)
+(c4/ux)
 (c4/projects "~/Workbench")
 (c4/git "cr-jr")
+(c4/org "~/Org")
+(c4/code)
+(c4/keybindings)
+
 
 (provide 'init)
 ;;;; init.el ends here

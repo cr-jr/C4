@@ -40,8 +40,7 @@
 
     (setq exwm-workspace-warp-cursor t)
 
-    (setq mouse-autoselect-window nil
-      focus-follows-mouse t)
+    (setq focus-follows-mouse t)
 
     (setq exwm-input-prefix-keys
       '(?\C-x
@@ -78,9 +77,7 @@
           (exwm-workspace-switch-create ,i))))
       (number-sequence 0 9))))
 
-    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
-
-    (exwm-enable))
+    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key))
 
   ;; EXWM: Desktop Environment
   (use-package desktop-environment
@@ -88,7 +85,6 @@
   :diminish
   :bind
   (:map desktop-environment-mode-map
-    ("<XF86AudioLowerVolume>" . desktop-environment-volume-decrement)
     ("s-l" . nil))
   :config
   (desktop-environment-mode)))

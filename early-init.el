@@ -8,16 +8,28 @@
 ;;;;
 ;;;; Code:
 
-(require 'base
-  (concat user-emacs-directory "config/base.el"))
-(c4/init)
+(require 'preamble
+	 (concat user-emacs-directory "config/preamble.el"))
+(c4/perf)
+(c4/packages-setup)
+(c4/housekeeping)
 
+(require 'base
+	 (concat user-emacs-directory "config/base.el"))
 (require 'ui
-  (concat user-emacs-directory "config/ui.el"))
+	 (concat user-emacs-directory "config/ui.el"))
 (require 'ux
-  (concat user-emacs-directory "config/ux.el"))
-(require 'projects (concat user-emacs-directory "config/projects.el"))
-; (require 'code (concat user-emacs-directory "config/code.el"))
-; (require 'org (concat user-emacs-directory "config/org.el"))
+	 (concat user-emacs-directory "config/ux.el"))
+(require 'projects
+	 (concat user-emacs-directory "config/projects.el"))
+(require 'org
+	 (concat user-emacs-directory "config/org.el"))
+(require 'code
+	 (concat user-emacs-directory "config/code.el"))
+(require 'keybindings
+  (concat user-emacs-directory "config/keybindings.el"))
+
 ; (require 'apps (concat user-emacs-directory "config/apps.el"))
 ; (require 'addons (concat user-emacs-directory "config/addons.el"))
+
+;;;; early-init.el ends here
