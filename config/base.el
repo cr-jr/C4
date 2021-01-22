@@ -83,13 +83,7 @@
 (defun c4/typography (family &optional size)
   "A module for setting typography."
   (set-face-attribute 'default nil
-    :font (format "%s-%s:slant=normal" family (or size 12)))
-  (set-face-attribute 'italic nil
-    :font (format "%s-%s:slant=italic" family (or size 12)))
-  (set-face-attribute 'bold nil
-    :font (format "%s-%s:weight=bold" family (or size 12)))
-  (set-face-attribute 'bold-italic nil
-    :font (format "%s-%s:weight=bold:slant=italic" family (or size 12))))
+    :font (format "%s-%s:slant=normal" family (or size 12))))
 
 ;;; UX base
 (defun c4/ux ()

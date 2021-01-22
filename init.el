@@ -56,7 +56,14 @@
 
 (require 'org-setup
 	 (concat user-emacs-directory "config/org-setup.el"))
-(c4/org "~/Org")
+(c4/org
+  :path "~/Org"
+  :theme
+  (c4/org-theme
+    :body "Lora"
+    :headings "Lato"
+    :code "Input"
+    :base 12))
 
 (require 'ui
   (concat user-emacs-directory "config/ui.el"))
