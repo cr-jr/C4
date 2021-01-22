@@ -31,6 +31,13 @@
     :custom
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+  (use-package diff-hl
+    :after magit
+    :hook
+    (after-init . global-diff-hl-mode)
+    (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    (magit-post-refresh . diff-hl-magit-post-refresh))
+
   (use-package forge
     :after magit
     :config
