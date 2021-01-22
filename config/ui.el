@@ -10,6 +10,7 @@
 (defun c4/exwm ()
   "A module for my EXWM configuration."
   (use-package exwm
+    :if window-system
     :diminish
     :config
     (setq exwm-workspace-number 6)
@@ -77,17 +78,18 @@
           (exwm-workspace-switch-create ,i))))
       (number-sequence 0 9))))
 
-    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key))
+    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+
+    (exwm-enable))
 
   ;; EXWM: Desktop Environment
   (use-package desktop-environment
-  :after exwm
-  :diminish
-  :bind
-  (:map desktop-environment-mode-map
-    ("s-l" . nil))
-  :config
-  (desktop-environment-mode)))
+    :after exwm
+    :diminish
+    :bind
+    ("s-l" . windmove-right)
+    :config
+    (desktop-environment-mode)))
 
 
 (defun c4/exwm-update-class ()
