@@ -7,7 +7,7 @@
 ;;;;
 ;;;; Code:
 
-(defun c4/projects (root-path)
+(cl-defun c4/projects (&key path username)
   (use-package projectile
     :diminish
     :config
@@ -17,14 +17,15 @@
     :bind-keymap
     ("C-c p" . projectile-command-map)
     :init
-    (when (file-directory-p root-path)
-      (setq projectile-project-search-path (list root-path)))
+    (when (file-directory-p path)
+      (setq projectile-project-search-path (list path)))
     (setq projectile-switch-project-action #'projectile-dired))
 
   (use-package counsel-projectile
     :after projectile
     :config
-    (counsel-projectile-mode)))
+    (counsel-projectile-mode))
+  (eval (c4/git username)))
 
 (defun c4/git (user)
   (use-package magit

@@ -8,13 +8,17 @@
 ;;;; Code:
 
 ;;; User settings
-(defun c4/user (name email)
+(cl-defun c4/user (&key name email)
   "Define user identity."
   (setq user-full-name name
 	user-full-email email))
 
+(cl-defun c4/base (&key theme typography)
+  (eval (c4/ui theme typography))
+  (c4/ux))
+
 ;;; UI base
-(defun c4/ui ()
+(defun c4/ui (theme typography)
   "A module for the base UI."
   (setq-default cursor-type 'bar) ; default cursor as bar
   (setq-default frame-title-format '("%b")) ; window title is the buffer name
@@ -49,10 +53,13 @@
   ;; Tidy up the modeline
   (use-package diminish)
   ;; And let's make it a bit sexier
-  (use-package all-the-icons))
+  (use-package all-the-icons)
+
+  (eval (c4/theme theme))
+  (eval typography))
 
 ;;; UI settings
-(defun c4/theming (theme)
+(defun c4/theme (theme)
   "A module for setting a theme and configuring the modeline."
   (setq theme-sym (symbol-name theme))
 
@@ -80,10 +87,14 @@
 	   :config (load-theme theme t)))
 	(t (load-theme theme t))))
 
-(defun c4/typography (family &optional size)
+(cl-defun c4/typography (&key fixed variable)
   "A module for setting typography."
   (set-face-attribute 'default nil
-    :font (format "%s-%s:slant=normal" family (or size 12))))
+    :font (format "%s-%s:slant=normal" (car fixed) (cadr fixed)))
+  (set-face-attribute 'fixed-pitch nil
+    :font (format "%s-%s" (car fixed) (cadr fixed)))
+  (set-face-attribute 'variable-pitch nil
+    :font (format "%s-%s" (car variable) (cadr variable))))
 
 ;;; UX base
 (defun c4/ux ()
