@@ -105,10 +105,12 @@
     "oa" '(:ignore t :which-key "agenda")
     "oaa" '(org-agenda-list :which-key "weekly")
     "oaf" '(org-agenda :which-key "full")
-    "oat" '(counsel-org-tag :which-key "tags")
+    "oat" '(org-set-tags-command :which-key "tags")
+    "oc" '(org-capture :which-key "capture")
     "od" '(:ignore t :which-key "date")
     "odd" '(org-deadline :which-key "deadline")
     "ods" '(org-schedule :which-key "schedule")
+    "or" '(org-refile :which-key "refile")
 
     ;; Projects
     "p" '(:ignore t :which-key "project")
