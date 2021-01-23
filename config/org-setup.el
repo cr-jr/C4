@@ -7,14 +7,22 @@
 ;;;;
 ;;;; Code:
 
-(cl-defun c4/org (&key path theme)
+(cl-defun c4/org (&key path)
   (use-package org
     :straight org-plus-contrib
     :hook
     (org-mode . c4/org-init)
     :config
-    (eval theme)
     (setq org-ellipsis " ↴"))
+
+  (use-package visual-fill-column
+    :defer t
+    :hook (org-mode . c4/org-visual-fill))
+
+  (defun c4/org-visual-fill ()
+    (setq visual-fill-column-width 120)
+    (setq visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
 
   (use-package org-bullets
     :after org
@@ -22,49 +30,28 @@
     (org-mode . org-bullets-mode)
     :custom
     (org-bullets-bullet-list
-      '("§" "☙" "❡" "჻" " " " " " "))))
-
-(cl-defun c4/org-theme (&key body headings code base)
-  (set-face-attribute 'org-default nil
-    :font (format "%s-%s" (or body "Serif") (* base 2)))
-  (set-face-attribute 'org-level-1 nil
-    :font (format "%s-%s:weight=bold" (or headings "Sans Serif") (* base 2)))
-  (set-face-attribute 'org-level-2 nil
-    :font (format "%s-%s" (or headings "Sans Serif") (* base 1.75)))
-  (set-face-attribute 'org-level-3 nil
-    :font (format "%s-%s" (or headings "Sans Serif") (* base 1.5)))
-  (set-face-attribute 'org-level-4 nil
-    :font (format "%s-%s" (or body "Serif") (* base 1.25)))
-  (set-face-attribute 'org-level-5 nil
-    :font (format "%s-%s" (or body "Sans Serif") (* base 1)))
-  (set-face-attribute 'variable-pitch nil
-    :font (format "%s-%s" (or body "Serif") (or base 12)))
-  (set-face-attribute 'org-drawer nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-block nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-verbatim nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-code nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-document-info-keyword nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-special-keyword nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-property-value nil
-    :font (format "%s-%s" code (or base 12)))
-  (set-face-attribute 'org-block-begin-line nil
-    :font (format "%s-%s:weight=normal" code (or base 12)))
-  (set-face-attribute 'org-block-end-line nil
-    :font (format "%s-%s:weight=normal" code (or base 12))))
-
+      '("§" "☙" "჻" " " " " " " " "))))
 
 (defun c4/org-init ()
   (org-indent-mode)
   (variable-pitch-mode 1)
-  (auto-fill-mode 0)
   (visual-line-mode 1)
-  (setq evil-auto-indent nil))
+  (c4/org-theme))
+
+(defun c4/org-theme ()
+  (set-face-attribute 'org-block nil
+    :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-begin-line nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-end-line nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-indent nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch)))
 
 (provide 'org-setup)
 ;;;; org.el ends here

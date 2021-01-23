@@ -2,5 +2,4 @@
 #+DATE: 2021-01-17
 #+AUTHOR: Chatman R. Jr
 
-This repo contains my personal configuration for Emacs for my day to day
-coding needs.
+This repo contains my personal configuration for Emacs for my day to day coding and writing needs.

@@ -38,7 +38,7 @@
   :typography
   (c4/typography
     :fixed '("Input" 12)
-    :variable '("Lora" 16)))
+    :variable '("Lora" 14)))
 
 (c4/keybindings)
 
@@ -48,14 +48,7 @@
 
 (c4/code)
 
-(c4/org
-  :path "~/Org"
-  :theme
-  (c4/org-theme
-    :body "Lora"
-    :headings "Lato"
-    :code "Input"
-    :base 12))
+(c4/org :path "~/Org")
 
 (c4/exwm)
 
