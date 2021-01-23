@@ -10,19 +10,27 @@
 (cl-defun c4/org (&key path)
   (use-package org
     :straight org-plus-contrib
+    :custom
+    (org-ellipsis " ↴")
+    (org-agenda-start-with-log-mode t)
+    (org-log-done 'time)
+    (org-log-into-drawer t)
+    (org-agenda-files
+      '("~/.config/emacs/sample/tasks.org"))
+    (org-todo-keywords
+      '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+         (sequence
+           "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
+           "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
     :hook
-    (org-mode . c4/org-init)
-    :config
-    (setq org-ellipsis " ↴"))
+    (org-mode . c4/org-init))
 
   (use-package visual-fill-column
     :defer t
-    :hook (org-mode . c4/org-visual-fill))
-
-  (defun c4/org-visual-fill ()
-    (setq visual-fill-column-width 120)
-    (setq visual-fill-column-center-text t)
-    (visual-fill-column-mode 1))
+    :custom
+    (visual-fill-column-width 120)
+    (visual-fill-column-center-text t)
+    :hook (org-mode . visual-fill-column-mode))
 
   (use-package org-bullets
     :after org

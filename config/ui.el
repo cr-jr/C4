@@ -12,38 +12,15 @@
   (use-package exwm
     :if window-system
     :diminish
-    :config
-    (setq exwm-workspace-number 6)
-
-    ;; Startup process
-    (start-process-shell-command
-      "nitrogen" nil "nitrogen --restore")
-
-      ;; Update window class with the buffer name
-    (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
-
-    (require 'exwm-randr)
-    (exwm-randr-enable)
-    (start-process-shell-command
-    "xrandr"
-    nil
-    (concat user-emacs-directory "config/multihead.sh"))
-    (setq
-    exwm-randr-workspace-monitor-plist
+    :custom
+    (exwm-workspace-number 6)
+    (exwm-randr-workspace-monitor-plist
     '(0 "LVDS" 2 "LVDS" 4 "LVDS" 1 "HDMI-0" 3 "HDMI-0" 5 "HDMI-0"))
-
-    (require 'exwm-systemtray)
-    (setq exwm-systemtray-height 16)
-    (exwm-systemtray-enable)
-
-    (setq display-time-default-load-average nil)
-    (display-time-mode t)
-
-    (setq exwm-workspace-warp-cursor t)
-
-    (setq focus-follows-mouse t)
-
-    (setq exwm-input-prefix-keys
+    (exwm-systemtray-height 16)
+    (display-time-default-load-average nil)
+    (exwm-workspace-warp-cursor t)
+    (focus-follows-mouse t)
+    (exwm-input-prefix-keys
       '(?\C-x
       ?\C-u
       ?\C-h
@@ -52,8 +29,7 @@
       ?\M-&
       ?\M-:
       ?\s-\ ))
-
-    (setq exwm-input-global-keys
+    (exwm-input-global-keys
       `(([?\s-K] . windmove-swap-states-up)
       ([?\s-k] . windmove-up)
       ([?\s-L] . windmove-swap-states-right)
@@ -77,6 +53,23 @@
           (interactive)
           (exwm-workspace-switch-create ,i))))
       (number-sequence 0 9))))
+    :config
+    ;; Startup process
+    (start-process-shell-command
+      "nitrogen" nil "nitrogen --restore")
+
+      ;; Update window class with the buffer name
+    (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
+
+    (require 'exwm-randr)
+    (exwm-randr-enable)
+    (start-process-shell-command "xrandr" nil
+      (concat user-emacs-directory "config/multihead.sh"))
+
+    (require 'exwm-systemtray)
+    (exwm-systemtray-enable)
+
+    (display-time-mode t)
 
     (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 

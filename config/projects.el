@@ -13,13 +13,11 @@
     :config
     (projectile-mode)
     :custom
+    (projectile-project-search-path (list path))
     (projectile-completion-system 'ivy)
+    (projectile-switch-project-action #'projectile-dired)
     :bind-keymap
-    ("C-c p" . projectile-command-map)
-    :init
-    (when (file-directory-p path)
-      (setq projectile-project-search-path (list path)))
-    (setq projectile-switch-project-action #'projectile-dired))
+    ("C-c p" . projectile-command-map))
 
   (use-package counsel-projectile
     :after projectile
@@ -41,8 +39,9 @@
 
   (use-package forge
     :after magit
+    :custom
+    (auth-sources '("~/.authinfo"))
     :config
-    (setq auth-sources '("~/.authinfo"))
     (ghub-request "GET" "/user" nil
       :forge 'github
       :host "api.github.com"

@@ -15,11 +15,11 @@
 
 (defun c4/evil ()
   (use-package evil
-    :init
-    (setq evil-want-integration t)
-    (setq evil-want-keybinding nil)
-    (setq evil-want-C-u-scroll t)
-    (setq evil-want-C-i-jump nil)
+    :custom
+    (evil-want-integration t)
+    (evil-want-keybinding nil)
+    (evil-want-C-u-scroll t)
+    (evil-want-C-i-jump nil)
     :hook
     (emacs-startup . evil-mode)
     :config
@@ -100,6 +100,16 @@
     "hm" '(:ignore t :which-key "manual")
     "hmm" '(info-emacs-manual :which-key "emacs")
 
+    ;; Org-mode
+    "o" '(:ignore t :which-key "org")
+    "oa" '(:ignore t :which-key "agenda")
+    "oaa" '(org-agenda-list :which-key "weekly")
+    "oaf" '(org-agenda :which-key "full")
+    "oat" '(counsel-org-tag :which-key "tags")
+    "od" '(:ignore t :which-key "date")
+    "odd" '(org-deadline :which-key "deadline")
+    "ods" '(org-schedule :which-key "schedule")
+
     ;; Projects
     "p" '(:ignore t :which-key "project")
     "p'" '(projectile-run-vterm :which-key "open terminal")
@@ -159,7 +169,5 @@
   (interactive)
   (load-file (concat user-emacs-directory "init.el")))
 
-(provide 'keybindings)
-;;;; keybindings.el ends here
 (provide 'keybindings)
 ;;;; keybindings.el ends here

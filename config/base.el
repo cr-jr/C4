@@ -31,7 +31,7 @@
   (scroll-bar-mode -1) ; disable visible scroll bar
   (tool-bar-mode -1) ; disable toolbar
   (tooltip-mode -1) ; disable tooltips
-  (set-fringe-mode 16) ; allow some space
+  (set-fringe-mode 8) ; allow some space
 
   ;; Show line numbers in programming modes
   (add-hook 'prog-mode-hook
@@ -64,15 +64,15 @@
   (setq theme-sym (symbol-name theme))
 
   (use-package smart-mode-line
-    :init
-    (setq sml/theme 'respectful)
-    (setq sml/no-confirm-load-theme t)
-    (setq sml/name-width 64)
-    (setq sml/mode-width 'full)
+    :custom
+    (sml/theme 'respectful)
+    (sml/no-confirm-load-theme t)
+    (sml/name-width 64)
+    (sml/mode-width 'full)
     :config
     (sml/setup)
     (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":C4:") t)
-    (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Projects:") t)
+    (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
     (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
 
   (cond ((string-prefix-p "modus" theme-sym)
@@ -85,7 +85,9 @@
 	((string-prefix-p "doom" theme-sym)
 	 (use-package doom-themes
 	   :config (load-theme theme t)))
-	(t (load-theme theme t))))
+	  (t (load-theme theme t)))
+
+  (set-face-attribute 'fringe nil :background nil))
 
 (cl-defun c4/typography (&key fixed variable)
   "A module for setting typography."
@@ -144,8 +146,8 @@
   ;; Lookup enhancements
   (use-package ivy
     :diminish
-    :init
-    (setq ivy-initial-inputs-alist nil) ; no ^ before searches
+    :custom
+    (ivy-initial-inputs-alist nil) ; no ^ before searches
     :bind
     (("C-s" . swiper)
     ("C-r" . swiper-backward)

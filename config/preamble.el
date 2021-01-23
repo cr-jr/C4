@@ -56,8 +56,8 @@
 
   ;; I really don't like clutter. Really :P
   (use-package no-littering
-  :init
-  (setq auto-save-file-name-transforms
+  :custom
+  (auto-save-file-name-transforms
 	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))))
 
 (defun c4/create-parent-on-file-find ()
