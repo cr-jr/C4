@@ -18,7 +18,7 @@
     (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
 
     (c4/desktop-randr)
-
+    (c4/desktop-systray)
 
     (exwm-enable))
 

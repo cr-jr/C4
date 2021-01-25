@@ -1250,38 +1250,38 @@ This is the top level module that =desktop.el= exposes. It wraps all the desktop
 submodules that are documented below.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-  (defun c4/desktop ()
-    "A module for my EXWM configuration."
-    (use-package exwm
-      :if window-system
-      :diminish
-      :custom
-      (c4/desktop-init)
-      (c4/desktop-key-def)
-      :config
-      ;; Startup process
-      (start-process-shell-command
-        "nitrogen" nil "nitrogen --restore")
+(defun c4/desktop ()
+  "A module for my EXWM configuration."
+  (use-package exwm
+    :if window-system
+    :diminish
+    :custom
+    (c4/desktop-init)
+    (c4/desktop-key-def)
+    :config
+    ;; Startup process
+    (start-process-shell-command
+      "nitrogen" nil "nitrogen --restore")
 
-      (display-time-mode t)
-      (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+    (display-time-mode t)
+    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
-      ;; Update window class with the buffer name
-      (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
+    ;; Update window class with the buffer name
+    (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
 
-      (c4/desktop-randr)
+    (c4/desktop-randr)
+    (c4/desktop-systray)
 
+    (exwm-enable))
 
-      (exwm-enable))
-
-    ;; EXWM: Desktop Environment
-    (use-package desktop-environment
-      :after exwm
-      :diminish
-      :bind
-      ("s-l" . windmove-right)
-      :config
-      (desktop-environment-mode)))
+  ;; EXWM: Desktop Environment
+  (use-package desktop-environment
+    :after exwm
+    :diminish
+    :bind
+    ("s-l" . windmove-right)
+    :config
+    (desktop-environment-mode)))
 
 #+END_SRC
 
