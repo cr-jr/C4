@@ -1,25 +1,16 @@
-;;;; C4 Module Loader
-;;;;
-;;;; Commentary:
-;;;;
-;;;; The early-init file loads all the modules available so they can be called
-;;;; for execution seamlessly in the init.el itself.
-;;;;
-;;;; Code:
+(require 'cl-lib)
 
 (require 'preamble
-	 (concat user-emacs-directory "config/preamble.el"))
+          (concat user-emacs-directory "modules/preamble.el"))
 (require 'base
-	 (concat user-emacs-directory "config/base.el"))
+          (concat user-emacs-directory "modules/base.el"))
 (require 'keybindings
-  (concat user-emacs-directory "config/keybindings.el"))
+  (concat user-emacs-directory "modules/keybindings.el"))
 (require 'projects
-	 (concat user-emacs-directory "config/projects.el"))
+          (concat user-emacs-directory "modules/projects.el"))
 (require 'code
-	 (concat user-emacs-directory "config/code.el"))
-(require 'org-setup
-	 (concat user-emacs-directory "config/org-setup.el"))
-(require 'ui
-  (concat user-emacs-directory "config/ui.el"))
-(require 'ux
-  (concat user-emacs-directory "config/ux.el"))
+          (concat user-emacs-directory "modules/code.el"))
+(require 'documents
+          (concat user-emacs-directory "modules/documents.el"))
+(require 'desktop
+          (concat user-emacs-directory "modules/desktop.el"))

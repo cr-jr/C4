@@ -5,9 +5,15 @@
 !.gitignore
 !README.org
 
-# Include the init files
+# Include the configuration Org file
+!Init.org
+
+# Include the generated files and directories
 !early-init.el
 !init.el
+!modules/
+!desktop/
 
 # And the configuration
-!config/
+!Init.org
+!modules/
