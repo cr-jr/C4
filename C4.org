@@ -1233,9 +1233,9 @@ dunst &
 exec dbus-launch --exit-with-session emacs -mm --debug-init
 #+END_SRC
 
-I also used software (ARandR) to configure my multi-monitor setup.
+I also use software (ARandR) to configure my multi-monitor setup.
 
-#+BEGIN_SRC sh :tangle "./desktop/multihead.sh"
+#+BEGIN_SRC sh :tangle "./desktop/multihead.sh" :tangle-mode (identity #o755)
 #!/bin/sh
 xrandr --output LVDS --primary --mode 1366x768 --pos 241x1080 --rotate normal --output VGA-0 --off --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal
 #+END_SRC
