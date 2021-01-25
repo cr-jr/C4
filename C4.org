@@ -54,7 +54,6 @@ The first optimization involves increasing the Emacs garbage collection threshol
 startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
 the threshold back to its approximate initial state.
 
-#+NAME: c4/perf
 #+BEGIN_SRC emacs-lisp :tangle "./modules/preamble.el"
 (defun c4/perf ()
   "Handles performance optimizations"
@@ -204,8 +203,8 @@ We assemble it in our =init.el= like this:
   :theme 'minimal-light
   :typography
   (c4/typography
-    :code '("Input" 12)
-    :document '("Lora" 14)))
+    :code '("Input" 13)
+    :document '("Lora" 16)))
 
 #+END_SRC
 
@@ -1046,6 +1045,12 @@ Packages in use:
   (set-face-attribute 'org-block nil
     :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-block-begin-line nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-document-info-keyword nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-drawer nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-property-value nil
     :foreground nil :weight 'normal :inherit 'fixed-pitch)
   (set-face-attribute 'org-block-end-line nil
     :foreground nil :weight 'normal :inherit 'fixed-pitch)

@@ -10,8 +10,8 @@
   :theme 'minimal-light
   :typography
   (c4/typography
-    :code '("Input" 12)
-    :document '("Lora" 14)))
+    :code '("Input" 13)
+    :document '("Lora" 16)))
 
 (c4/keybindings)
 

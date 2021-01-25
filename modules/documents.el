@@ -31,6 +31,12 @@
     :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-block-begin-line nil
     :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-document-info-keyword nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-drawer nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
+  (set-face-attribute 'org-property-value nil
+    :foreground nil :weight 'normal :inherit 'fixed-pitch)
   (set-face-attribute 'org-block-end-line nil
     :foreground nil :weight 'normal :inherit 'fixed-pitch)
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
