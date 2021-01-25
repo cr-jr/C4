@@ -6,7 +6,7 @@
   (setq read-process-output-max (* 1024 1024))
 
   ;; Drop it down once loaded
-  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 80000))))
+  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000))))
 
 (defun c4/packages-setup ()
   "Initializes package management with straight.el & use-package."

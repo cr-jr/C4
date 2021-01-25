@@ -5,7 +5,7 @@
 (require 'base
           (concat user-emacs-directory "modules/base.el"))
 (require 'keybindings
-  (concat user-emacs-directory "modules/keybindings.el"))
+          (concat user-emacs-directory "modules/keybindings.el"))
 (require 'projects
           (concat user-emacs-directory "modules/projects.el"))
 (require 'code

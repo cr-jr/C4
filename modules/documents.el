@@ -1,19 +1,12 @@
 (cl-defun c4/org (&key path)
   (use-package org
     :straight org-plus-contrib
-    :custom
-    (org-ellipsis " ↴")
-    (org-directory path)
+    :init
+    (setq org-ellipsis " ↴")
+    (setq org-directory path)
     (c4/org-agenda)
     (c4/org-templates)
     (c4/org-babel)
-
-    (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((emacs-lisp . t)
-          (js . t)))
-
-    (org-confirm-babel-evaluate nil)
     :config
     (c4/org-theme)
     (advice-add 'org-refile :after 'org-save-all-org-buffers)
@@ -21,7 +14,7 @@
     (org-mode . c4/org-init)))
 
 (defun c4/org-init ()
-  (org-indent-mode)
+  (org-indent-mode 1)
   (variable-pitch-mode 1)
   (visual-line-mode 1)
   (auto-fill-mode 1)
@@ -43,7 +36,6 @@
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-indent nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
@@ -58,24 +50,24 @@
       '("§" "☙" "჻" " " " " " " " "))))
 
 (defun c4/org-agenda ()
-  (org-agenda-start-with-log-mode t)
-  (org-log-done 'time)
-  (org-log-into-drawer t)
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
 
-  (org-agenda-files
+  (setq org-agenda-files
     '("Tasks.org" "Projects.org"))
 
-  (org-todo-keywords
+  (setq org-todo-keywords
     '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
         (sequence
           "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
           "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
-  (org-refile-targets
+  (setq org-refile-targets
     '(("Archive.org" :maxlevel . 1)
         ("Tasks.org" :maxlevel . 1)))
 
-  (org-tag-alist
+  (setq org-tag-alist
     '((:startgroup)
         ("@product" . ?P)
         ("@experiment" . ?E)
@@ -89,7 +81,7 @@
         ("testing" . ?t)
         ("refactoring" . ?r)))
 
-  (org-agenda-custom-commands
+  (setq org-agenda-custom-commands
     '(("d" "Dashboard"
         ((agenda "" ((org-deadline-warning-days 7)))
           (todo "NEXT"
@@ -128,17 +120,19 @@
               (org-agenda-files org-agenda-files))))))))
 
 (defun c4/org-templates ()
-  (org-capture-templates
+  (setq org-capture-templates
     `(("t" "Tasks / Projects")
         ("tt" "Task" entry (file+olp "Tasks.org" "Inbox")
           "* TODO %?\n %U\n %a\n %i" :empty-lines 1))))
 
 (defun c4/org-babel ()
-    (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((emacs-lisp . t)
-          (js . t)))
+  (org-babel-do-load-languages
+    'org-babel-load-languages
+    '((emacs-lisp . t)
+      (js . t)))
 
-    (org-confirm-babel-evaluate nil))
+  (setq org-src-fontify-natively t)
+  (setq org-confirm-babel-evaluate nil))
+
 
 (provide 'documents)

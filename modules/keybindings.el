@@ -31,11 +31,23 @@
 (defun c4/transient ()
   (use-package hydra
     :config
+    (defhydra hydra-org-src-find (:timeout 3)
+      "cycle through all source blocks in the current buffer"
+      ("j" org-babel-next-src-block "next")
+      ("k" org-babel-previous-src-block "previous")
+      ("RET" nil "exit" :exit t))
+
+    (defhydra hydra-org-heading-find (:timeout 3)
+      "cycle through all headings at the current level"
+      ("j" org-forward-heading-same-level "next")
+      ("k" org-backward-heading-same-level "previous")
+      ("RET" nil "exit" :exit t))
+
     (defhydra hydra-text-scale (:timeout 4)
       "scale text"
       ("j" text-scale-increase "in")
       ("k" text-scale-decrease "out")
-      ("f" nil "finished" :exit t))))
+      ("RET" nil "exit" :exit t))))
 
 (defun c4/mnemonics ()
   (use-package general
@@ -52,6 +64,7 @@
     (c4/key-def-config)
     (c4/key-def-file)
     (c4/key-def-help)
+    (c4/key-def-org)
     (c4/key-def-project)
     (c4/key-def-session)
     (c4/key-def-toggle)
@@ -134,14 +147,17 @@
     "obnb" '(org-narrow-to-block :which-key "block")
     "obne" '(org-narrow-to-element :which-key "element")
     "obr" '(org-refile :which-key "refile")
-    "obs" '(org-babel-next-src-block :which-key "goto source")
-    "obS" '(org-babel-previous-src-block :which-key "goto previous source")
+    "obs" '(:ignore t :which-key "search")
+    "obss" '(hydra-org-src-find/body :which-key "src blocks")
+    "obsh" '(hydra-org-heading-find/body :which-key "headings")
     "od" '(:ignore t :which-key "date")
     "odd" '(org-deadline :which-key "deadline")
     "ods" '(org-schedule :which-key "schedule")
-    "oe" '(:ignore t :which-key "eval")
-    "oes" '(org-babel-execute-src-block :which-key "execute source")
-    "oet" '(org-babel-tangle :which-key "tangle")))
+    "os" '(:ignore t :which-key "source")
+    "ose" '(org-edit-special :which-key "edit")
+    "osw" '(org-edit-src-save :which-key "save edits")
+    "oss" '(org-babel-execute-src-block :which-key "execute source")
+    "ost" '(org-babel-tangle :which-key "tangle")))
 
 (defun c4/key-def-project ()
   (c4/leader-key-def

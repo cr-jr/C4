@@ -8,48 +8,37 @@
 * Summary
 
 This configuration builds off my experience with [[https://github.com/hlissner/doom-emacs][Doom Emacs]], and is heavily informed by code from
-the [[https://github.com/daviwil/emacs-from-scratch][Emacs from Scratch project]]. It's my personal configuration/Emacs-Lisp study reference as I learn more
-about Emacs and, /especially/, how I like to use it.
+the [[https://github.com/daviwil/emacs-from-scratch][Emacs from Scratch project]]. It's my personal configuration/Emacs Lisp study reference as I learn.
 
-#+BEGIN_QUOTE
-Be aware that every bit of this configuration is generated from the below Org source blocks. You
-shouldn't touch the generated files unless you need to.
-#+END_QUOTE
+C4 is a middle ground between vanilla Emacs (which isn't all that useful for me by itself) and whole
+batteries-included frameworks and distributions (such as Doom Emacs and Spacemacs).
+
+It does just enough.
+
+C4 is based on my real day to day needs and prioritizes ease, convenience and performance. If any
+included functionality doesn't add value to my workflow, it's gone. Like that.
 
 * Initialization
 
-First, we'll add this block so that Org Mode knows to auto-tangle the config on save:
-
-#+BEGIN_SRC emacs-lisp
-(defun c4/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                              (expand-file-name (concat user-emacs-directory "Init.org")))
-      ;; Dynamic scoping to the rescue
-      (let ((org-confirm-babel-evaluate nil))
-        (org-babel-tangle))))
-
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'c4/org-babel-tangle-config)))
-#+END_SRC
-
   C4 is a module-based configuration, so the very first thing it does is load in its own modules.
 
-  #+BEGIN_SRC emacs-lisp :tangle "./early-init.el"
-  (require 'cl-lib)
+#+BEGIN_SRC emacs-lisp :tangle "./early-init.el"
+(require 'cl-lib)
 
-  (require 'preamble
-            (concat user-emacs-directory "modules/preamble.el"))
-  (require 'base
-            (concat user-emacs-directory "modules/base.el"))
-  (require 'keybindings
-    (concat user-emacs-directory "modules/keybindings.el"))
-  (require 'projects
-            (concat user-emacs-directory "modules/projects.el"))
-  (require 'code
-            (concat user-emacs-directory "modules/code.el"))
-  (require 'documents
-            (concat user-emacs-directory "modules/documents.el"))
-  (require 'desktop
-            (concat user-emacs-directory "modules/desktop.el"))
+(require 'preamble
+          (concat user-emacs-directory "modules/preamble.el"))
+(require 'base
+          (concat user-emacs-directory "modules/base.el"))
+(require 'keybindings
+          (concat user-emacs-directory "modules/keybindings.el"))
+(require 'projects
+          (concat user-emacs-directory "modules/projects.el"))
+(require 'code
+          (concat user-emacs-directory "modules/code.el"))
+(require 'documents
+          (concat user-emacs-directory "modules/documents.el"))
+(require 'desktop
+          (concat user-emacs-directory "modules/desktop.el"))
 #+END_SRC
 
 * Modules
@@ -75,7 +64,7 @@ the threshold back to its approximate initial state.
   (setq read-process-output-max (* 1024 1024))
 
   ;; Drop it down once loaded
-  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 80000))))
+  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000))))
 #+END_SRC
 
 *** ~c4/packages-setup~
@@ -546,11 +535,23 @@ This functionality is enabled through the [[https://github.com/abo-abo/hydra][hy
 (defun c4/transient ()
   (use-package hydra
     :config
+    (defhydra hydra-org-src-find (:timeout 3)
+      "cycle through all source blocks in the current buffer"
+      ("j" org-babel-next-src-block "next")
+      ("k" org-babel-previous-src-block "previous")
+      ("RET" nil "exit" :exit t))
+
+    (defhydra hydra-org-heading-find (:timeout 3)
+      "cycle through all headings at the current level"
+      ("j" org-forward-heading-same-level "next")
+      ("k" org-backward-heading-same-level "previous")
+      ("RET" nil "exit" :exit t))
+
     (defhydra hydra-text-scale (:timeout 4)
       "scale text"
       ("j" text-scale-increase "in")
       ("k" text-scale-decrease "out")
-      ("f" nil "finished" :exit t))))
+      ("RET" nil "exit" :exit t))))
 
 #+END_SRC
 
@@ -567,25 +568,26 @@ Packages in use:
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
 
-    (defun c4/mnemonics ()
-      (use-package general
-        :after evil
-        :config
-        (general-evil-setup 1)
-        (general-create-definer c4/leader-key-def
-          :keymaps '(normal insert visual emacs)
-          :prefix "SPC"
-          :global-prefix [\s-SPC])
+(defun c4/mnemonics ()
+  (use-package general
+    :after evil
+    :config
+    (general-evil-setup 1)
+    (general-create-definer c4/leader-key-def
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix [\s-SPC])
 
-        (c4/key-def-global)
-        (c4/key-def-buffer)
-        (c4/key-def-config)
-        (c4/key-def-file)
-        (c4/key-def-help)
-        (c4/key-def-project)
-        (c4/key-def-session)
-        (c4/key-def-toggle)
-        (c4/key-def-window)))
+    (c4/key-def-global)
+    (c4/key-def-buffer)
+    (c4/key-def-config)
+    (c4/key-def-file)
+    (c4/key-def-help)
+    (c4/key-def-org)
+    (c4/key-def-project)
+    (c4/key-def-session)
+    (c4/key-def-toggle)
+    (c4/key-def-window)))
 
 #+END_SRC
 
@@ -607,9 +609,6 @@ Example: =SPC-'= opens a fresh terminal.
     "SPC" '(universal-argument :which-key "command modifier")))
 
 #+END_SRC
-
-#+RESULTS:
-| ' | '(vterm :which-key open terminal) | SPC | '(universal-argument :which-key command modifier) |
 
 ***** ~c4/key-def-buffer~ (=SPC-b=)
 
@@ -729,14 +728,17 @@ and provide Org buffer functionality like capturing and refiling.
     "obnb" '(org-narrow-to-block :which-key "block")
     "obne" '(org-narrow-to-element :which-key "element")
     "obr" '(org-refile :which-key "refile")
-    "obs" '(org-babel-next-src-block :which-key "goto source")
-    "obS" '(org-babel-previous-src-block :which-key "goto previous source")
+    "obs" '(:ignore t :which-key "search")
+    "obss" '(hydra-org-src-find/body :which-key "src blocks")
+    "obsh" '(hydra-org-heading-find/body :which-key "headings")
     "od" '(:ignore t :which-key "date")
     "odd" '(org-deadline :which-key "deadline")
     "ods" '(org-schedule :which-key "schedule")
-    "oe" '(:ignore t :which-key "eval")
-    "oes" '(org-babel-execute-src-block :which-key "execute source")
-    "oet" '(org-babel-tangle :which-key "tangle")))
+    "os" '(:ignore t :which-key "source")
+    "ose" '(org-edit-special :which-key "edit")
+    "osw" '(org-edit-src-save :which-key "save edits")
+    "oss" '(org-babel-execute-src-block :which-key "execute source")
+    "ost" '(org-babel-tangle :which-key "tangle")))
 
 #+END_SRC
 
@@ -978,19 +980,12 @@ under a common interface for =init.el=.
   (cl-defun c4/org (&key path)
     (use-package org
       :straight org-plus-contrib
-      :custom
-      (org-ellipsis " ↴")
-      (org-directory path)
+      :init
+      (setq org-ellipsis " ↴")
+      (setq org-directory path)
       (c4/org-agenda)
       (c4/org-templates)
       (c4/org-babel)
-
-      (org-babel-do-load-languages
-        'org-babel-load-languages
-        '((emacs-lisp . t)
-            (js . t)))
-
-      (org-confirm-babel-evaluate nil)
       :config
       (c4/org-theme)
       (advice-add 'org-refile :after 'org-save-all-org-buffers)
@@ -1022,7 +1017,7 @@ Packages in use:
 #+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
 
 (defun c4/org-init ()
-  (org-indent-mode)
+  (org-indent-mode 1)
   (variable-pitch-mode 1)
   (visual-line-mode 1)
   (auto-fill-mode 1)
@@ -1057,7 +1052,6 @@ Packages in use:
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-indent nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
@@ -1080,24 +1074,24 @@ This submodule sets up the Org agenda flow for creating task lists and project p
 #+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
 
 (defun c4/org-agenda ()
-  (org-agenda-start-with-log-mode t)
-  (org-log-done 'time)
-  (org-log-into-drawer t)
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
 
-  (org-agenda-files
+  (setq org-agenda-files
     '("Tasks.org" "Projects.org"))
 
-  (org-todo-keywords
+  (setq org-todo-keywords
     '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
         (sequence
           "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
           "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
-  (org-refile-targets
+  (setq org-refile-targets
     '(("Archive.org" :maxlevel . 1)
         ("Tasks.org" :maxlevel . 1)))
 
-  (org-tag-alist
+  (setq org-tag-alist
     '((:startgroup)
         ("@product" . ?P)
         ("@experiment" . ?E)
@@ -1111,7 +1105,7 @@ This submodule sets up the Org agenda flow for creating task lists and project p
         ("testing" . ?t)
         ("refactoring" . ?r)))
 
-  (org-agenda-custom-commands
+  (setq org-agenda-custom-commands
     '(("d" "Dashboard"
         ((agenda "" ((org-deadline-warning-days 7)))
           (todo "NEXT"
@@ -1159,7 +1153,7 @@ needs.
 #+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
 
 (defun c4/org-templates ()
-  (org-capture-templates
+  (setq org-capture-templates
     `(("t" "Tasks / Projects")
         ("tt" "Task" entry (file+olp "Tasks.org" "Inbox")
           "* TODO %?\n %U\n %a\n %i" :empty-lines 1))))
@@ -1173,13 +1167,15 @@ allow for a literate programming workflow.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
 
-  (defun c4/org-babel ()
-    (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((emacs-lisp . t)
-          (js . t)))
+(defun c4/org-babel ()
+  (org-babel-do-load-languages
+    'org-babel-load-languages
+    '((emacs-lisp . t)
+      (js . t)))
 
-    (org-confirm-babel-evaluate nil))
+  (setq org-src-fontify-natively t)
+  (setq org-confirm-babel-evaluate nil))
+
 
 (provide 'documents)
 #+END_SRC
@@ -1250,39 +1246,89 @@ This is the top level module that =desktop.el= exposes. It wraps all the desktop
 submodules that are documented below.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-(defun c4/desktop ()
-  "A module for my EXWM configuration."
-  (use-package exwm
-    :if window-system
-    :diminish
-    :custom
-    (c4/desktop-init)
-    (c4/desktop-key-def)
-    :config
-    ;; Startup process
-    (start-process-shell-command
-      "nitrogen" nil "nitrogen --restore")
+    (defun c4/desktop ()
+      "A module for my EXWM configuration."
+      (use-package exwm
+        :if window-system
+        :diminish
+        :config
+        ;; Startup process
+        (start-process-shell-command
+          "nitrogen" nil "nitrogen --restore")
 
-    (display-time-mode t)
-    (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+        (display-time-mode t)
 
-    ;; Update window class with the buffer name
-    (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
+        (setq exwm-workspace-number 6)
+        (setq display-time-default-load-average nil)
+        (setq exwm-workspace-warp-cursor t)
+        (setq focus-follows-mouse t)
 
-    (c4/desktop-randr)
-    (c4/desktop-systray)
+        (setq exwm-input-prefix-keys
+              '(?\C-x
+                ?\C-u
+                ?\C-h
+                ?\M-x
+                ?\M-`
+                ?\M-&
+                ?\M-:
+                ?\s-\ ))
 
-    (exwm-enable))
+        (setq exwm-input-global-keys
+              `(([?\s-K] . windmove-swap-states-up)
+                ([?\s-k] . windmove-up)
+                ([?\s-L] . windmove-swap-states-right)
+                ([?\s-l] . windmove-right)
+                ([?\s-J] . windmove-swap-states-down)
+                ([?\s-j] . windmove-down)
+                ([?\s-H] . windmove-swap-states-left)
+                ([?\s-h] . windmove-left)
+                ([?\s-r] . exwm-reset)
+                ([?\s-Q] . exwm-exit)
+                ([?\s-q] . exwm-restart)
+                ([?\s-W] . exwm-workspace-swap)
+                ([?\s-w] . exwm-workspace-switch)
+                ([?\s-D] . counsel-linux-app)
+                ([?\s-d] . (lambda (cmd)
+                              (interactive (list (read-shell-command "$ ")))
+                              (start-process-shell-command cmd nil cmd)))
+                ,@(mapcar (lambda (i)
+                            `(,(kbd (format "s-%d" i)) .
+                              (lambda ()
+                                (interactive)
+                                (exwm-workspace-switch-create ,i))))
+                          (number-sequence 0 9))))
 
-  ;; EXWM: Desktop Environment
-  (use-package desktop-environment
-    :after exwm
-    :diminish
-    :bind
-    ("s-l" . windmove-right)
-    :config
-    (desktop-environment-mode)))
+        (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
+        ;; Update window class with the buffer name
+        (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
+
+        (require 'exwm-randr)
+        (setq exwm-randr-workspace-monitor-plist
+              '(0 "LVDS" 2 "LVDS" 4 "LVDS" 1 "HDMI-0" 3 "HDMI-0" 5 "HDMI-0"))
+        (start-process-shell-command "xrandr" nil
+                                      (concat user-emacs-directory "desktop/multihead.sh"))
+        (exwm-randr-enable)
+
+        (require 'exwm-systemtray)
+        (setq exwm-systemtray-height 16)
+        (exwm-systemtray-enable)
+
+        (exwm-enable))
+
+      ;; EXWM: Desktop Environment
+      (use-package desktop-environment
+        :after exwm
+        :diminish
+        :bind
+        ("s-l" . windmove-right)
+        :config
+        (desktop-environment-mode)))
+
+    (defun c4/exwm-update-class ()
+      (exwm-workspace-rename-buffer exwm-class-name))
+
+  (provide 'desktop)
 #+END_SRC
 
 Finally, we add it to =init.el=.
@@ -1290,93 +1336,4 @@ Finally, we add it to =init.el=.
 #+BEGIN_SRC emacs-lisp :tangle "./init.el"
 
 (c4/desktop)
-#+END_SRC
-
-**** ~c4/desktop-init~
-
-A submodule that defines basic settings for using EXWM.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-
-(defun c4/desktop-init ()
-  (exwm-workspace-number 6)
-  (exwm-randr-workspace-monitor-plist
-  '(0 "LVDS" 2 "LVDS" 4 "LVDS" 1 "HDMI-0" 3 "HDMI-0" 5 "HDMI-0"))
-  (exwm-systemtray-height 16)
-  (display-time-default-load-average nil)
-  (exwm-workspace-warp-cursor t)
-  (focus-follows-mouse t))
-
-#+END_SRC
-
-**** ~c4/desktop-key-def~
-
-A submodule that applies keybindings for controlling the desktop with EXWM.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-
-(defun c4/desktop-key-def ()
-  (exwm-input-prefix-keys
-      '(?\C-x
-      ?\C-u
-      ?\C-h
-      ?\M-x
-      ?\M-`
-      ?\M-&
-      ?\M-:
-      ?\s-\ ))
-  (exwm-input-global-keys
-    `(([?\s-K] . windmove-swap-states-up)
-    ([?\s-k] . windmove-up)
-    ([?\s-L] . windmove-swap-states-right)
-    ([?\s-l] . windmove-right)
-    ([?\s-J] . windmove-swap-states-down)
-    ([?\s-j] . windmove-down)
-    ([?\s-H] . windmove-swap-states-left)
-    ([?\s-h] . windmove-left)
-    ([?\s-r] . exwm-reset)
-    ([?\s-Q] . exwm-exit)
-    ([?\s-q] . exwm-restart)
-    ([?\s-W] . exwm-workspace-swap)
-    ([?\s-w] . exwm-workspace-switch)
-    ([?\s-D] . counsel-linux-app)
-    ([?\s-d] . (lambda (cmd)
-    (interactive (list (read-shell-command "$ ")))
-    (start-process-shell-command cmd nil cmd)))
-    ,@(mapcar (lambda (i)
-    `(,(kbd (format "s-%d" i)) .
-        (lambda ()
-        (interactive)
-        (exwm-workspace-switch-create ,i))))
-    (number-sequence 0 9)))))
-
-#+END_SRC
-
-**** ~c4/desktop-randr~
-
-This submodule configures EXWM for multi-monitor use.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-
-(defun c4/desktop-randr ()
-  (require 'exwm-randr)
-  (exwm-randr-enable)
-  (start-process-shell-command "xrandr" nil
-    (concat user-emacs-directory "desktop/multihead.sh")))
-
-#+END_SRC
-
-**** ~c4/desktop-systray~
-
-This submodule configures the EXWM system tray. Right now, it does have some bugs.
-
-For example, the system tray doesn't always load up.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-
-(defun c4/desktop-systray ()
-  (require 'exwm-systemtray)
-  (exwm-systemtray-enable))
-
-(provide 'desktop)
 #+END_SRC
