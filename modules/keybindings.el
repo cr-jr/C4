@@ -97,11 +97,25 @@
   (c4/leader-key-def
     "c" '(:ignore t :which-key "C4 config")
     "cc" '(c4/open-config :which-key "open")
+    "cd" '(:ignore t :which-key "debug")
+    "cdd" '(c4/esup-init :which-key "startup")
+    "cde" '(c4/bug-hunter-init :which-key "errors")
+    "cdp" '(explain-pause-top :which-key "processes")
     "cr" '(c4/reload-config :which-key "reload")
     "ce" '(:ignore t :which-key "eval")
     "cee" '(eval-last-sexp :which-key "S-exp")
     "ced" '(eval-defun :which-key "defun")
     "cer" '(eval-region :which-key "region")))
+
+(defun c4/esup-init ()
+  "Profiles the correct init file"
+  (interactive)
+  (esup (concat user-emacs-directory "init.el")))
+
+(defun c4/bug-hunter-init ()
+  "Debugs the correct init file"
+  (interactive)
+  (bug-hunter-file (concat user-emacs-directory "C4.el")))
 
 (defun c4/open-config ()
   "Open files in config directory."
@@ -111,7 +125,7 @@
 (defun c4/reload-config ()
   "Reloads the config in place."
   (interactive)
-  (load-file (concat user-emacs-directory "init.el")))
+  (load-file (concat user-emacs-directory "C4.el")))
 
 (defun c4/key-def-file ()
   (c4/leader-key-def

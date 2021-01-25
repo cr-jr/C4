@@ -22,7 +22,7 @@ included functionality doesn't add value to my workflow, it's gone. Like that.
 
   C4 is a module-based configuration, so the very first thing it does is load in its own modules.
 
-#+BEGIN_SRC emacs-lisp :tangle "./early-init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 (require 'cl-lib)
 
 (require 'preamble
@@ -48,6 +48,16 @@ included functionality doesn't add value to my workflow, it's gone. Like that.
 The =preamble.el= module contains a few defaults and performance optimizations that should be done
 before anything else happens.
 
+The relevant block to configure in =C4.el=:
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+  (c4/perf)
+  (c4/housekeeping)
+  (c4/debugger)
+
+#+END_SRC
+
+
 *** ~c4/perf~
 
 The first optimization involves increasing the Emacs garbage collection threshold to 100MB on
@@ -64,36 +74,6 @@ the threshold back to its approximate initial state.
 
   ;; Drop it down once loaded
   (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000))))
-#+END_SRC
-
-*** ~c4/packages-setup~
-
-Next, we handle all package management with [[https://github.com/raxod502/straight.el][straight.el]] and package configuration with
-[[https://github.com/jwiegley/use-package][use-package]]. This configuration *does not use package.el at all*.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/preamble.el"
-
-(defun c4/packages-setup ()
-  "Initializes package management with straight.el & use-package."
-  ;; Initialize straight.el for package management
-  (setq straight-repository-branch "develop")
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-        (with-current-buffer
-            (url-retrieve-synchronously
-            "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-            'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-
-  ;; use-package integration
-  (straight-use-package 'use-package)
-  (setq straight-use-package-by-default t))
-
 #+END_SRC
 
 *** ~c4/housekeeping~
@@ -140,16 +120,32 @@ instead of dropping them wherever.
                           parent-directory)))
       (make-directory parent-directory t))))
 
-(provide 'preamble)
 #+END_SRC
 
-And then we call the module functions in our =init.el=.
+*** ~c4/debugger~
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
-(c4/perf)
-(c4/packages-setup)
-(c4/housekeeping)
+I can't claim a priority of performance without tools to debug and benchmark startup and init errors.
 
+Luckily, Emacs provides a collection of packages and libraries for diagnostics and perf.
+
+Packages in use:
+
++ [[https://github.com/jschaf/esup][ESUP]]: allows benchmarking of startup time from within Emacs
++ [[https://github.com/Malabarba/elisp-bug-hunter][elisp-bug-hunter]]: debug and bisect init file
++ [[https://github.com/lastquestion/explain-pause-mode][explain-pause-mode]]: an Emacs process observer
+
+#+BEGIN_SRC emacs-lisp :tangle "./modules/preamble.el"
+
+(defun c4/debugger ()
+  "Debugging utilities to ensure optimimal performance."
+  (use-package esup)
+  (use-package bug-hunter)
+  (use-package explain-pause-mode
+    :diminish
+    :config
+    (explain-pause-mode)))
+
+(provide 'preamble)
 #+END_SRC
 
 ** Base
@@ -174,9 +170,9 @@ This function sets the user identity.
 
 #+END_SRC
 
-And it's used in =init.el= like so:
+And it's used in =C4.el= like so:
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/user
   :name "Chatman R. Jr"
@@ -186,7 +182,7 @@ And it's used in =init.el= like so:
 
 *** ~c4/base~
 
-This module is exposed to our =init.el= to create our settings for the base look and feel and also
+This module is exposed to our =C4.el= to create our settings for the base look and feel and also
 some essential functionality. It's composed of the =ui= and =ux= modules that follow below.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
@@ -195,9 +191,9 @@ some essential functionality. It's composed of the =ui= and =ux= modules that fo
   (c4/ux))
 #+END_SRC
 
-We assemble it in our =init.el= like this:
+We assemble it in our =C4.el= like this:
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/base
   :theme 'minimal-light
@@ -476,9 +472,9 @@ The keybindings are exposed via a top level module. It's composed of three submo
 
 #+END_SRC
 
-And then it's served in our =init.el=.
+And then it's served in our =C4.el=.
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/keybindings)
 
@@ -650,11 +646,25 @@ configuration. Additionally, there are bindings for evaluating an expression, re
   (c4/leader-key-def
     "c" '(:ignore t :which-key "C4 config")
     "cc" '(c4/open-config :which-key "open")
+    "cd" '(:ignore t :which-key "debug")
+    "cdd" '(c4/esup-init :which-key "startup")
+    "cde" '(c4/bug-hunter-init :which-key "errors")
+    "cdp" '(explain-pause-top :which-key "processes")
     "cr" '(c4/reload-config :which-key "reload")
     "ce" '(:ignore t :which-key "eval")
     "cee" '(eval-last-sexp :which-key "S-exp")
     "ced" '(eval-defun :which-key "defun")
     "cer" '(eval-region :which-key "region")))
+
+(defun c4/esup-init ()
+  "Profiles the correct init file"
+  (interactive)
+  (esup (concat user-emacs-directory "init.el")))
+
+(defun c4/bug-hunter-init ()
+  "Debugs the correct init file"
+  (interactive)
+  (bug-hunter-file (concat user-emacs-directory "C4.el")))
 
 (defun c4/open-config ()
   "Open files in config directory."
@@ -664,7 +674,7 @@ configuration. Additionally, there are bindings for evaluating an expression, re
 (defun c4/reload-config ()
   "Reloads the config in place."
   (interactive)
-  (load-file (concat user-emacs-directory "init.el")))
+  (load-file (concat user-emacs-directory "C4.el")))
 
 #+END_SRC
 
@@ -887,9 +897,9 @@ evaluates the ~c4/git~ submodule with your GitHub =username=.
 
 #+END_SRC
 
-And then in =init.el=:
+And then in =C4.el=:
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/projects
   :path "~/Workbench"
@@ -945,24 +955,71 @@ only includes basic setup and will be expanded on as I work through Emacs from S
 
 *** ~c4/code~
 
-This is the top-level setting for working with code. For now, it's skeletal and only provides the
-[[https://github.com/Fanael/rainbow-delimiters][rainbow-delimiters]] package for all programming modes.
+This is the top-level module for working with code.  It wraps the below submodules for exposure to =C4.el=.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/code.el"
-(defun c4/code ()
-  (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode)))
+  (defun c4/code ()
+    (c4/code-init))
 
-(provide 'code)
 #+END_SRC
 
-Now, in =init.el=:
+Now, in =C4.el=:
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/code)
 
 #+END_SRC
+
+**** ~c4/code-init~
+
+This submodule configures the base, essential packages for configuring the programming flow.
+
+The big ones are:
+
++ [[https://github.com/Fanael/rainbow-delimiters][rainbow-delimiters]]
++ [[https://github.com/company-mode/company-mode][company-mode]]
++ [[https://github.com/flycheck/flycheck][flycheck]]
++ [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]
++ [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]]
+
+#+BEGIN_SRC emacs-lisp :tangle "./modules/code.el"
+
+(defun c4/code-init ()
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+
+  (use-package company
+    :diminish
+    :hook (prog-mode . company-mode))
+
+  (use-package company-box
+    :diminish
+    :hook (company-mode . company-box-mode))
+
+  (use-package flycheck
+    :diminish
+    :hook (prog-mode . flycheck-mode))
+
+  (use-package lsp-mode
+    :diminish
+    :hook (prog-mode . lsp-deferred)
+    :commands (lsp lsp-deferred))
+
+  (use-package lsp-ui
+    :after lsp-mode
+    :commands lsp-ui-mode)
+
+  (use-package lsp-ivy
+    :after lsp-mode
+    :commands lsp-ivy-workspace-symbol))
+
+(provide 'code)
+#+END_SRC
+
+**** ~c4/lang-js~
+
+This submodule
 
 ** Documents
 
@@ -970,15 +1027,19 @@ The =documents.el= module configures settings and functionality for document mod
 primary focus is [[https://orgmode.org][Org Mode]] and configuring it for technical documentation, note-taking, journaling, and
 literate programming.
 
+#+BEGIN_QUOTE
+It's important to note: Org Mode is the first package installed, so the =use-package=
+block in this module merely configures it.
+#+END_QUOTE
+
 *** ~c4/org~
 
 This is a top-level module exposed by =documents.el= It wraps all of the submodule Org Mode settings
-under a common interface for =init.el=.
+under a common interface for =C4.el=.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
   (cl-defun c4/org (&key path)
     (use-package org
-      :straight org-plus-contrib
       :init
       (setq org-ellipsis " ↴")
       (setq org-directory path)
@@ -993,9 +1054,9 @@ under a common interface for =init.el=.
 
 #+END_SRC
 
-Now, we call in it =init.el=.
+Now, we call in it =C4.el=.
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/org :path "~/Org")
 
@@ -1336,9 +1397,9 @@ submodules that are documented below.
   (provide 'desktop)
 #+END_SRC
 
-Finally, we add it to =init.el=.
+Finally, we add it to =C4.el=.
 
-#+BEGIN_SRC emacs-lisp :tangle "./init.el"
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
 
 (c4/desktop)
 #+END_SRC

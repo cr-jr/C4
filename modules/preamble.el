@@ -8,27 +8,6 @@
   ;; Drop it down once loaded
   (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000))))
 
-(defun c4/packages-setup ()
-  "Initializes package management with straight.el & use-package."
-  ;; Initialize straight.el for package management
-  (setq straight-repository-branch "develop")
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-        (with-current-buffer
-            (url-retrieve-synchronously
-            "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-            'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-
-  ;; use-package integration
-  (straight-use-package 'use-package)
-  (setq straight-use-package-by-default t))
-
 (defun c4/housekeeping ()
   "A helper for should-be-defaults"
   ;; Lockfiles do more harm than good
@@ -57,5 +36,14 @@
                           "Directory `%s' does not exist! Create it?"
                           parent-directory)))
       (make-directory parent-directory t))))
+
+(defun c4/debugger ()
+  "Debugging utilities to ensure optimimal performance."
+  (use-package esup)
+  (use-package bug-hunter)
+  (use-package explain-pause-mode
+    :diminish
+    :config
+    (explain-pause-mode)))
 
 (provide 'preamble)

@@ -9,6 +9,10 @@
     :diminish
     :hook (prog-mode . company-mode))
 
+  (use-package company-box
+    :diminish
+    :hook (company-mode . company-box-mode))
+
   (use-package flycheck
     :diminish
     :hook (prog-mode . flycheck-mode))

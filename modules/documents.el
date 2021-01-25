@@ -1,6 +1,5 @@
 (cl-defun c4/org (&key path)
   (use-package org
-    :straight org-plus-contrib
     :init
     (setq org-ellipsis " ↴")
     (setq org-directory path)
