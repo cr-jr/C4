@@ -107,15 +107,18 @@
     "ced" '(eval-defun :which-key "defun")
     "cer" '(eval-region :which-key "region")))
 
+(defun c4/generated-conf ()
+  (concat user-emacs-directory "C4.el"))
+
 (defun c4/esup-init ()
   "Profiles the correct init file"
   (interactive)
-  (esup (concat user-emacs-directory "init.el")))
+  (esup (c4/generated-conf)))
 
 (defun c4/bug-hunter-init ()
   "Debugs the correct init file"
   (interactive)
-  (bug-hunter-file (concat user-emacs-directory "C4.el")))
+  (bug-hunter-file (c4/generated-conf)))
 
 (defun c4/open-config ()
   "Open files in config directory."
@@ -125,7 +128,7 @@
 (defun c4/reload-config ()
   "Reloads the config in place."
   (interactive)
-  (load-file (concat user-emacs-directory "C4.el")))
+  (load-file (c4/generated-conf)))
 
 (defun c4/key-def-file ()
   (c4/leader-key-def

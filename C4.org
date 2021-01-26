@@ -10,19 +10,66 @@
 This configuration builds off my experience with [[https://github.com/hlissner/doom-emacs][Doom Emacs]], and is heavily informed by code from
 the [[https://github.com/daviwil/emacs-from-scratch][Emacs from Scratch project]]. It's my personal configuration/Emacs Lisp study reference as I learn.
 
-C4 is a middle ground between vanilla Emacs (which isn't all that useful for me by itself) and whole
-batteries-included frameworks and distributions (such as Doom Emacs and Spacemacs).
+C4's complexity resides somewhere between vanilla Emacs and a full-fledged distribution like
+Spacemacs or configuration framework like Doom Emacs.
 
 It does just enough.
 
 C4 is based on my real day to day needs and prioritizes ease, convenience and performance. If any
 included functionality doesn't add value to my workflow, it's gone. Like that.
 
+
 * Initialization
 
-  C4 is a module-based configuration, so the very first thing it does is load in its own modules.
+C4 requires straight.el and use-package, so that gets loaded in first.
 
 #+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+;;; Setup straight-el with use-package
+(setq straight-repository-branch "develop")
+(defvar bootstrap-version)
+(let ((bootstrap-file
+      (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+          'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; use-package integration
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+
+#+END_SRC
+
+After package setup, we need to load in Org Mode to trigger our configuration as well as
+rebuild it on save.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+;;; Need Org Mode to be first package installed because it builds the config.
+(use-package org
+  :straight org-plus-contrib)
+
+  (defun c4/config-init ()
+    (org-babel-tangle-file
+      (concat user-emacs-directory "C4.org")
+      (concat user-emacs-directory "C4.el")))
+
+  (c4/config-init)
+
+  ;; Setup a hook to re-tangle the config on modification.
+  (add-hook 'org-mode-hook
+    (lambda () (add-hook 'after-save-hook #'c4/config-init)))
+#+END_SRC
+
+C4 is a module-based configuration, so now we load those.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
 (require 'cl-lib)
 
 (require 'preamble
@@ -39,24 +86,26 @@ included functionality doesn't add value to my workflow, it's gone. Like that.
           (concat user-emacs-directory "modules/documents.el"))
 (require 'desktop
           (concat user-emacs-directory "modules/desktop.el"))
+
 #+END_SRC
+
 
 * Modules
 
 ** Preamble
 
-The =preamble.el= module contains a few defaults and performance optimizations that should be done
-before anything else happens.
-
-The relevant block to configure in =C4.el=:
+The =preamble.el= module does some startup optimizations and housekeeping to keep the
+Emacs directory free of clutter.
 
 #+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-  (c4/perf)
-  (c4/housekeeping)
-  (c4/debugger)
+
+(c4/perf)
+(c4/housekeeping)
+(c4/debugger)
 
 #+END_SRC
 
+Now we'll explore what the functions actually do.
 
 *** ~c4/perf~
 
@@ -75,6 +124,7 @@ the threshold back to its approximate initial state.
   ;; Drop it down once loaded
   (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000))))
 #+END_SRC
+
 
 *** ~c4/housekeeping~
 
@@ -122,6 +172,7 @@ instead of dropping them wherever.
 
 #+END_SRC
 
+
 *** ~c4/debugger~
 
 I can't claim a priority of performance without tools to debug and benchmark startup and init errors.
@@ -148,15 +199,35 @@ Packages in use:
 (provide 'preamble)
 #+END_SRC
 
+
 ** Base
 
-The =base.el= module sets the /baseline/ experience that C4 is intended to provide without any of
-its other enhancements. This includes:
+The =base.el= module sets the /baseline/ experience that C4 is intended to provide without any of its other enhancements. This includes:
 
 + setting the user
 + setting the theme
 + setting the typography (code and document)
++ sensible UI enhancements
 + essential UX enhancements
+
+The following block configures the settings for the base module.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+  (c4/user
+    :name "Chatman R. Jr"
+    :email "crjr.code@protonmail.com")
+
+  (c4/base
+    :theme 'minimal-light
+    :typography
+    (c4/typography
+      :code '("Input" 13)
+      :document '("Lora" 16)))
+
+#+END_SRC
+
+You can take a closer look at the module's inclusions below.
 
 *** ~c4/user~
 
@@ -170,20 +241,11 @@ This function sets the user identity.
 
 #+END_SRC
 
-And it's used in =C4.el= like so:
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/user
-  :name "Chatman R. Jr"
-  :email "crjr.code@protonmail.com")
-
-#+END_SRC
 
 *** ~c4/base~
 
-This module is exposed to our =C4.el= to create our settings for the base look and feel and also
-some essential functionality. It's composed of the =ui= and =ux= modules that follow below.
+This module is exposed to our =C4.el= to create our settings for the base look and feel and
+also some essential functionality. It's composed of the =ui= and =ux= modules that follow below.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
 (cl-defun c4/base (&key theme typography)
@@ -191,23 +253,13 @@ some essential functionality. It's composed of the =ui= and =ux= modules that fo
   (c4/ux))
 #+END_SRC
 
-We assemble it in our =C4.el= like this:
+Let's have a closer look at those subroutines.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+**** ~c4/ui~
 
-(c4/base
-  :theme 'minimal-light
-  :typography
-  (c4/typography
-    :code '("Input" 13)
-    :document '("Lora" 16)))
-
-#+END_SRC
-
-*** ~c4/ui~
-
-Now, we set the base UI. It accepts a theme and typography settings from the submodules documented
-below.  It also sets basic options that go a long way toward making the Emacs UI look halfway decent.
+Now, we set the base UI. It accepts a theme and typography settings from the submodules
+documented below.  It also sets basic options that go a long way toward making the
+Emacs UI look halfway decent.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
 
@@ -253,12 +305,13 @@ below.  It also sets basic options that go a long way toward making the Emacs UI
 
 #+END_SRC
 
-This is a good time to mention that C4 also contains internal modules for composing functionality
-across its main modules. These submodules can be swapped in and out as needed without issue.
+This is a good time to mention that C4 also contains internal modules for composing
+functionality across its main modules. These submodules can be swapped in and out as
+needed without issue.
 
 The UI base uses =c4/theme= and =c4/typography= submodules. Which I'll explain now.
 
-**** ~c4/theme~
+***** ~c4/theme~
 
 The theme submodule sets up the mode line with [[https://github.com/Malabarba/smart-mode-line][the smart-mode-line package]]. I know a lot of
 configurations swear by the Doom Emacs mode line, but I wanted something lighter.
@@ -304,7 +357,7 @@ The last thing it does is disable the fringe background for that extra bit of cr
 #+END_SRC
 
 
-**** ~c4/typography~
+***** ~c4/typography~
 
 This submodule defines typography settings for the UI. It allows you to set the fixed pitch (which
 is also the default font) as well as the variable pitch (for Org and other document modes).
@@ -322,7 +375,8 @@ is also the default font) as well as the variable pitch (for Org and other docum
 
 #+END_SRC
 
-*** ~c4/ux~
+
+**** ~c4/ux~
 
 The base UX module that sets some defaults to prevent Emacs from getting on your nerves before your
 really start appreciating it. This includes:
@@ -383,7 +437,7 @@ really start appreciating it. This includes:
 
 #+END_SRC
 
-**** ~c4/lookup~
+***** ~c4/lookup~
 
 The UX base includes a single submodule for defining valuable search and sorting functionality using
 the [[https://github.com/abo-abo/swiper][ivy ecosystem]] of packages. These include:
@@ -449,6 +503,7 @@ the [[https://github.com/abo-abo/swiper][ivy ecosystem]] of packages. These incl
 (provide 'base)
 #+END_SRC
 
+
 ** Keybindings
 
 C4 takes a lot of inspiration from Doom and Spacemacs for its keybindings. For one, it's [[https://github.com/emacs-evil/evil][evil to the
@@ -460,6 +515,14 @@ That said, I do have my own ideas toward that end which won't necessarily requir
 very much just inklings at the moment.
 #+END_QUOTE
 
+To use the keybindings, it's necessary to load them in.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+(c4/keybindings)
+
+#+END_SRC
+
 *** ~c4/keybindings~
 
 The keybindings are exposed via a top level module. It's composed of three submodules.
@@ -469,14 +532,6 @@ The keybindings are exposed via a top level module. It's composed of three submo
   (c4/evil)
   (c4/transient)
   (c4/mnemonics))
-
-#+END_SRC
-
-And then it's served in our =C4.el=.
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/keybindings)
 
 #+END_SRC
 
@@ -518,6 +573,7 @@ This submodule does the necessary work of corrupting Emacs for Vim incantatation
 
 #+END_SRC
 
+
 **** ~c4/transient~
 
 Transient keybindings are like interactive minor modes. They set a context within which only certain
@@ -549,6 +605,7 @@ This functionality is enabled through the [[https://github.com/abo-abo/hydra][hy
       ("RET" nil "exit" :exit t))))
 
 #+END_SRC
+
 
 **** ~c4/mnemonics~
 
@@ -586,8 +643,6 @@ Packages in use:
 
 #+END_SRC
 
-C4 defines the following mnemonics:
-
 Now let's break down each domain.
 
 ***** ~c4/key-def-global~ (=SPC-=)
@@ -604,6 +659,7 @@ Example: =SPC-'= opens a fresh terminal.
     "SPC" '(universal-argument :which-key "command modifier")))
 
 #+END_SRC
+
 
 ***** ~c4/key-def-buffer~ (=SPC-b=)
 
@@ -635,6 +691,7 @@ narrowing buffers.
 
 #+END_SRC
 
+
 ***** ~c4/key-def-config~ (=SPC-c=)
 
 These keybindings wrap commands relevant to C4 configuration such as opening or reloading
@@ -656,15 +713,18 @@ configuration. Additionally, there are bindings for evaluating an expression, re
     "ced" '(eval-defun :which-key "defun")
     "cer" '(eval-region :which-key "region")))
 
+(defun c4/generated-conf ()
+  (concat user-emacs-directory "C4.el"))
+
 (defun c4/esup-init ()
   "Profiles the correct init file"
   (interactive)
-  (esup (concat user-emacs-directory "init.el")))
+  (esup (c4/generated-conf)))
 
 (defun c4/bug-hunter-init ()
   "Debugs the correct init file"
   (interactive)
-  (bug-hunter-file (concat user-emacs-directory "C4.el")))
+  (bug-hunter-file (c4/generated-conf)))
 
 (defun c4/open-config ()
   "Open files in config directory."
@@ -674,9 +734,10 @@ configuration. Additionally, there are bindings for evaluating an expression, re
 (defun c4/reload-config ()
   "Reloads the config in place."
   (interactive)
-  (load-file (concat user-emacs-directory "C4.el")))
+  (load-file (c4/generated-conf)))
 
 #+END_SRC
+
 
 ***** ~c4/key-def-file~ (=SPC-f=)
 
@@ -690,6 +751,7 @@ These keybindings wrap commands for file operations. Currently only includes fil
     "ff" '(counsel-find-file :which-key "find")))
 
 #+END_SRC
+
 
 ***** ~c4/key-def-help~ (=SPC-h=)
 
@@ -712,6 +774,7 @@ These keybindings wrap commands for the help documentation and Emacs manual.
     "hmm" '(info-emacs-manual :which-key "emacs")))
 
 #+END_SRC
+
 
 ***** ~c4/key-def-org~ (=SPC-o=)
 
@@ -750,6 +813,7 @@ and provide Org buffer functionality like capturing and refiling.
     "ost" '(org-babel-tangle :which-key "tangle")))
 
 #+END_SRC
+
 
 ***** ~c4/key-def-project~ (=SPC-p=)
 
@@ -794,6 +858,7 @@ later in this file.
 
 #+END_SRC
 
+
 ***** ~c4/key-def-session~ (=SPC-q=)
 
 These keybindings wrap commands that affect your Emacs session.
@@ -810,6 +875,7 @@ For now, it includes bindings for closing Emacs with and without saving.
 
 #+END_SRC
 
+
 ***** ~c4/key-def-toggle~ (=SPC-t=)
 
 These keybindings wrap interface toggles and on-the-fly UI modifications.
@@ -825,6 +891,7 @@ For now, you can change your theme and scale the text via a transient binding.
     "ts" '(hydra-text-scale/body :which-key "scale text")))
 
 #+END_SRC
+
 
 ***** ~c4/key-def-window~ (=SPC-w=)
 
@@ -867,9 +934,20 @@ setting and regenerate the config.
   (provide 'keybindings)
 #+END_SRC
 
+
 ** Projects
 
 The =projects.el= module configures C4 for my Git/GitHub project workflows.
+
+As with the others, to use it, you'll need to load it.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+(c4/projects
+  :path "~/Workbench"
+  :username "cr-jr")
+
+#+END_SRC
 
 It's pretty straightforward.
 
@@ -897,15 +975,7 @@ evaluates the ~c4/git~ submodule with your GitHub =username=.
 
 #+END_SRC
 
-And then in =C4.el=:
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/projects
-  :path "~/Workbench"
-  :username "cr-jr")
-
-#+END_SRC
+It has a single submodule for Git configuration you'll want to have a look at.
 
 *** ~c4/git~
 
@@ -948,14 +1018,26 @@ Be aware that you *will need* a GitHub account along with a personal access toke
 (provide 'projects)
 #+END_SRC
 
+
 ** Code
 
-The =code.el= module contains configuration and functionality for your programming needs. Right now, it
-only includes basic setup and will be expanded on as I work through Emacs from Scratch.
+The =code.el= module contains configuration and functionality for your programming needs.
 
-*** ~c4/code~
+The main module sets up packages for programming modes in general and a rich Emacs Lisp editing
+experience besides.
 
-This is the top-level module for working with code.  It wraps the below submodules for exposure to =C4.el=.
+You'll also want to include your desired language modules for your main programming projects.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+(c4/code)
+
+#+END_SRC
+
+*** Setup
+
+This module works by including by setting the initial programming experience in a submodule and then
+conditionally loading in rich language functionality.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/code.el"
   (defun c4/code ()
@@ -963,13 +1045,6 @@ This is the top-level module for working with code.  It wraps the below submodul
 
 #+END_SRC
 
-Now, in =C4.el=:
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/code)
-
-#+END_SRC
 
 **** ~c4/code-init~
 
@@ -1017,9 +1092,9 @@ The big ones are:
 (provide 'code)
 #+END_SRC
 
-**** ~c4/lang-js~
 
-This submodule
+*** Languages
+
 
 ** Documents
 
@@ -1027,10 +1102,13 @@ The =documents.el= module configures settings and functionality for document mod
 primary focus is [[https://orgmode.org][Org Mode]] and configuring it for technical documentation, note-taking, journaling, and
 literate programming.
 
-#+BEGIN_QUOTE
-It's important to note: Org Mode is the first package installed, so the =use-package=
-block in this module merely configures it.
-#+END_QUOTE
+Make sure you load it in:
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+(c4/org :path "~/Org")
+
+#+END_SRC
 
 *** ~c4/org~
 
@@ -1051,14 +1129,6 @@ under a common interface for =C4.el=.
       (advice-add 'org-refile :after 'org-save-all-org-buffers)
       :hook
       (org-mode . c4/org-init)))
-
-#+END_SRC
-
-Now, we call in it =C4.el=.
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/org :path "~/Org")
 
 #+END_SRC
 
@@ -1085,11 +1155,12 @@ Packages in use:
   (use-package visual-fill-column
     :defer t
     :custom
-    (visual-fill-column-width 100)
+    (visual-fill-column-width 108)
     (visual-fill-column-center-text t)
     :hook (org-mode . visual-fill-column-mode)))
 
 #+END_SRC
+
 
 **** ~c4/org-theme~
 
@@ -1132,6 +1203,7 @@ Packages in use:
       '("§" "☙" "჻" " " " " " " " "))))
 
 #+END_SRC
+
 
 **** ~c4/org-agenda~
 
@@ -1211,6 +1283,7 @@ This submodule sets up the Org agenda flow for creating task lists and project p
 
 #+END_SRC
 
+
 **** ~c4/org-templates~
 
 This submodule sets up Org capture templates for scaffolding a new task and other TBD templating
@@ -1225,6 +1298,7 @@ needs.
           "* TODO %?\n %U\n %a\n %i" :empty-lines 1))))
 
 #+END_SRC
+
 
 **** ~c4/org-babel~
 
@@ -1245,6 +1319,7 @@ allow for a literate programming workflow.
 
 (provide 'documents)
 #+END_SRC
+
 
 ** Desktop
 
@@ -1306,7 +1381,15 @@ I also use software (ARandR) to configure my multi-monitor setup.
 xrandr --output LVDS --primary --mode 1366x768 --pos 241x1080 --rotate normal --output VGA-0 --off --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal
 #+END_SRC
 
-*** ~c4/desktop~
+Finally, I need to load in the main desktop package.
+
+#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+
+(c4/desktop)
+#+END_SRC
+
+
+*** Configuration
 
 This is the top level module that =desktop.el= exposes. It wraps all the desktop definition
 submodules that are documented below.
@@ -1395,11 +1478,4 @@ submodules that are documented below.
       (exwm-workspace-rename-buffer exwm-class-name))
 
   (provide 'desktop)
-#+END_SRC
-
-Finally, we add it to =C4.el=.
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/desktop)
 #+END_SRC
