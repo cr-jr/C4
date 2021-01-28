@@ -3,203 +3,710 @@
 #+AUTHOR: Chatman R. Jr
 :PROPERTIES:
 :header-args: :mkdirp yes
+:header-args:emacs-lisp: :tangle "./C4.el" :session "C4"
 :END:
 
 * Summary
 
-This configuration builds off my experience with [[https://github.com/hlissner/doom-emacs][Doom Emacs]], and is heavily informed by code from
-the [[https://github.com/daviwil/emacs-from-scratch][Emacs from Scratch project]]. It's my personal configuration/Emacs Lisp study reference as I learn.
+This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
+environment and learn how to do more with it.
 
-C4's complexity resides somewhere between vanilla Emacs and a full-fledged distribution like
-Spacemacs or configuration framework like Doom Emacs.
+C4 prioritizes ease, convenience and performance. The aesthethic and workflow are rather spartan,
+building from a base of Emacs itself instead of forcing it to be something else.
 
-It does just enough.
+This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and
+the =init.el= that loads it on startup.
 
-C4 is based on my real day to day needs and prioritizes ease, convenience and performance. If any
-included functionality doesn't add value to my workflow, it's gone. Like that.
+If something doesn't add value to my workflow, it simply isn't here.
 
+Custom variables and procedures in this config are always prefixed with =C4=.
 
 * Initialization
+** Package Management
 
-C4 requires straight.el and use-package, so that gets loaded in first.
+C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https://github.com/jwiegley/use-package][use-package]], so that gets loaded in first.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-;;; Setup straight-el with use-package
-(setq straight-repository-branch "develop")
-(defvar bootstrap-version)
-(let ((bootstrap-file
-      (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
+#+BEGIN_SRC emacs-lisp
+  ;;; Setup straight.el with use-package
+  (setq straight-repository-branch "develop")
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
       (with-current-buffer
           (url-retrieve-synchronously
-          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-          'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
 
-;; use-package integration
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
+  ;; use-package integration
+  (straight-use-package 'use-package)
+  (setq straight-use-package-by-default t)
 
 #+END_SRC
 
-After package setup, we need to load in Org Mode to trigger our configuration as well as
-rebuild it on save.
+** Building the Configuration
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+After package setup, we need to load in [[https://orgmode.org][Org Mode]] to build the configuration as well as attach a hook
+to rebuild it on save.
 
-;;; Need Org Mode to be first package installed because it builds the config.
-(use-package org
-  :straight org-plus-contrib)
+#+BEGIN_SRC emacs-lisp
 
-  (defun c4/config-init ()
+  ;;; Need Org Mode to be first package installed because it builds the config.
+  (use-package org
+    :straight org-plus-contrib)
+
+  ;; Generate C4.el from the source blocks in C4.org
+  (defun C4/init ()
     (org-babel-tangle-file
-      (concat user-emacs-directory "C4.org")
-      (concat user-emacs-directory "C4.el")))
+     (concat user-emacs-directory "C4.org")
+     (concat user-emacs-directory "C4.el")))
 
-  (c4/config-init)
+  ;; Always generate on load
+  (C4/init)
 
   ;; Setup a hook to re-tangle the config on modification.
   (add-hook 'org-mode-hook
-    (lambda () (add-hook 'after-save-hook #'c4/config-init)))
+            (lambda () (add-hook 'after-save-hook #'C4/init)))
+
 #+END_SRC
 
 C4 is a module-based configuration, so now we load those.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+#+BEGIN_SRC emacs-lisp
 
-(require 'cl-lib)
+  (require 'cl-lib)
 
-(require 'preamble
-          (concat user-emacs-directory "modules/preamble.el"))
-(require 'base
-          (concat user-emacs-directory "modules/base.el"))
-(require 'keybindings
-          (concat user-emacs-directory "modules/keybindings.el"))
-(require 'projects
-          (concat user-emacs-directory "modules/projects.el"))
-(require 'code
-          (concat user-emacs-directory "modules/code.el"))
-(require 'documents
-          (concat user-emacs-directory "modules/documents.el"))
-(require 'desktop
-          (concat user-emacs-directory "modules/desktop.el"))
+  (require 'base
+           (concat user-emacs-directory "modules/base.el"))
+  (require 'projects
+           (concat user-emacs-directory "modules/projects.el"))
+  (require 'code
+           (concat user-emacs-directory "modules/code.el"))
+  (require 'documents
+           (concat user-emacs-directory "modules/documents.el"))
+  (require 'desktop
+           (concat user-emacs-directory "modules/desktop.el"))
 
 #+END_SRC
 
+** Startup Performance
+*** Garbage collection
 
-* Modules
-
-** Preamble
-
-The =preamble.el= module does some startup optimizations and housekeeping to keep the
-Emacs directory free of clutter.
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/perf)
-(c4/housekeeping)
-(c4/debugger)
-
-#+END_SRC
-
-Now we'll explore what the functions actually do.
-
-*** ~c4/perf~
-
-The first optimization involves increasing the Emacs garbage collection threshold to 100MB on
+The first optimization involves increasing the Emacs garbage collection threshold to =100MB= on
 startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
 the threshold back to its approximate initial state.
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/preamble.el"
-(defun c4/perf ()
-  "Handles performance optimizations"
+#+BEGIN_SRC emacs-lisp
 
   ;; Raise the garbage collection threshold high as emacs starts
   (setq gc-cons-threshold 100000000)
   (setq read-process-output-max (* 1024 1024))
 
   ;; Drop it down once loaded
-  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000))))
+  (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
+
 #+END_SRC
 
+** Housekeeping
 
-*** ~c4/housekeeping~
+Now I want to do some decluttering. Emacs has a way of operating with files that can leave a lot of
+crap behind in my filesystem, so I needed to do a little cleanup and ordering of where and if it
+generates temporary files and directories.
 
-Finally, we set a few helpful variables to inhibit lockfiles. I also disable custom files simply
-because I prefer doing all of my configuration in Emacs-Lisp. Next, I add a hook to delete trailing
-whitespace in my files.
+*** Inhibit lockfiles and custom files
 
-There's a helper function to tell Emacs to create directories that don't exist on the filesystem for
-convenience. And last but not least, [[https://github.com/emacscollective/no-littering][no-littering]] helps keep the configuration files separate from
-files that Emacs may create via its packages.
+My experience with lockfiles is that they add a lot of noise to my directories and projects, so I'm
+just going to disable them entirely. The same goes for custom files, because I prefer to do all of
+my customizations with Emacs Lisp.
 
-In addition, it tells Emacs to keep all autosaves (which can help in a pinch) in their own directory
-instead of dropping them wherever.
+#+BEGIN_SRC emacs-lisp
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/preamble.el"
-
-(defun c4/housekeeping ()
-  "A helper for should-be-defaults"
   ;; Lockfiles do more harm than good
   (setq create-lockfiles nil)
 
   ;; Custom files just add clutter
   (setq custom-file null-device)
 
-  (add-hook 'before-save-hook
-    'delete-trailing-whitespace)    ; Delete trailing whitespace on save
+#+END_SRC
+
+*** no-littering
+
+no-littering is a great package that ensures files and directories generated by Emacs or its
+packages are allocated to their proper places. The killer feature is how it allows you to set a
+central directory for all autosaved files.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; Put temporary and data files in proper locations
+  (use-package no-littering
+    :custom
+    (auto-save-file-name-transforms
+     `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+
+#+END_SRC
+
+*** Create parent directories automatically
+
+One great thing about Emacs is that I can manage my ideas and work as they come. I streamline this
+by telling Emacs to automatically create directories that don't exist for new files. This allows me
+to build the file structure for my projects on the fly.
+
+#+BEGIN_SRC emacs-lisp
 
   ;; Create parent dirs when opening new files
-  (add-to-list 'find-file-not-found-functions #'c4/create-parent-on-file-find)
+  (add-to-list 'find-file-not-found-functions #'C4/create-parent)
 
-  ;; I really don't like clutter. Really :P
-  (use-package no-littering
-  :custom
-  (auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))))
-
-(defun c4/create-parent-on-file-find ()
-  "Ensures that the parent dirs are created for a nonexistent file."
-  (let ((parent-directory (file-name-directory buffer-file-name)))
-    (when (and (not (file-exists-p parent-directory))
-                (y-or-n-p (format
-                          "Directory `%s' does not exist! Create it?"
-                          parent-directory)))
-      (make-directory parent-directory t))))
+  (defun C4/create-parent ()
+    "Ensures that the parent dirs are created for a nonexistent file."
+    (let ((parent-directory (file-name-directory buffer-file-name)))
+      (when (and (not (file-exists-p parent-directory))
+                 (y-or-n-p (format
+                            "Directory `%s' does not exist! Create it?"
+                            parent-directory)))
+        (make-directory parent-directory t))))
 
 #+END_SRC
 
+*** whitespace-cleanup-mode
 
-*** ~c4/debugger~
+whitespace-cleanup-mode is a package that intelligently checks files for errant whitespace and
+cleans it up before saving. By default, C4 enables this behavior globally.
 
-I can't claim a priority of performance without tools to debug and benchmark startup and init errors.
+Some modes can be set to disable this behavior as exceptions.
 
-Luckily, Emacs provides a collection of packages and libraries for diagnostics and perf.
+#+BEGIN_SRC emacs-lisp
 
-Packages in use:
-
-+ [[https://github.com/jschaf/esup][ESUP]]: allows benchmarking of startup time from within Emacs
-+ [[https://github.com/Malabarba/elisp-bug-hunter][elisp-bug-hunter]]: debug and bisect init file
-+ [[https://github.com/lastquestion/explain-pause-mode][explain-pause-mode]]: an Emacs process observer
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/preamble.el"
-
-(defun c4/debugger ()
-  "Debugging utilities to ensure optimimal performance."
-  (use-package esup)
-  (use-package bug-hunter)
-  (use-package explain-pause-mode
-    :diminish
+  ;;; Clean up whitespace in all major modes on save
+  (use-package whitespace-cleanup-mode
     :config
-    (explain-pause-mode)))
+    (global-whitespace-cleanup-mode t))
 
-(provide 'preamble)
 #+END_SRC
 
+** Debugging the Configuration
 
+When things break, I need ways of figuring out the problem. And without measurements, I can't make improvements.
+
+*** esup
+
+ESUP (Emacs Start Up Profiler) is an invaluable package for benchmarking how quickly Emacs loads. My
+aim: make C4 feature complete for my needs while also loading fast enough for my slightly older laptop.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Benchmark Emacs startup to debug performance
+  (use-package esup)
+
+#+END_SRC
+
+*** elisp-bug-hunter
+
+elisp-bug-hunter is a package that allows me to track down and eliminate bugs in C4 that might be
+hiding in the tall grass.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Debug init file errors
+  (use-package bug-hunter)
+
+#+END_SRC
+
+*** explain-pause-mode
+
+explain-pause-mode is like =top= (more accurately =htop=) for Emacs. It allows you see all recently
+run operations and discover which ones are making Emacs lag. This ensures tight performance carries
+over for more than just startup times.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Check running processes in Emacs for slowdowns
+  (use-package explain-pause-mode
+    :config
+    (explain-pause-mode))
+
+#+END_SRC
+
+* Utilities
+
+This configuration includes the crux package. It's way too useful not to use. Especially since I
+opted out of Vim emulation.
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package crux
+    :hook
+    (find-file . crux-reopen-as-root-mode))
+
+#+END_SRC
+
+* Keybindings
+
+This configuration sets up keybindings immediately after initialization, because it uses a non-evil
+modal setup that responds to modes in context.
+
+It does this by using:
+
++ modalka to enable a global command mode
++ hydra for definining transient mode states for complex operations
++ general.el unites the keybindings interface under global and mnemonic bindings
++ which-key allows keybinding discoverability
+
+** Rationale
+
+Emacs is slowly pushing me to think less like a Vimmer, and because of this, evil-mode feels limiting.
+
+I'm beginning to understand that major and minor modes *are already contextual* and it makes the
+most sense to define keybindings in Emacs according to which modes are /active/ in a buffer rather
+than by toggling arbitrary states.
+
+** Making bindings discoverable
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Setup which-key for keybinding discoverability
+  (use-package which-key
+    :custom
+    (which-key-idle-delay 0.96)
+    :config
+    (which-key-mode))
+
+#+END_SRC
+
+** Command Mode
+
+Command Mode is a global modal state for quickly issuing commands to Emacs via a set of mnemonic conventions.
+
+#+BEGIN_QUOTE
+If you're not using EXWM, make sure you remove that last hook.
+#+END_QUOTE
+
+*** Initialization
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Command mode initialization
+  (use-package modalka
+    :commands modalka-mode
+    :hook
+    (text-mode . modalka-mode)
+    (prog-mode . modalka-mode)
+    (exwm-mode . modalka-mode))
+
+#+END_SRC
+
+*** Setup
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Command mode setup
+  (use-package general
+    :config
+    ;; Unbind C-SPC and rebind it to toggle Command Mode
+    (global-unset-key (kbd "C-SPC"))
+    (general-def "C-SPC" 'modalka-mode)
+
+    ;; Create a global definitiion key for non-prefixed Command Mode actions
+    (general-create-definer C4/global-key-def
+      :keymaps 'modalka-mode-map)
+
+    ;; Create a mnemonic leader key under Command Mode
+    (general-create-definer C4/leader-key-def
+      :keymaps 'modalka-mode-map
+      :prefix "SPC"
+      :global-prefix [\s-SPC])
+
+    ;; Command mode universals
+    (C4/global-key-def
+      "." '(repeat :wk "repeat last command")
+      ">" '(consult-complex-command :wk "repeat command history")
+      "RET" '(modalka-mode :wk "insert text"))
+
+    ;; Command mode navigation
+    (C4/global-key-def
+      "w" '(scroll-down-command :wk "scroll up the buffer")
+      "W" '(beginning-of-buffer :wk "jump point to beginning of buffer")
+      "s" '(scroll-up-command :wk "scroll down the buffer")
+      "S" '(end-of-buffer :wk "jump point to end of buffer")
+      "a" '(beginning-of-line-text :wk "jump point to beginning of line")
+      "A" '(beginning-of-line :wk "jump point to beginning of line [absolute]")
+      "d" '(end-of-line :wk "jump point to end of line")
+      "i" '(previous-logical-line :wk "previous line")
+      "k" '(next-logical-line :wk "next line")
+      "j" '(backward-char :wk "previous char")
+      "l" '(forward-char :wk "next char")
+      "h" '(backward-word :wk "jump point to previous word")
+      ";" '(forward-word :wk "jump point to next word")))
+
+  ;;; Setup transient mode-ish states
+  (use-package hydra)
+
+#+END_SRC
+
+*** Mnemonics
+
+The C4 mnemonic keybindings all share =SPC= as a prefix and =s-SPC= to issue these keybindings
+globally (as in X applications when using EXWM).
+
+I create a few global commands under Command Mode, and then the rest are encapsulated in domains of
+influence. The mnemonic keybinding style is heavily inspired by Doom Emacs and represent those
+commands I use all the time.
+
+Some of the commands will trigger a transient state with its own local keybindings.
+
+Now, the global commands:
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+    "'" '(vterm :wk "open terminal from current dir")
+    "SPC" '(universal-argument :wk "command modifier"))
+
+#+END_SRC
+
+Now we can open a terminal from anywhere, prefix our mnemonic commands to modify them, and
+immediately quit an errant keystroke.
+
+**** Buffer (=b=)
+
+This domain wraps all commands that affect buffers Lowercase bindings affect only the current
+buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local command.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+    "b" '(:ignore t :wk "buffer")
+    "bb" '(consult-buffer :wk "switch")
+    "bB" '(consult-buffer-other-window :wk "switch other window")
+    "bd" '(kill-current-buffer :wk "kill")
+    "bD" '(kill-some-buffers :wk "kill multiple")
+    "bn" '(:ignore t :wk "narrow")
+    "bnn" '(widen :wk "reset")
+    "bnd" '(narrow-to-defun :wk "to defun")
+    "bnp" '(narrow-to-page :wk "to page")
+    "bnr" '(narrow-to-region :wk "to region")
+    "bk" '(kill-current-buffer :wk "kill")
+    "bK" '(kill-some-buffers :wk "kill multiple")
+    "bs" '(:ignore t :wk "search")
+    "bss" '(ctrlf-forward-literal :wk "forward literal")
+    "bsS" '(ctrlf-backward-literal :wk "backward literal")
+    "bsf" '(ctrlf-forward-fuzzy :wk "forward fuzzy")
+    "bsF" '(ctrlf-backward-fuzzy :wk "backward fuzzy")
+    "bsr" '(ctrlf-forward-regexp :wk "forward regexp")
+    "bsR" '(ctrlf-backward-regexp :wk "backward regexp")
+    "bw" '(save-buffer :wk "write")
+    "bW" '(save-some-buffers :wk "write modified"))
+
+#+END_SRC
+
+**** Config (=c=)
+
+This domain wraps all commands that make it easier to work with my configuration itself. This
+includes quickly opening my config, debugging, and reloading my config.
+
+In addition, I define bindings that make it easier to evaluate expressions, defuns and regions in
+place as I try out new settings.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+   "c" '(:ignore t :wk "C4 config")
+   "cc" '(C4/open-config :wk "open")
+   "cd" '(:ignore t :wk "debug")
+   "cdd" '(C4/esup-init :wk "startup")
+   "cde" '(C4/bug-hunter-init :wk "errors")
+   "cdp" '(explain-pause-top :wk "processes")
+   "cr" '(C4/reload-config :wk "reload")
+   "ce" '(:ignore t :wk "eval")
+   "cee" '(eval-last-sexp :wk "S-exp")
+   "ceb" '(eval-buffer :wk "buffer")
+   "ced" '(eval-defun :wk "defun")
+   "cer" '(eval-region :wk "region"))
+
+  (defun C4/generated-conf ()
+    (concat user-emacs-directory "C4.el"))
+
+  (defun C4/esup-init ()
+    "Profiles the correct init file"
+    (interactive)
+    (esup (C4/generated-conf)))
+
+  (defun C4/bug-hunter-init ()
+    "Debugs the correct init file"
+    (interactive)
+    (bug-hunter-file (C4/generated-conf)))
+
+  (defun C4/open-config ()
+    "Open files in config directory."
+    (interactive)
+    (find-file (concat user-emacs-directory "C4.org")))
+
+  (defun C4/reload-config ()
+    "Reloads the config in place."
+    (interactive)
+    (load-file (C4/generated-conf)))
+
+#+END_SRC
+
+**** File (=f=)
+
+This domain wraps all commands that affect the filesystem. It includes finding and renaming files.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+    "f" '(:ignore t :wk "file")
+    "ff" '(find-file :wk "find")
+    "fr" '(crux-rename-file-and-buffer :wk "rename"))
+
+#+END_SRC
+
+**** Help (=h=)
+
+This domain wraps all commands that query Emacs for help about its functionality. It also allows me
+to quickly bring up the Emacs manual for browsing.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+   "h" '(:ignore t :wk "help")
+   "ha" '(consult-apropos :wk "apropos")
+   "hf" '(describe-function :wk "function")
+   "hF" '(describe-face :wk "face")
+   "hc" '(helpful-command :wk "command")
+   "hv" '(describe-variable :wk "variable")
+   "hk" '(helpful-key :wk "keybinding")
+   "hs" '(helpful-at-point :wk "symbol at point")
+   "hm" '(info-emacs-manual :wk "Emacs"))
+
+#+END_SRC
+
+**** Org (=o=)
+
+This domain wraps all commands that affect Org Mode. They allow me to view my agenda, schedule dates
+and deadlines for todo items, evaluate source blocks and tangle on demand.
+
+In addition, it binds some commands local to Org buffers like capturing and refiling.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+    "o" '(:ignore t :wk "org")
+    "oa" '(:ignore t :wk "agenda")
+    "oaa" '(org-agenda-list :wk "weekly")
+    "oaf" '(org-agenda :wk "full")
+    "oat" '(org-set-tags-command :wk "tags")
+    "ob" '(:ignore t :wk "buffer")
+    "obb" '(org-insert-link :wk "link")
+    "obc" '(org-capture :wk "capture")
+    "obn" '(:ignore t :wk "narrow")
+    "obnn" '(org-toggle-narrow-to-subtree :wk "subtree")
+    "obnb" '(org-narrow-to-block :wk "block")
+    "obne" '(org-narrow-to-element :wk "element")
+    "obr" '(org-refile :wk "refile")
+    "obs" '(C4/org-trek/body t :wk "search")
+    "od" '(:ignore t :wk "date")
+    "odd" '(org-deadline :wk "deadline")
+    "ods" '(org-schedule :wk "schedule")
+    "os" '(:ignore t :wk "special")
+    "oss" '(org-edit-special :wk "edit")
+    "osx" '(org-edit-src-exit :wk "exit with edits")
+    "osX" '(org-edit-src-abort :wk "exit without edits")
+    "ose" '(org-babel-execute-src-block :wk "execute")
+    "ost" '(org-babel-tangle :wk "tangle"))
+
+  (defhydra C4/org-trek (:timeout 10)
+    "A transient mode to logically traverse an Org file."
+    ("s" org-babel-next-src-block "next source block")
+    ("S" org-babel-previous-src-block "previous source block")
+    ("h" org-forward-heading-same-level "next heading at current level")
+    ("H" org-backward-heading-same-level "previous heading at current level")
+    ("v" org-next-visible-heading "next visible heading")
+    ("V" org-previous-visible-heading "previous visible heading")
+    ("RET" nil "exit" :exit t))
+
+#+END_SRC
+
+**** Project (=p=)
+
+This domain wraps all commands that affect git project management.
+
+I set it up to navigate projects, find files within my active ones, switch between them, and provide
+a powerful git interface for managing them.
+
+The dependencies:
+
++ projecile: feature rich project management for Emacs
++ magit: probably the last git workflow I'll ever need
++ forge: superior integration with Git forges (GitHub, Gitlab) to manage remote repos
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+   "p" '(:ignore t :wk "project")
+   "p'" '(projectile-run-vterm :wk "open terminal")
+   "pp" '(projectile-switch-project :wk "switch")
+   "pf" '(projectile-find-file :wk "find file")
+   "pg" '(:ignore t :wk "git")
+   "pgg" '(magit-status :wk "status")
+   "pgc" '(magit-commit :wk "commit")
+   "pgd" '(magit-diff :wk "diff")
+   "pgf" '(:ignore t :wk "forge")
+   "pgff" '(forge-pull :wk "pull")
+   "pgfF" '(forge-fork :wk "fork repo")
+   "pgfi" '(forge-list-issues :wk "issues")
+   "pgfI" '(forge-create-issue :wk "create issue")
+   "pgi" '(magit-init :wk "init")
+   "pgp" '(magit-push :wk "push")
+   "pgP" '(magit-pull :wk "pull")
+   "pgr" '(magit-remote :wk "remote")
+   "pgs" '(magit-stage :wk "stage")
+   "pgS" '(magit-stage-file :wk "stage file")
+   "ps" '(consult-ripgrep :wk "search"))
+
+#+END_SRC
+
+**** Session (=q=)
+
+This domain wraps commands that affect Emacs sessions. It allows quick management of sessions and
+workspaces.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+    "q" '(:ignore t :wk "quit")
+    "qq" '(save-buffers-kill-emacs :wk "and save")
+    "qQ" '(kill-emacs :wk "really quit"))
+
+#+END_SRC
+
+**** Toggle (=t=)
+
+This domain wraps commands that can be toggled. It allows me to switch variants of the main theme on
+the fly and scale text. It also triggers writeroom-mode in document major modes.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+    "t" '(:ignore t :wk "toggle")
+    "tt" '(C4/theme-switcher/body :wk "theme"))
+
+  (defhydra C4/theme-switcher ()
+    "Select a variant from main C4 themes"
+    ("l" C4/light "light variant")
+    ("d" C4/dark "dark variant")
+    ("b" C4/black "black variant")
+    ("RET" nil "exit" :exit t))
+
+  (defun C4/light ()
+    "Clap on!"
+    (interactive)
+    (consult-theme 'minimal-light))
+
+  (defun C4/dark ()
+    "Dimmer switch!"
+    (interactive)
+    (consult-theme 'minimal))
+
+  (defun C4/black ()
+    "Clap off!"
+    (interactive)
+    (consult-theme 'minimal-black))
+#+END_SRC
+
+**** Window (=w=)
+
+This domain wraps all commands that affect windows.
+
+Windows in Emacs can be split, moved, and closed when not needed.
+
+This marks one of the biggest differences between Vim and Emacs: windows are /views/. Buffers in
+Emacs are detached from windows and are not killed when a window closes. They persist in the
+background until called into another window.
+
+Their state is preserved.
+
+#+BEGIN_QUOTE
+C4 is built to center Emacs as the driver of my entire desktop computing experience. At this point,
+Emacs largely /is/ my workstation.
+
+So this domain includes bindings for manipulating X windows served by EXWM.
+
+If you use this configuration and find you don't want or need Emacs to be your window manager, you
+can remove the desktop bindings and the environment configuration.
+
+Everything will still work in standalone Emacs instances. If it doesn't, please submit an issue.
+#+END_QUOTE
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/leader-key-def
+   "w" '(:ignore t :wk "window")
+   "ww" '(other-window :wk "cycle windows")
+   "wc" '(delete-window :wk "close")
+   "wC" '(delete-other-windows :wk "fill frame")
+   "wd" '(:ignore t :wk "desktop")
+   "wdf" '(exwm-floating-toggle-floating :wk "floating")
+   "wdF" '(exwm-layout-toggle-fullscreen :wk "fullscreen")
+   "wdk" '(exwm-layout-toggle-keyboard :wk "keyboard mode")
+   "wdm" '(exwm-layout-toggle-mode-line :wk "mode line")
+   "wdM" '(exwm-layout-toggle-minibuffer :wk "minibuffer")
+   "wn" '(:ignore t :wk "navigator")
+   "wnn" '(C4/window-commander/body :wk "interactive")
+   "wni" '(windmove-up :wk "jump up")
+   "wnI" '(windmove-swap-states-up "swap up")
+   "wnk" '(windmove-down :wk "jump down")
+   "wnK" '(windmove-swap-states-down :wk "swap down")
+   "wnj" '(windmove-left :wk "jump left")
+   "wnJ" '(windmove-swap-states-left :wk "swap left")
+   "wnl" '(windmove-right :wk "jump right")
+   "wnL" '(windmove-swap-states-right :wk "swap right")
+   "wnw" '(windmove-display-up :wk "open next window above")
+   "wnW" '(windmove-delete-up :wk "close window above")
+   "wns" '(windmove-display-down :wk "open next window below")
+   "wnS" '(windmove-delete-down :wk "close window below")
+   "wna" '(windmove-display-left :wk "open next window left")
+   "wnA" '(windmove-delete-left :wk "close window to left")
+   "wnd" '(windmove-display-right :wk "open next window right")
+   "wnD" '(windmove-delete-right :wk "close window to right")
+   "ws" '(:ignore t :wk "split")
+   "wss" '(split-window-below :wk "horizontal")
+   "wsS" '(split-window-right :wk "vertical"))
+
+  (defhydra C4/window-commander (:timeout 10)
+    "Interactive window navigation"
+    ("SPC" other-window "cycle")
+    ("c" delete-window "close")
+    ("C" delete-other-windows "fill frame")
+    ("i" windmove-up "jump up")
+    ("I" windmove-swap-states-up "swap up")
+    ("k" windmove-down "jump down")
+    ("K" windmove-swap-states-down "swap down")
+    ("j" windmove-left "jump left")
+    ("J" windmove-swap-states-left "swap left")
+    ("l" windmove-right "jump right")
+    ("L" windmove-swap-states-right "swap right")
+    ("w" windmove-display-up "open next above")
+    ("W" windmove-delete-up "close above")
+    ("s" windmove-display-down "open next below")
+    ("S" windmove-delete-down "close below")
+    ("a" windmove-display-left "open next to left")
+    ("A" windmove-delete-left "close left")
+    ("d" windmove-display-right "open next to right")
+    ("D" windmove-delete-right "close right")
+    ("RET" nil "exit" :exit t))
+
+#+END_SRC
+
+* Defaults
+* Projects
+* Programming Modes
+* Document Modes
+* Desktop Environment
+* Modules
 ** Base
 
 The =base.el= module sets the /baseline/ experience that C4 is intended to provide without any of its other enhancements. This includes:
@@ -504,434 +1011,65 @@ the [[https://github.com/abo-abo/swiper][ivy ecosystem]] of packages. These incl
 #+END_SRC
 
 
-** Keybindings
-
-C4 takes a lot of inspiration from Doom and Spacemacs for its keybindings. For one, it's [[https://github.com/emacs-evil/evil][evil to the
-bone]]. Ergonomic keybindings and modal editing are good ideas that will save my hands and wrists in
-the long run.
-
-#+BEGIN_QUOTE
-That said, I do have my own ideas toward that end which won't necessarily require evil-mode. They are
-very much just inklings at the moment.
-#+END_QUOTE
-
-To use the keybindings, it's necessary to load them in.
-
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
-
-(c4/keybindings)
-
-#+END_SRC
-
-*** ~c4/keybindings~
-
-The keybindings are exposed via a top level module. It's composed of three submodules.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-(defun c4/keybindings ()
-  (c4/evil)
-  (c4/transient)
-  (c4/mnemonics))
-
-#+END_SRC
-
-**** ~c4/evil~
-
-This submodule does the necessary work of corrupting Emacs for Vim incantatations:
-
-+ setting up evil-mode
-+ [[https://github.com/emacs-evil/evil-collection][evil-collection]]: evil-mode community key presets for many popular Emacs packages
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/evil ()
-  (use-package evil
-    :custom
-    (evil-want-integration t)
-    (evil-want-keybinding nil)
-    (evil-want-C-u-scroll t)
-    (evil-want-C-i-jump nil)
-    :hook
-    (emacs-startup . evil-mode)
-    :config
-    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-
-    ;; Use visual line motions even outside of visual-line-mode buffers
-    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-    (evil-set-initial-state 'messages-buffer-mode 'normal)
-
-    (evil-set-initial-state 'dashboard-mode 'normal))
-
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init)))
-
-
-
-#+END_SRC
-
-
-**** ~c4/transient~
-
-Transient keybindings are like interactive minor modes. They set a context within which only certain
-keys will perform actions. A good use case for this is text scaling.
-
-This functionality is enabled through the [[https://github.com/abo-abo/hydra][hydra Emacs package]].
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/transient ()
-  (use-package hydra
-    :config
-    (defhydra hydra-org-src-find (:timeout 3)
-      "cycle through all source blocks in the current buffer"
-      ("j" org-babel-next-src-block "next")
-      ("k" org-babel-previous-src-block "previous")
-      ("RET" nil "exit" :exit t))
-
-    (defhydra hydra-org-heading-find (:timeout 3)
-      "cycle through all headings at the current level"
-      ("j" org-forward-heading-same-level "next")
-      ("k" org-backward-heading-same-level "previous")
-      ("RET" nil "exit" :exit t))
-
-    (defhydra hydra-text-scale (:timeout 4)
-      "scale text"
-      ("j" text-scale-increase "in")
-      ("k" text-scale-decrease "out")
-      ("RET" nil "exit" :exit t))))
-
-#+END_SRC
-
-
-**** ~c4/mnemonics~
-
-Keybinding mnemonics are directly lifted from Spacemacs and Doom Emacs. The idea is to group common
-actions under their own prefix based on the area of Emacs they affect.
-
-Repeated keys indicate a default command or a contextual undo for the current domain.
-
-Packages in use:
-
-+ [[https://github.com/noctuid/general.el][general.el]]: a keybinding framework to lead your keys
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/mnemonics ()
-  (use-package general
-    :after evil
-    :config
-    (general-evil-setup 1)
-    (general-create-definer c4/leader-key-def
-      :keymaps '(normal insert visual emacs)
-      :prefix "SPC"
-      :global-prefix [\s-SPC])
-
-    (c4/key-def-global)
-    (c4/key-def-buffer)
-    (c4/key-def-config)
-    (c4/key-def-file)
-    (c4/key-def-help)
-    (c4/key-def-org)
-    (c4/key-def-project)
-    (c4/key-def-session)
-    (c4/key-def-toggle)
-    (c4/key-def-window)))
-
-#+END_SRC
-
-Now let's break down each domain.
-
-***** ~c4/key-def-global~ (=SPC-=)
-
-These keybindings wrap global commands. They are unprefixed themselves.
-
-Example: =SPC-'= opens a fresh terminal.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-global ()
-  (c4/leader-key-def
-    "'" '(vterm :which-key "open terminal")
-    "SPC" '(universal-argument :which-key "command modifier")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-buffer~ (=SPC-b=)
-
-These keybindings wrap buffer commands. They include switching, killing, saving, and
-narrowing buffers.
-
-+ lowercase bindings affect the /current/ buffer
-+ uppercase bindings affect /all/ open buffers or invert the command
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-buffer ()
-  (c4/leader-key-def
-    "b" '(:ignore t :which-key "buffer")
-    "bb" '(counsel-switch-buffer :which-key "switch")
-    "bd" '(kill-current-buffer :which-key "kill")
-    "bD" '(kill-some-buffers :which-key "kill multiple")
-    "bn" '(:ignore t :which-key "narrow")
-    "bnn" '(widen :which-key "reset")
-    "bnd" '(narrow-to-defun :which-key "to defun")
-    "bnp" '(narrow-to-page :which-key "to page")
-    "bnr" '(narrow-to-region :which-key "to region")
-    "bk" '(kill-current-buffer :which-key "kill")
-    "bK" '(kill-some-buffers :which-key "kill multiple")
-    "bs" '(swiper :which-key "search")
-    "bS" '(swiper-backward :which-key "search backward")
-    "bw" '(save-buffer :which-key "write")
-    "bW" '(save-some-buffers :which-key "write modified")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-config~ (=SPC-c=)
-
-These keybindings wrap commands relevant to C4 configuration such as opening or reloading
-configuration. Additionally, there are bindings for evaluating an expression, region, or defun.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-config ()
-  (c4/leader-key-def
-    "c" '(:ignore t :which-key "C4 config")
-    "cc" '(c4/open-config :which-key "open")
-    "cd" '(:ignore t :which-key "debug")
-    "cdd" '(c4/esup-init :which-key "startup")
-    "cde" '(c4/bug-hunter-init :which-key "errors")
-    "cdp" '(explain-pause-top :which-key "processes")
-    "cr" '(c4/reload-config :which-key "reload")
-    "ce" '(:ignore t :which-key "eval")
-    "cee" '(eval-last-sexp :which-key "S-exp")
-    "ced" '(eval-defun :which-key "defun")
-    "cer" '(eval-region :which-key "region")))
-
-(defun c4/generated-conf ()
-  (concat user-emacs-directory "C4.el"))
-
-(defun c4/esup-init ()
-  "Profiles the correct init file"
-  (interactive)
-  (esup (c4/generated-conf)))
-
-(defun c4/bug-hunter-init ()
-  "Debugs the correct init file"
-  (interactive)
-  (bug-hunter-file (c4/generated-conf)))
-
-(defun c4/open-config ()
-  "Open files in config directory."
-  (interactive)
-  (counsel-find-file nil user-emacs-directory))
-
-(defun c4/reload-config ()
-  "Reloads the config in place."
-  (interactive)
-  (load-file (c4/generated-conf)))
-
-#+END_SRC
-
-
-***** ~c4/key-def-file~ (=SPC-f=)
-
-These keybindings wrap commands for file operations. Currently only includes file finding.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-file ()
-  (c4/leader-key-def
-    "f" '(:ignore t :which-key "file")
-    "ff" '(counsel-find-file :which-key "find")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-help~ (=SPC-h=)
-
-These keybindings wrap commands for the help documentation and Emacs manual.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-help ()
-  (c4/leader-key-def
-    "h" '(:ignore t :which-key "help")
-    "ha" '(counsel-apropos :which-key "apropos")
-    "hd" '(:ignore t :which-key "describe")
-    "hdd" '(counsel-describe-function :which-key "function")
-    "hdf" '(counsel-describe-face :which-key "face")
-    "hdc" '(helpful-command :which-key "command")
-    "hdv" '(counsel-describe-variable :which-key "variable")
-    "hdk" '(helpful-key :which-key "keybinding")
-    "hds" '(helpful-at-point :which-key "symbol at point")
-    "hm" '(:ignore t :which-key "manual")
-    "hmm" '(info-emacs-manual :which-key "emacs")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-org~ (=SPC-o=)
-
-These keybindings wrap all Org-mode relevant commands.
-
-They allow you to view your agenda, schedule dates and deadlines, evaluate source blocks and tangle,
-and provide Org buffer functionality like capturing and refiling.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-org ()
-  (c4/leader-key-def
-    "o" '(:ignore t :which-key "org")
-    "oa" '(:ignore t :which-key "agenda")
-    "oaa" '(org-agenda-list :which-key "weekly")
-    "oaf" '(org-agenda :which-key "full")
-    "oat" '(org-set-tags-command :which-key "tags")
-    "ob" '(:ignore t :which-key "buffer")
-    "obb" '(org-insert-link :which-key "link")
-    "obc" '(org-capture :which-key "capture")
-    "obn" '(:ignore t :which-key "narrow")
-    "obnn" '(org-toggle-narrow-to-subtree :which-key "subtree")
-    "obnb" '(org-narrow-to-block :which-key "block")
-    "obne" '(org-narrow-to-element :which-key "element")
-    "obr" '(org-refile :which-key "refile")
-    "obs" '(:ignore t :which-key "search")
-    "obss" '(hydra-org-src-find/body :which-key "src blocks")
-    "obsh" '(hydra-org-heading-find/body :which-key "headings")
-    "od" '(:ignore t :which-key "date")
-    "odd" '(org-deadline :which-key "deadline")
-    "ods" '(org-schedule :which-key "schedule")
-    "os" '(:ignore t :which-key "source")
-    "ose" '(org-edit-special :which-key "edit")
-    "osw" '(org-edit-src-save :which-key "save edits")
-    "oss" '(org-babel-execute-src-block :which-key "execute source")
-    "ost" '(org-babel-tangle :which-key "tangle")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-project~ (=SPC-p=)
-
-These keybindings wrap project-level commands.
-
-They allow you to navigate projects, find files within them, switch between them, and provide a
-powerful git interface for managing them.
-
-The packages they rely upon:
-
-+ [[https://github.com/bbatsov/projectile][projectile]]: a feature-rich project management package for Emacs
-+ [[https://github.com/magit/magit][magit]]: probably the last git workflow you'll ever need
-+ [[https://github.com/magit/forge][forge]]: superior integration with GitHub from right inside Emacs
-
-The actual configuration for these packages is documented in the =projects.el= module generated
-later in this file.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-project ()
-  (c4/leader-key-def
-    "p" '(:ignore t :which-key "project")
-    "p'" '(projectile-run-vterm :which-key "open terminal")
-    "pp" '(counsel-projectile-switch-project :which-key "switch")
-    "pf" '(counsel-projectile-find-file :which-key "find file")
-    "pg" '(:ignore t :which-key "git")
-    "pgg" '(magit-status :which-key "status")
-    "pgc" '(magit-commit :which-key "commit")
-    "pgd" '(magit-diff :which-key "diff")
-    "pgf" '(:ignore t :which-key "forge")
-    "pgff" '(forge-pull :which-key "pull")
-    "pgfF" '(forge-fork :which-key "fork repo")
-    "pgfi" '(forge-list-issues :which-key "issues")
-    "pgfI" '(forge-create-issue :which-key "create issue")
-    "pgi" '(magit-init :which-key "init")
-    "pgp" '(magit-push :which-key "push")
-    "pgP" '(magit-pull :which-key "pull")
-    "pgr" '(magit-remote :which-key "remote")
-    "pgs" '(magit-stage :which-key "stage")
-    "pgS" '(magit-stage-file :which-key "stage file")
-    "ps" '(counsel-projectile-rg :which-key "search")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-session~ (=SPC-q=)
-
-These keybindings wrap commands that affect your Emacs session.
-
-For now, it includes bindings for closing Emacs with and without saving.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-session ()
-  (c4/leader-key-def
-    "q" '(:ignore t :which-key "quit")
-    "qq" '(save-buffers-kill-emacs :which-key "and save")
-    "qQ" '(kill-emacs :which-key "really quit")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-toggle~ (=SPC-t=)
-
-These keybindings wrap interface toggles and on-the-fly UI modifications.
-
-For now, you can change your theme and scale the text via a transient binding.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-
-(defun c4/key-def-toggle ()
-  (c4/leader-key-def
-    "t" '(:ignore t :which-key "toggle")
-    "tt" '(counsel-load-theme :which-key "theme")
-    "ts" '(hydra-text-scale/body :which-key "scale text")))
-
-#+END_SRC
-
-
-***** ~c4/key-def-window~ (=SPC-w=)
-
-These keybindings wrap commands that affect the current window.
-
-Windows can be split, moved, and closed when not needed.
-
-This is the biggest shift from Vim to Emacs. In Emacs, windows are /views/. Buffers are detached
-from them and are not killed when you close them. They persist in the background until called into
-another window.
-
-Their state is preserved.
-
-#+BEGIN_QUOTE
-C4 is built to prioritize Emacs as the driver of my entire desktop computing experience.
-
-Emacs largely *is* my workstation at this point.
-
-So these definitions also include bindings for manipulating X windows served by [[https://github.com/ch11ng/exwm][EXWM]].
-
-If you don't need these desktop bindings, feel free to remove them along with the ~c4/desktop~
-setting and regenerate the config.
-#+END_QUOTE
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/keybindings.el"
-  (defun c4/key-def-window ()
-    (c4/leader-key-def
-    "w" '(:ignore t :which-key "window")
-    "wc" '(evil-window-delete :which-key "close")
-    "wd" '(:ignore t :which-key "desktop")
-    "wdf" '(exwm-floating-toggle-floating :which-key "floating")
-    "wdF" '(exwm-layout-toggle-fullscreen :which-key "fullscreen")
-    "wdk" '(exwm-layout-toggle-keyboard :which-key "keyboard mode")
-    "wdm" '(exwm-layout-toggle-mode-line :which-key "mode line")
-    "wdM" '(exwm-layout-toggle-minibuffer :which-key "minibuffer")
-    "ws" '(:ignore t :which-key "split")
-    "wss" '(evil-window-split :which-key "horizontal")
-    "wsS" '(evil-window-vsplit :which-key "vertical")))
-
-  (provide 'keybindings)
+  (defun c4/lookup ()
+    "A module for search and command functionality."
+    ;; Minibuffer completion
+    (use-package selectrum
+      :config
+      (selectrum-mode 1))
+
+    ;; Intelligent command sorting with prescient
+    (use-package selectrum-prescient
+      :after selectrum
+      :config
+      (selectrum-prescient-mode 1)
+      (prescient-persist-mode 1))
+
+
+    ;; Incremental search
+    (use-package ctrlf
+      :config
+      (ctrlf-mode 1))
+
+    (use-package consult
+      :init
+      (defun find-fd (&optional dir initial)
+        (interactive "P")
+        (let ((consult-find-command "fd --color=never --full-path ARG OPTS"))
+        (consult-find dir initial)))
+     (advice-add #'register-preview :override #'consult-register-window)
+     :custom
+     (register-preview-delay 0)
+     (register-preview-function #'consult-register-window)
+     (consult-narrow-key "<"))
+
+    (use-package marginalia
+      :after consult
+      :init
+      (marginalia-mode)
+      (advice-add #'marginalia-cycle :after
+                  (lambda () (when (bound-and-true-p selectrum-mode)
+                               (selectrum-exhibit))))
+      (setq marginalia-annotators
+       '(marginalia-annotators-heavy marginalia-annotators-light)))
+
+    ;; Minibuffer actions
+    (use-package embark)
+
+    (use-package embark-consult
+      :after (embark consult)
+      :demand t
+      :hook
+      (embark-collect-mode . embark-consult-preview-minor-mode))
+
+    ;; Partial search queries with orderless
+    (use-package orderless
+      :init
+      (icomplete-mode)
+      :custom
+      (completion-styles '(orderless))))
+
+  (provide 'base)
 #+END_SRC
 
 
