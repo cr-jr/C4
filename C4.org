@@ -712,14 +712,14 @@ Everything will still work in standalone Emacs instances. If it doesn't, please 
 The =base.el= module sets the /baseline/ experience that C4 is intended to provide without any of its other enhancements. This includes:
 
 + setting the user
-+ setting the theme
++ setting the theme and modeline
 + setting the typography (code and document)
 + sensible UI enhancements
 + essential UX enhancements
 
 The following block configures the settings for the base module.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+#+BEGIN_SRC emacs-lisp
 
   (c4/user
     :name "Chatman R. Jr"
@@ -802,9 +802,7 @@ Emacs UI look halfway decent.
       eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-  ;; Tidy up the modeline
-  (use-package diminish)
-  ;; And let's make it a bit sexier
+  ;; Make some icons available
   (use-package all-the-icons)
 
   (eval (c4/theme theme))
@@ -823,44 +821,36 @@ The UI base uses =c4/theme= and =c4/typography= submodules. Which I'll explain n
 The theme submodule sets up the mode line with [[https://github.com/Malabarba/smart-mode-line][the smart-mode-line package]]. I know a lot of
 configurations swear by the Doom Emacs mode line, but I wanted something lighter.
 
-It also checks and installs a subset of themes based on the prefix of the themes passed in. Right
-now, the themes supported are the [[https://gitlab.com/protesilaos/modus-themes][modus]], [[https://github.com/hlissner/emacs-doom-themes][Doom]], and [[https://github.com/anler/minimal-theme][minimal]] (the default) collections. As well as the built-in themes
-that ship with Emacs.
+I only want rich-minority to show minor modes I directly allow, so I set the blacklist to =nil=,
+and initialize the whitelist with an empty string.
+
+It also checks and installs a subset of themes based on the prefix of the themes passed in.
+
+C4 prefers the [[https://github.com/anler/minimal-theme][minimal theme]] collection, but you can easily any others you want.
 
 The last thing it does is disable the fringe background for that extra bit of crispness.
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
 
-(defun c4/theme (theme)
-  "A submodule for setting a theme and configuring the modeline."
-  (setq theme-sym (symbol-name theme))
+  (defun c4/theme (theme)
+    "A submodule for setting a theme and configuring the modeline."
+    (use-package smart-mode-line
+      :custom
+      (sml/theme 'respectful)
+      (sml/no-confirm-load-theme t)
+      (sml/name-width 24)
+      (sml/mode-width 'full)
+      (rm-blacklist nil)
+      :config
+      (sml/setup)
+      (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
+      (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
+      (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
 
-  (use-package smart-mode-line
-    :custom
-    (sml/theme 'respectful)
-    (sml/no-confirm-load-theme t)
-    (sml/name-width 64)
-    (sml/mode-width 'full)
-    :config
-    (sml/setup)
-    (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":C4:") t)
-    (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
-    (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
+      (use-package minimal-theme)
+      (load-theme theme t)
 
-  (cond ((string-prefix-p "modus" theme-sym)
-	 (use-package modus-themes
-	   :config
-	   (load-theme theme t)))
-  ((string-prefix-p "minimal" theme-sym)
-    (use-package minimal-theme
-      :config (load-theme theme t)))
-	((string-prefix-p "doom" theme-sym)
-	 (use-package doom-themes
-	   :config (load-theme theme t)))
-	  (t (load-theme theme t)))
-
-  (set-face-attribute 'fringe nil :background nil))
-
+      (set-face-attribute 'fringe nil :background nil))
 #+END_SRC
 
 
@@ -916,7 +906,6 @@ really start appreciating it. This includes:
   (use-package which-key
     :init
     (setq which-key-idle-delay 0.96)
-    :diminish
     :config
     (which-key-mode))
 
@@ -933,7 +922,6 @@ really start appreciating it. This includes:
 
   ;; Editorconfig
   (use-package editorconfig
-    :diminish
     :config
     (editorconfig-mode))
 
@@ -956,60 +944,6 @@ the [[https://github.com/abo-abo/swiper][ivy ecosystem]] of packages. These incl
 + [[https://github.com/raxod502/prescient.el][ivy-prescient]]: sorts your commands by usage
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
-
-(defun c4/lookup ()
-  "A module for search functionality."
-  ;; Incremental search
-  (use-package swiper)
-
-  ;; Lookup enhancements
-  (use-package ivy
-    :diminish
-    :custom
-    (ivy-initial-inputs-alist nil) ; no ^ before searches
-    :bind
-    (("C-s" . swiper)
-    ("C-r" . swiper-backward)
-    :map ivy-minibuffer-map
-    ("TAB" . ivy-alt-done)
-    ("C-l" . ivy-alt-done)
-    ("C-j" . ivy-next-line)
-    ("C-k" . ivy-previous-line)
-    :map ivy-switch-buffer-map
-    ("C-k" . ivy-previous-line)
-    ("C-l" . ivy-done)
-    ("C-d" . ivy-switch-buffer-kill)
-    :map ivy-reverse-i-search-map
-    ("C-k" . ivy-previous-line)
-    ("C-d" . ivy-reverse-i-search-kill)))
-
-  (use-package counsel
-    :diminish
-    :bind
-    (("C-x b" . counsel-ibuffer)
-    ("C-M-j" . counsel-switch-buffer)
-    :map minibuffer-local-map
-    ("C-x r" . 'counsel-minibuffer-history))
-    :config
-    (counsel-mode 1))
-
-  (use-package ivy-rich
-    :after (ivy counsel)
-    :config
-    (ivy-rich-mode))
-
-  ;; Command sorting recent
-  (use-package ivy-prescient
-    :after counsel
-    :custom
-    (ivy-prescient-enable-filtering nil)
-    :config
-    (prescient-persist-mode 1)
-    (ivy-prescient-mode 1)))
-
-(provide 'base)
-#+END_SRC
-
 
   (defun c4/lookup ()
     "A module for search and command functionality."
@@ -1072,14 +1006,13 @@ the [[https://github.com/abo-abo/swiper][ivy ecosystem]] of packages. These incl
   (provide 'base)
 #+END_SRC
 
-
 ** Projects
 
 The =projects.el= module configures C4 for my Git/GitHub project workflows.
 
 As with the others, to use it, you'll need to load it.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+#+BEGIN_SRC emacs-lisp
 
 (c4/projects
   :path "~/Workbench"
@@ -1156,7 +1089,6 @@ Be aware that you *will need* a GitHub account along with a personal access toke
 (provide 'projects)
 #+END_SRC
 
-
 ** Code
 
 The =code.el= module contains configuration and functionality for your programming needs.
@@ -1166,7 +1098,7 @@ experience besides.
 
 You'll also want to include your desired language modules for your main programming projects.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+#+BEGIN_SRC emacs-lisp
 
 (c4/code)
 
@@ -1203,19 +1135,15 @@ The big ones are:
     :hook (prog-mode . rainbow-delimiters-mode))
 
   (use-package company
-    :diminish
     :hook (prog-mode . company-mode))
 
   (use-package company-box
-    :diminish
     :hook (company-mode . company-box-mode))
 
   (use-package flycheck
-    :diminish
     :hook (prog-mode . flycheck-mode))
 
   (use-package lsp-mode
-    :diminish
     :hook (prog-mode . lsp-deferred)
     :commands (lsp lsp-deferred))
 
@@ -1233,7 +1161,6 @@ The big ones are:
 
 *** Languages
 
-
 ** Documents
 
 The =documents.el= module configures settings and functionality for document modes in Emacs. Its
@@ -1242,7 +1169,7 @@ literate programming.
 
 Make sure you load it in:
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+#+BEGIN_SRC emacs-lisp
 
 (c4/org :path "~/Org")
 
@@ -1332,7 +1259,6 @@ Packages in use:
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
 
   (use-package org-superstar
-    :diminish
     :after org
     :hook
     (org-mode . org-superstar-mode)
@@ -1458,7 +1384,6 @@ allow for a literate programming workflow.
 (provide 'documents)
 #+END_SRC
 
-
 ** Desktop
 
 As I stated earlier, Emacs is the driver of my desktop computing experience.
@@ -1521,7 +1446,7 @@ xrandr --output LVDS --primary --mode 1366x768 --pos 241x1080 --rotate normal --
 
 Finally, I need to load in the main desktop package.
 
-#+BEGIN_SRC emacs-lisp :tangle "./C4.el"
+#+BEGIN_SRC emacs-lisp
 
 (c4/desktop)
 #+END_SRC
@@ -1537,7 +1462,6 @@ submodules that are documented below.
       "A module for my EXWM configuration."
       (use-package exwm
         :if window-system
-        :diminish
         :config
         ;; Startup process
         (start-process-shell-command
@@ -1554,6 +1478,7 @@ submodules that are documented below.
               '(?\C-x
                 ?\C-u
                 ?\C-h
+                ?\C-\
                 ?\M-x
                 ?\M-`
                 ?\M-&
@@ -1561,16 +1486,16 @@ submodules that are documented below.
                 ?\s-\ ))
 
         (setq exwm-input-global-keys
-              `(([?\s-K] . windmove-swap-states-up)
-                ([?\s-k] . windmove-up)
+              `(([?\s-I] . windmove-swap-states-up)
+                ([?\s-i] . windmove-up)
                 ([?\s-L] . windmove-swap-states-right)
                 ([?\s-l] . windmove-right)
-                ([?\s-J] . windmove-swap-states-down)
-                ([?\s-j] . windmove-down)
-                ([?\s-H] . windmove-swap-states-left)
-                ([?\s-h] . windmove-left)
+                ([?\s-K] . windmove-swap-states-down)
+                ([?\s-K] . windmove-down)
+                ([?\s-J] . windmove-swap-states-left)
+                ([?\s-j] . windmove-left)
                 ([?\s-r] . exwm-reset)
-                ([?\s-Q] . exwm-exit)
+                ([?\s-Q] . kill-emacs)
                 ([?\s-q] . exwm-restart)
                 ([?\s-W] . exwm-workspace-swap)
                 ([?\s-w] . exwm-workspace-switch)
