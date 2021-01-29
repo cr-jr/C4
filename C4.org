@@ -80,8 +80,6 @@ C4 is a module-based configuration, so now we load those.
 
   (require 'cl-lib)
 
-  (require 'base
-           (concat user-emacs-directory "modules/base.el"))
   (require 'projects
            (concat user-emacs-directory "modules/projects.el"))
   (require 'code
@@ -231,6 +229,7 @@ over for more than just startup times.
 #+END_SRC
 
 * Utilities
+*** crux
 
 This configuration includes the crux package. It's way too useful not to use. Especially since I
 opted out of Vim emulation.
@@ -252,7 +251,7 @@ It does this by using:
 
 + modalka to enable a global command mode
 + hydra for definining transient mode states for complex operations
-+ general.el unites the keybindings interface under global and mnemonic bindings
++ general.el unites the definition interface for the global and mnemonic keybindings
 + which-key allows keybinding discoverability
 
 ** Rationale
@@ -265,12 +264,16 @@ than by toggling arbitrary states.
 
 ** Making bindings discoverable
 
+which-key provides an interface for discovering keybindings in Emacs. Both built-in and user
+defined. It's absolutely essential since I'm building an entirely custom modal setup and can't keep
+it all in my head.
+
 #+BEGIN_SRC emacs-lisp
 
   ;;; Setup which-key for keybinding discoverability
   (use-package which-key
     :custom
-    (which-key-idle-delay 0.96)
+    (which-key-idle-delay 1.5)
     :config
     (which-key-mode))
 
@@ -592,7 +595,8 @@ the fly and scale text. It also triggers writeroom-mode in document major modes.
 
   (C4/leader-key-def
     "t" '(:ignore t :wk "toggle")
-    "tt" '(C4/theme-switcher/body :wk "theme"))
+    "tt" '(C4/theme-switcher/body :wk "theme")
+    "ts" '(C4/text-scale/body :wk "scale text"))
 
   (defhydra C4/theme-switcher ()
     "Select a variant from main C4 themes"
@@ -615,6 +619,12 @@ the fly and scale text. It also triggers writeroom-mode in document major modes.
     "Clap off!"
     (interactive)
     (consult-theme 'minimal-black))
+
+  (defhydra C4/text-scale (:timeout 4)
+    "Interatively scale text"
+    ("+" text-scale-increase "inc")
+    ("-" text-scale-decrease "dec")
+    ("RET" nil "exit" :exit t))
 #+END_SRC
 
 **** Window (=w=)
@@ -672,6 +682,10 @@ Everything will still work in standalone Emacs instances. If it doesn't, please 
    "wnA" '(windmove-delete-left :wk "close window to left")
    "wnd" '(windmove-display-right :wk "open next window right")
    "wnD" '(windmove-delete-right :wk "close window to right")
+   "wo" '(:ignore t :wk "open")
+   "woo" '(consult-buffer-other-window :wk "buffer")
+   "wof" '(find-file-other-window :wk "file")
+   "wod" '(counsel-linux-app :wk "desktop app")
    "ws" '(:ignore t :wk "split")
    "wss" '(split-window-below :wk "horizontal")
    "wsS" '(split-window-right :wk "vertical"))
@@ -702,81 +716,17 @@ Everything will still work in standalone Emacs instances. If it doesn't, please 
 #+END_SRC
 
 * Defaults
-* Projects
-* Programming Modes
-* Document Modes
-* Desktop Environment
-* Modules
-** Base
 
-The =base.el= module sets the /baseline/ experience that C4 is intended to provide without any of its other enhancements. This includes:
-
-+ setting the user
-+ setting the theme and modeline
-+ setting the typography (code and document)
-+ sensible UI enhancements
-+ essential UX enhancements
-
-The following block configures the settings for the base module.
+Now that my keybindings are set the way I want them, I start working out the look and feel of my
+workspace as well as establish some global settings.
 
 #+BEGIN_SRC emacs-lisp
 
-  (c4/user
-    :name "Chatman R. Jr"
-    :email "crjr.code@protonmail.com")
-
-  (c4/base
-    :theme 'minimal-light
-    :typography
-    (c4/typography
-      :code '("Input" 13)
-      :document '("Lora" 16)))
-
-#+END_SRC
-
-You can take a closer look at the module's inclusions below.
-
-*** ~c4/user~
-
-This function sets the user identity.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
-(cl-defun c4/user (&key name email)
-  "Define user identity."
-  (setq user-full-name name
-          user-full-email email))
-
-#+END_SRC
-
-
-*** ~c4/base~
-
-This module is exposed to our =C4.el= to create our settings for the base look and feel and
-also some essential functionality. It's composed of the =ui= and =ux= modules that follow below.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
-(cl-defun c4/base (&key theme typography)
-  (eval (c4/ui theme typography))
-  (c4/ux))
-#+END_SRC
-
-Let's have a closer look at those subroutines.
-
-**** ~c4/ui~
-
-Now, we set the base UI. It accepts a theme and typography settings from the submodules
-documented below.  It also sets basic options that go a long way toward making the
-Emacs UI look halfway decent.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
-
-(defun c4/ui (theme typography)
-  "A module for the base UI."
   (setq-default cursor-type 'bar) ; default cursor as bar
   (setq-default frame-title-format '("%b")) ; window title is the buffer name
 
   (setq linum-format "%4d ") ; line number format
-  (column-number-mode 1)
+  (column-number-mode 1) ; set column number display
   (show-paren-mode 1) ; show closing parens by default
 
   (menu-bar-mode -1) ; disable the menubar
@@ -784,6 +734,13 @@ Emacs UI look halfway decent.
   (tool-bar-mode -1) ; disable toolbar
   (tooltip-mode -1) ; disable tooltips
   (set-fringe-mode 8) ; allow some space
+
+  (setq inhibit-startup-message t) ; inhibit startup message
+  (setq initial-scratch-message "") ; no scratch message
+  (setq visible-bell t)             ; enable visual bell
+  (global-auto-revert-mode t) ; autosave buffer on file change
+  (delete-selection-mode 1) ; Selected text will be overwritten on typing
+  (fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
 
   ;; Show line numbers in programming modes
   (add-hook 'prog-mode-hook
@@ -805,207 +762,371 @@ Emacs UI look halfway decent.
   ;; Make some icons available
   (use-package all-the-icons)
 
-  (eval (c4/theme theme))
-  (eval typography))
+#+END_SRC
+
+** User Identity
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Set full name and email address
+  (setq user-full-name "Chatman R. Jr")
+  (setq user-mail-address "crjr.code@protonmail.com")
 
 #+END_SRC
 
-This is a good time to mention that C4 also contains internal modules for composing
-functionality across its main modules. These submodules can be swapped in and out as
-needed without issue.
+** Theme
 
-The UI base uses =c4/theme= and =c4/typography= submodules. Which I'll explain now.
+C4 includes the minimal-theme collection by default to promote a clean interface and just enough
+syntax highlighting.
 
-***** ~c4/theme~
+#+BEGIN_SRC emacs-lisp
 
-The theme submodule sets up the mode line with [[https://github.com/Malabarba/smart-mode-line][the smart-mode-line package]]. I know a lot of
-configurations swear by the Doom Emacs mode line, but I wanted something lighter.
+  ;;; Include and load minimal-theme collection
+  (use-package minimal-theme)
 
-I only want rich-minority to show minor modes I directly allow, so I set the blacklist to =nil=,
-and initialize the whitelist with an empty string.
+  ;; Light theme loaded and enabled by default
+  (load-theme 'minimal-light t)
 
-It also checks and installs a subset of themes based on the prefix of the themes passed in.
-
-C4 prefers the [[https://github.com/anler/minimal-theme][minimal theme]] collection, but you can easily any others you want.
-
-The last thing it does is disable the fringe background for that extra bit of crispness.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
-
-  (defun c4/theme (theme)
-    "A submodule for setting a theme and configuring the modeline."
-    (use-package smart-mode-line
-      :custom
-      (sml/theme 'respectful)
-      (sml/no-confirm-load-theme t)
-      (sml/name-width 24)
-      (sml/mode-width 'full)
-      (rm-blacklist nil)
-      :config
-      (sml/setup)
-      (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
-      (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
-      (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
-
-      (use-package minimal-theme)
-      (load-theme theme t)
-
-      (set-face-attribute 'fringe nil :background nil))
-#+END_SRC
-
-
-***** ~c4/typography~
-
-This submodule defines typography settings for the UI. It allows you to set the fixed pitch (which
-is also the default font) as well as the variable pitch (for Org and other document modes).
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
-
-  (cl-defun c4/typography (&key code document)
-    "A module for setting typography."
-    (set-face-attribute 'default nil
-      :font (format "%s-%s:slant=normal" (car code) (cadr code)))
-    (set-face-attribute 'fixed-pitch nil
-      :font (format "%s-%s" (car code) (cadr code)))
-    (set-face-attribute 'variable-pitch nil
-      :font (format "%s-%s" (car document) (cadr document))))
+  ;; Dark variants load but not wait for toggling
+  (load-theme 'minimal t t)
+  (load-theme 'minimal-black t t)
 
 #+END_SRC
 
+** Faces
 
-**** ~c4/ux~
+Faces in Emacs allow you to change how it looks. In fact, an Emacs theme is simply a user-defined
+package of face customizations.
 
-The base UX module that sets some defaults to prevent Emacs from getting on your nerves before your
-really start appreciating it. This includes:
+*** Typography
 
-+ inhibiting the startup message
-+ beginning with a blank scratch
-+ no error beeping
-+ sensible autosaving
-+ "y" or "n" prompting
+The typography in C4 is set by defining a default, then modifying the =fixed-pitch= and
+=variable-pitch= faces. This sets a nice baseline for updating typographical styles used throughout
+Emacs by inheritance.
 
-  And the packages:
+So we need only define our fonts in one place.
 
-+ [[https://github.com/justbur/emacs-which-key][which-key]]: a necessity for discovering the default and custom keybindings throughout this configuration
-+ [[https://github.com/Wilfred/helpful][helpful]]: provides a much more useful help interface
-+ [[https://github.com/editorconfig/editorconfig-emacs][editorconfig]] plugin for Emacs: to keep style definitions where they belong
-+ [[https://github.com/akermu/emacs-libvterm][vterm]]: a rich terminal so I don't have to leave Emacs for my sysadmin flow
+#+BEGIN_SRC emacs-lisp
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
+  ;;; Define our fonts
+  (setq C4/code-font "Input 13")
+  (setq C4/document-font "Lora 16")
 
-(defun c4/ux ()
-  "A module for the 'base' UX."
-  (setq inhibit-startup-message t) ; inhibit startup message
-  (setq initial-scratch-message "") ; no scratch message
-  (setq visible-bell t)             ; enable visual bell
-  (global-auto-revert-mode t) ; autosave buffer on file change
-  (delete-selection-mode 1) ; Selected text will be overwritten on typing
-  (fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
+  ;;; Set fonts
+  (set-face-attribute 'default nil :font C4/code-font)
+  (set-face-attribute 'fixed-pitch nil :inherit 'default)
+  (set-face-attribute 'variable-pitch nil :font C4/document-font)
 
-  ;; See a database of all defined keybindings
-  (use-package which-key
+  ;;; Org Mode adjustments
+  (set-face-attribute 'org-block nil
+                      :foreground nil
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-begin-line nil
+                      :foreground nil
+                      :weight 'normal
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-end-line nil
+                      :foreground nil
+                      :weight 'normal
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-document-info-keyword nil
+                      :foreground nil
+                      :weight 'normal
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-drawer nil
+                      :foreground nil
+                      :weight 'normal
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-property-value nil
+                      :foreground nil
+                      :weight 'normal
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-checkbox nil
+                      :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil
+                      :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil
+                      :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil
+                      :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil
+                      :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil
+                      :inherit '(font-lock-comment-face fixed-pitch))
+
+#+END_SRC
+
+*** UI
+
+I also make some adjustments to the UI faces. Mainly to clean it up.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Disbable the fringe background
+  (set-face-attribute 'fringe nil
+                      :background nil)
+
+#+END_SRC
+
+** Enhancements
+
+Now I'll add some improvements to my baseline experience.
+
+*** smart-mode-line
+
+smart-mode-line is the lightest mode line package I have used so far. It's perfect for me, because I
+really have no need for anything but basic information about the buffer and slight customizations.
+
+#+BEGIN_SRC emacs-lisp
+
+  (use-package smart-mode-line
     :init
-    (setq which-key-idle-delay 0.96)
+    (setq sml/theme 'respectful)
+    (setq sml/no-confirm-load-theme t)
+    (setq sml/name-width '(16 . 32))
+    (setq sml/mode-width 'full)
+    (setq sml/extra-filler 14)
+    (setq rm-blacklist nil)
+    (setq rm-whitelist '("↑"))
     :config
-    (which-key-mode))
+    (sml/setup)
+    (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
+    (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
+    (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
 
-  ;; Better help documentation
-  (use-package helpful
-    :custom
-    (counsel-describe-function-function #'helpful-callable)
-    (counsel-describe-variable-function #'helpful-variable)
-    :bind
-    ([remap describe-function] . counsel-describe-function)
-    ([remap describe-command] . helpful-command)
-    ([remap describe-variable] . counsel-describe-variable)
-    ([remap describe-key] . helpful-key))
+#+END_SRC
 
-  ;; Editorconfig
+*** helpful
+
+Helpful provides better help documentation for the many description functions in Emacs. It also
+includes its own extremely /helpful/ utilities like checking a symbol at its point.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Help documentation enhancement
+  (use-package helpful)
+
+#+END_SRC
+
+*** editorconfig
+
+Editorconfig is a utility that normalizes basic syntax considerations for file types across
+editors. It ensures you only have to maintain one file to have a solid base for editing plain text
+and programming source languages.
+
+First, install the plugin for Emacs.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Universal editor settings
   (use-package editorconfig
     :config
     (editorconfig-mode))
 
-  ;; Better terminal
+#+END_SRC
+
+Then set some basic options. These are the ones I use:
+
+#+BEGIN_SRC editorconfig-conf :tangle "~/.editorconfig"
+  # Environment-wide editorconfig
+  root = true
+
+  [*]
+  charset = utf-8
+  indent_style = space
+  indent_size = 2
+  max_line_length = 80
+  insert_final_newline = true
+  trim_trailing_whitespace = true
+
+  [*.md]
+  trim_trailing_whitespace = false
+
+  [*.{cmd,bat}]
+  end_of_line = crlf
+
+  [*.sh]
+  end_of_line = lf
+
+  # Documents
+  [*.{md,markdown,org}]
+  max_line_length = 111
+#+END_SRC
+
+*** vterm
+
+The vterm package provide libvterm emulation to Emacs. This means that terminals opened in Emacs
+will mirror my actual shell configuration.
+
+I could use a lighter terminal enhancement package, but since Emacs is also my window manager, it
+makes sense to have a rich terminal package instead of opening an external terminal emulator.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Rich terminal experience
   (use-package vterm)
 
-  (c4/lookup))
+#+END_SRC
+
+** Search and Lookup
+
+This section documents a special category of enhancements for finding and jumping to things in
+Emacs. Popular packages to set this up include the ivy and helm ecosystems, but I decided to look at
+some of the lighter, newer packages that augment built-in functionality instead.
+
+*** selectrum
+
+Selectrum is an Ido, Icomplete drop in enhancement. It provides basic, clean minibuffer completion
+on its own, but its powers are boosted by the remaining packages.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Better minibuffer completion
+  (use-package selectrum
+    :config
+    (selectrum-mode 1))
 
 #+END_SRC
 
-***** ~c4/lookup~
+*** prescient
 
-The UX base includes a single submodule for defining valuable search and sorting functionality using
-the [[https://github.com/abo-abo/swiper][ivy ecosystem]] of packages. These include:
+Prescient builds a store of my most used commands and queries and places them first. So I
+have quick access to candidates for keybindings.
 
-+ swiper: incremental buffer searching
-+ ivy itself: better minibuffer completion
-+ counsel: provides a richer experience in Emacs interactive prompts
-+ [[https://github.com/Yevgnen/ivy-rich][ivy-rich]]: provides more contextual information in the minibuffer
-+ [[https://github.com/raxod502/prescient.el][ivy-prescient]]: sorts your commands by usage
+#+BEGIN_SRC emacs-lisp
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/base.el"
+  ;;; Remember frequently used commands and queries
+  (use-package selectrum-prescient
+    :after selectrum
+    :config
+    (selectrum-prescient-mode 1)
+    (prescient-persist-mode 1))
 
-  (defun c4/lookup ()
-    "A module for search and command functionality."
-    ;; Minibuffer completion
-    (use-package selectrum
-      :config
-      (selectrum-mode 1))
+#+END_SRC
 
-    ;; Intelligent command sorting with prescient
-    (use-package selectrum-prescient
-      :after selectrum
-      :config
-      (selectrum-prescient-mode 1)
-      (prescient-persist-mode 1))
+*** orderless
 
+Orderless allows you to enter your minibuffer queries as partial characters or strings. This means I
+don't have to know the whole, proper name of something to find it in Emacs.
 
-    ;; Incremental search
-    (use-package ctrlf
-      :config
-      (ctrlf-mode 1))
+#+BEGIN_SRC emacs-lisp
 
-    (use-package consult
-      :init
-      (defun find-fd (&optional dir initial)
-        (interactive "P")
-        (let ((consult-find-command "fd --color=never --full-path ARG OPTS"))
+  ;;; Partial completion queries support
+  (use-package orderless
+    :init
+    (icomplete-mode)
+    :custom
+    (completion-styles '(orderless)))
+
+ #+END_SRC
+
+*** consult
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Better search utilities
+  (use-package consult
+    :init
+    (defun find-fd (&optional dir initial)
+      (interactive "P")
+      (let ((consult-find-command "fd --color=never --full-path ARG OPTS"))
         (consult-find dir initial)))
-     (advice-add #'register-preview :override #'consult-register-window)
-     :custom
-     (register-preview-delay 0)
-     (register-preview-function #'consult-register-window)
-     (consult-narrow-key "<"))
+    (advice-add #'register-preview :override #'consult-register-window)
+    :custom
+    (register-preview-delay 0)
+    (register-preview-function #'consult-register-window)
+    (consult-narrow-key "<"))
 
-    (use-package marginalia
-      :after consult
-      :init
-      (marginalia-mode)
-      (advice-add #'marginalia-cycle :after
-                  (lambda () (when (bound-and-true-p selectrum-mode)
-                               (selectrum-exhibit))))
-      (setq marginalia-annotators
-       '(marginalia-annotators-heavy marginalia-annotators-light)))
-
-    ;; Minibuffer actions
-    (use-package embark)
-
-    (use-package embark-consult
-      :after (embark consult)
-      :demand t
-      :hook
-      (embark-collect-mode . embark-consult-preview-minor-mode))
-
-    ;; Partial search queries with orderless
-    (use-package orderless
-      :init
-      (icomplete-mode)
-      :custom
-      (completion-styles '(orderless))))
-
-  (provide 'base)
 #+END_SRC
 
+*** embark
+
+Embark provides an interface for performing actions in minibuffers. I'm not doing much with it yet,
+but it's still there when I do need it.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; An interface for minibuffer actions
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t
+    :hook
+    (embark-collect-mode . embark-consult-preview-minor-mode))
+
+#+END_SRC
+
+*** marginalia
+
+Marginalia is a consult enhancement package that includes useful supplemental information in lookup
+operations. For example: showing the docstring for interactive commands or the current styling of a face.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Adds annotations to minibuffer interfaces
+  (use-package marginalia
+    :after consult
+    :init
+    (marginalia-mode)
+    (advice-add #'marginalia-cycle :after
+                (lambda () (when (bound-and-true-p selectrum-mode)
+                             (selectrum-exhibit))))
+    (setq marginalia-annotators
+          '(marginalia-annotators-heavy marginalia-annotators-light)))
+
+#+END_SRC
+
+*** ctrlf
+
+I love this package.
+
+CTRLF allows me to find anything—and I mean anything in a buffer. Most describe it as a drop-in
+Swiper replacement, but it's much more than that.
+
+For one, I like how it doesn't populate the query results with false positives. I also like how it
+doesn't assume I need to see /all/ the query results right away. I can jump through them and keep
+narrowing the search until there's only one result: the correct one.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Incremental search interface similar to web browsers
+  (use-package ctrlf
+        :config
+        (ctrlf-mode 1))
+
+#+END_SRC
+
+* Projects
+** User Settings
+
+Now, I need to set up Emacs for my preferred project flow. To make configuration a little easier,
+I'm going to define some variables for my root project path and my GitHub username.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Set variables for my root project directory and GitHub username
+  (setq C4/project-root "~/Workbench")
+  (setq C4/gh-user "cr-jr")
+
+#+END_SRC
+
+** Workspaces
+** Management
+** Version Control
+* Programming Modes
+** Syntax Checking
+** Autocompletion
+** Language Server Protocol
+** Debuggers
+** Language Support
+* Document Modes
+** Org
+** Markdown
+** LaTeX
+* Desktop Environment
+** Setup
+** Configuration
+** Enhancements
+* Modules
 ** Projects
 
 The =projects.el= module configures C4 for my Git/GitHub project workflows.
@@ -1190,7 +1311,6 @@ under a common interface for =C4.el=.
       (c4/org-templates)
       (c4/org-babel)
       :config
-      (c4/org-theme)
       (advice-add 'org-refile :after 'org-save-all-org-buffers)
       :hook
       (org-mode . c4/org-init)))
@@ -1238,33 +1358,13 @@ Packages in use:
 
 #+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
 
-(defun c4/org-theme ()
-  (set-face-attribute 'org-block nil
-    :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-block-begin-line nil
-    :foreground nil :weight 'normal :inherit 'fixed-pitch)
-  (set-face-attribute 'org-document-info-keyword nil
-    :foreground nil :weight 'normal :inherit 'fixed-pitch)
-  (set-face-attribute 'org-drawer nil
-    :foreground nil :weight 'normal :inherit 'fixed-pitch)
-  (set-face-attribute 'org-property-value nil
-    :foreground nil :weight 'normal :inherit 'fixed-pitch)
-  (set-face-attribute 'org-block-end-line nil
-    :foreground nil :weight 'normal :inherit 'fixed-pitch)
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-
   (use-package org-superstar
     :after org
     :hook
     (org-mode . org-superstar-mode)
     :custom
     (org-superstar-headline-bullets-list
-      '("§" "☙" "჻" " " " " " " " "))))
+      '("§" "☙" "჻" " " " " " " " ")))
 
 #+END_SRC
 
@@ -1499,7 +1599,7 @@ submodules that are documented below.
                 ([?\s-q] . exwm-restart)
                 ([?\s-W] . exwm-workspace-swap)
                 ([?\s-w] . exwm-workspace-switch)
-                ([?\s-D] . counsel-linux-app)
+                ([?\s-D] . app-launcher-run-app)
                 ([?\s-d] . (lambda (cmd)
                               (interactive (list (read-shell-command "$ ")))
                               (start-process-shell-command cmd nil cmd)))
@@ -1527,6 +1627,10 @@ submodules that are documented below.
         (exwm-systemtray-enable)
 
         (exwm-enable))
+
+      ;; Application launcher
+      (use-package app-launcher
+        :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
 
       ;; EXWM: Desktop Environment
       (use-package desktop-environment

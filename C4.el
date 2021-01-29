@@ -36,8 +36,6 @@
 
 (require 'cl-lib)
 
-(require 'base
-         (concat user-emacs-directory "modules/base.el"))
 (require 'projects
          (concat user-emacs-directory "modules/projects.el"))
 (require 'code
@@ -101,7 +99,7 @@
 ;;; Setup which-key for keybinding discoverability
 (use-package which-key
   :custom
-  (which-key-idle-delay 0.96)
+  (which-key-idle-delay 1.5)
   :config
   (which-key-mode))
 
@@ -299,7 +297,8 @@
 
 (C4/leader-key-def
   "t" '(:ignore t :wk "toggle")
-  "tt" '(C4/theme-switcher/body :wk "theme"))
+  "tt" '(C4/theme-switcher/body :wk "theme")
+  "ts" '(C4/text-scale/body :wk "scale text"))
 
 (defhydra C4/theme-switcher ()
   "Select a variant from main C4 themes"
@@ -322,6 +321,12 @@
   "Clap off!"
   (interactive)
   (consult-theme 'minimal-black))
+
+(defhydra C4/text-scale (:timeout 4)
+  "Interatively scale text"
+  ("+" text-scale-increase "inc")
+  ("-" text-scale-decrease "dec")
+  ("RET" nil "exit" :exit t))
 
 (C4/leader-key-def
  "w" '(:ignore t :wk "window")
@@ -352,6 +357,10 @@
  "wnA" '(windmove-delete-left :wk "close window to left")
  "wnd" '(windmove-display-right :wk "open next window right")
  "wnD" '(windmove-delete-right :wk "close window to right")
+ "wo" '(:ignore t :wk "open")
+ "woo" '(consult-buffer-other-window :wk "buffer")
+ "wof" '(find-file-other-window :wk "file")
+ "wod" '(counsel-linux-app :wk "desktop app")
  "ws" '(:ignore t :wk "split")
  "wss" '(split-window-below :wk "horizontal")
  "wsS" '(split-window-right :wk "vertical"))
@@ -379,16 +388,194 @@
   ("D" windmove-delete-right "close right")
   ("RET" nil "exit" :exit t))
 
-(c4/user
-  :name "Chatman R. Jr"
-  :email "crjr.code@protonmail.com")
+(setq-default cursor-type 'bar) ; default cursor as bar
+(setq-default frame-title-format '("%b")) ; window title is the buffer name
 
-(c4/base
-  :theme 'minimal-light
-  :typography
-  (c4/typography
-    :code '("Input" 13)
-    :document '("Lora" 16)))
+(setq linum-format "%4d ") ; line number format
+(column-number-mode 1) ; set column number display
+(show-paren-mode 1) ; show closing parens by default
+
+(menu-bar-mode -1) ; disable the menubar
+(scroll-bar-mode -1) ; disable visible scroll bar
+(tool-bar-mode -1) ; disable toolbar
+(tooltip-mode -1) ; disable tooltips
+(set-fringe-mode 8) ; allow some space
+
+(setq inhibit-startup-message t) ; inhibit startup message
+(setq initial-scratch-message "") ; no scratch message
+(setq visible-bell t)             ; enable visual bell
+(global-auto-revert-mode t) ; autosave buffer on file change
+(delete-selection-mode 1) ; Selected text will be overwritten on typing
+(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
+
+;; Show line numbers in programming modes
+(add-hook 'prog-mode-hook
+          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
+              #'display-line-numbers-mode
+            #'linum-mode))
+
+
+;; Disable for document and terminal modes
+(dolist (mode '(
+    org-mode-hook
+    term-mode-hook
+    shell-mode-hook
+    treemacs-mode-hook
+    vterm-mode
+    eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Make some icons available
+(use-package all-the-icons)
+
+;;; Set full name and email address
+(setq user-full-name "Chatman R. Jr")
+(setq user-mail-address "crjr.code@protonmail.com")
+
+;;; Include and load minimal-theme collection
+(use-package minimal-theme)
+
+;; Light theme loaded and enabled by default
+(load-theme 'minimal-light t)
+
+;; Dark variants load but not wait for toggling
+(load-theme 'minimal t t)
+(load-theme 'minimal-black t t)
+
+;;; Define our fonts
+(setq C4/code-font "Input 13")
+(setq C4/document-font "Lora 16")
+
+;;; Set fonts
+(set-face-attribute 'default nil :font C4/code-font)
+(set-face-attribute 'fixed-pitch nil :inherit 'default)
+(set-face-attribute 'variable-pitch nil :font C4/document-font)
+
+;;; Org Mode adjustments
+(set-face-attribute 'org-block nil
+                    :foreground nil
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-block-begin-line nil
+                    :foreground nil
+                    :weight 'normal
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-block-end-line nil
+                    :foreground nil
+                    :weight 'normal
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-document-info-keyword nil
+                    :foreground nil
+                    :weight 'normal
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-drawer nil
+                    :foreground nil
+                    :weight 'normal
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-property-value nil
+                    :foreground nil
+                    :weight 'normal
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-checkbox nil
+                    :inherit 'fixed-pitch)
+(set-face-attribute 'org-code nil
+                    :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-table nil
+                    :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-verbatim nil
+                    :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-special-keyword nil
+                    :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-meta-line nil
+                    :inherit '(font-lock-comment-face fixed-pitch))
+
+;;; Disbable the fringe background
+(set-face-attribute 'fringe nil
+                    :background nil)
+
+(use-package smart-mode-line
+  :init
+  (setq sml/theme 'respectful)
+  (setq sml/no-confirm-load-theme t)
+  (setq sml/name-width '(16 . 32))
+  (setq sml/mode-width 'full)
+  (setq sml/extra-filler 14)
+  (setq rm-blacklist nil)
+  (setq rm-whitelist '("↑"))
+  :config
+  (sml/setup)
+  (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
+  (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
+  (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
+
+;;; Help documentation enhancement
+(use-package helpful)
+
+;;; Universal editor settings
+(use-package editorconfig
+  :config
+  (editorconfig-mode))
+
+;;; Rich terminal experience
+(use-package vterm)
+
+;;; Better minibuffer completion
+(use-package selectrum
+  :config
+  (selectrum-mode 1))
+
+;;; Remember frequently used commands and queries
+(use-package selectrum-prescient
+  :after selectrum
+  :config
+  (selectrum-prescient-mode 1)
+  (prescient-persist-mode 1))
+
+;;; Partial completion queries support
+(use-package orderless
+  :init
+  (icomplete-mode)
+  :custom
+  (completion-styles '(orderless)))
+
+;;; Better search utilities
+(use-package consult
+  :init
+  (defun find-fd (&optional dir initial)
+    (interactive "P")
+    (let ((consult-find-command "fd --color=never --full-path ARG OPTS"))
+      (consult-find dir initial)))
+  (advice-add #'register-preview :override #'consult-register-window)
+  :custom
+  (register-preview-delay 0)
+  (register-preview-function #'consult-register-window)
+  (consult-narrow-key "<"))
+
+;;; An interface for minibuffer actions
+(use-package embark-consult
+  :after (embark consult)
+  :demand t
+  :hook
+  (embark-collect-mode . embark-consult-preview-minor-mode))
+
+;;; Adds annotations to minibuffer interfaces
+(use-package marginalia
+  :after consult
+  :init
+  (marginalia-mode)
+  (advice-add #'marginalia-cycle :after
+              (lambda () (when (bound-and-true-p selectrum-mode)
+                           (selectrum-exhibit))))
+  (setq marginalia-annotators
+        '(marginalia-annotators-heavy marginalia-annotators-light)))
+
+;;; Incremental search interface similar to web browsers
+(use-package ctrlf
+      :config
+      (ctrlf-mode 1))
+
+;;; Set variables for my root project directory and GitHub username
+(setq C4/project-root "~/Workbench")
+(setq C4/gh-user "cr-jr")
 
 (c4/projects
   :path "~/Workbench"
