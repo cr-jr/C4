@@ -1,21 +1,21 @@
 ;;; Setup straight.el with use-package
- (setq straight-repository-branch "develop")
- (defvar bootstrap-version)
- (let ((bootstrap-file
-        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-       (bootstrap-version 5))
-   (unless (file-exists-p bootstrap-file)
-     (with-current-buffer
-         (url-retrieve-synchronously
-          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-          'silent 'inhibit-cookies)
-       (goto-char (point-max))
-       (eval-print-last-sexp)))
-(load bootstrap-file nil 'nomessage))
+(setq straight-repository-branch "develop")
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
- ;; use-package integration
- (straight-use-package 'use-package)
- (setq straight-use-package-by-default t)
+;; use-package integration
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
 
 ;;; Need Org Mode to be first package installed because it builds the config.
 (use-package org
@@ -483,6 +483,8 @@
 
 ;;; Better minibuffer completion
 (use-package selectrum
+  :custom
+  (selectrum-display-action '(C4/display-minibuffer))
   :config
   (selectrum-mode 1))
 
@@ -536,6 +538,23 @@
       :config
       (ctrlf-mode 1))
 
+;;; Detached minibuffer display
+(use-package posframe
+  :after selectrum
+  :hook
+  (minibuffer-exit . posframe-delete-all))
+
+;; Helper to display the minibuffer in a posframe properly
+(defun C4/display-minibuffer (buffer _alist)
+  (frame-root-window
+   (posframe-show buffer
+                  :min-height 16
+                  :min-width (frame-width)
+                  :internal-border-width 4
+                  :left-fringe 8
+                  :right-fringe 8
+                  :poshandler 'posframe-poshandler-frame-bottom-center)))
+
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root "~/Code")
 (setq C4/gh-user "cr-jr")
@@ -580,7 +599,8 @@
 
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
-  :hook (prog-mode . tree-sitter-mode))
+  :config
+  (global-tree-sitter-mode 1))
 
 ;; A collection of supported tree-sitter languages
 (use-package tree-sitter-langs
@@ -730,10 +750,11 @@
   (setq org-src-fontify-natively t)
   (setq org-confirm-babel-evaluate nil)
   
+  :hook
+  (org-mode . org-indent-mode)
+  (org-mode . variable-pitch-mode)
+  (org-mode . auto-fill-mode)
   :config
-  (org-indent-mode 1)
-  (variable-pitch-mode 1)
-  (auto-fill-mode 1)
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 ;;; Org Superstar makes your bullets bang louder
@@ -753,7 +774,7 @@
   (org-mode . darkroom-tentative-mode)
   :config
   (setq darkroom-text-scale-increase 1)
-  (setq darkroom-margins '(32 . 32)))
+  (setq darkroom-margins '(16 . 16)))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm

@@ -39,7 +39,7 @@ C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https
            'silent 'inhibit-cookies)
         (goto-char (point-max))
         (eval-print-last-sexp)))
- (load bootstrap-file nil 'nomessage))
+    (load bootstrap-file nil 'nomessage))
 
   ;; use-package integration
   (straight-use-package 'use-package)
@@ -947,6 +947,8 @@ on its own, but its powers are boosted by the remaining packages.
 
   ;;; Better minibuffer completion
   (use-package selectrum
+    :custom
+    (selectrum-display-action '(C4/display-minibuffer))
     :config
     (selectrum-mode 1))
 
@@ -1056,6 +1058,32 @@ narrowing the search until there's only one result: the correct one.
   (use-package ctrlf
         :config
         (ctrlf-mode 1))
+
+#+END_SRC
+
+*** posframe
+
+This configuration used to use mini-frame, but it was giving me issues, so I switched to posframe. I
+set it up to give me a nice view of the minibuffer in a detached child frame.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Detached minibuffer display
+  (use-package posframe
+    :after selectrum
+    :hook
+    (minibuffer-exit . posframe-delete-all))
+
+  ;; Helper to display the minibuffer in a posframe properly
+  (defun C4/display-minibuffer (buffer _alist)
+    (frame-root-window
+     (posframe-show buffer
+                    :min-height 16
+                    :min-width (frame-width)
+                    :internal-border-width 4
+                    :left-fringe 8
+                    :right-fringe 8
+                    :poshandler 'posframe-poshandler-frame-bottom-center)))
 
 #+END_SRC
 
@@ -1182,13 +1210,14 @@ As a bonus, some of the languages I use most come with support out of the box.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; A full on parser in Emacs with highlighting definitions
-  (use-package tree-sitter
-    :hook (prog-mode . tree-sitter-mode))
+    ;;; A full on parser in Emacs with highlighting definitions
+    (use-package tree-sitter
+      :config
+      (global-tree-sitter-mode 1))
 
-  ;; A collection of supported tree-sitter languages
-  (use-package tree-sitter-langs
-    :after tree-sitter)
+    ;; A collection of supported tree-sitter languages
+    (use-package tree-sitter-langs
+      :after tree-sitter)
 
 #+END_SRC
 
@@ -1363,10 +1392,11 @@ flow becomes more personal.
     <<org-agenda>>
     <<org-templates>>
     <<org-literate>>
+    :hook
+    (org-mode . org-indent-mode)
+    (org-mode . variable-pitch-mode)
+    (org-mode . auto-fill-mode)
     :config
-    (org-indent-mode 1)
-    (variable-pitch-mode 1)
-    (auto-fill-mode 1)
     (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 #+END_SRC
@@ -1517,7 +1547,7 @@ keybinding =SPC t z= toggles it on and off.
           (org-mode . darkroom-tentative-mode)
           :config
           (setq darkroom-text-scale-increase 1)
-          (setq darkroom-margins '(32 . 32)))
+          (setq darkroom-margins '(16 . 16)))
 
 #+END_SRC
 
