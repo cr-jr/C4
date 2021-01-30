@@ -1,4 +1,4 @@
-#+TITLE: C4 Configuration
+z#+TITLE: C4 Configuration
 #+DATE: 2021-01-23
 #+AUTHOR: Chatman R. Jr
 :PROPERTIES:
@@ -787,23 +787,18 @@ package of face customizations.
 
 *** Typography
 
-The typography in C4 is set by defining a default, then modifying the =fixed-pitch= and
-=variable-pitch= faces. This sets a nice baseline for updating typographical styles used throughout
-Emacs by inheritance.
-
-So we need only define our fonts in one place.
+I only need to define a default font, but it needs some adjustments to display the way I want.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Define our font
-  (setq C4/font "Input 13")
-
   ;;; Set font
-  (set-face-attribute 'default nil :font C4/font)
+  (set-face-attribute 'default nil :font "Input")
+  (set-face-attribute 'bold nil :font "Input Bold")
+  (set-face-attribute 'italic nil :font "Input Italic")
+  (set-face-attribute 'bold-italic nil :font "Input Bold Italic")
 
   ;;; Org Mode adjustments
-  (set-face-attribute 'org-level-1 nil
-        :weight 'bold)
+  (set-face-attribute 'org-level-1 nil :weight 'bold)
 
 #+END_SRC
 
@@ -947,8 +942,6 @@ on its own, but its powers are boosted by the remaining packages.
 
   ;;; Better minibuffer completion
   (use-package selectrum
-    :custom
-    (selectrum-display-action '(C4/display-minibuffer))
     :config
     (selectrum-mode 1))
 
@@ -1058,32 +1051,6 @@ narrowing the search until there's only one result: the correct one.
   (use-package ctrlf
         :config
         (ctrlf-mode 1))
-
-#+END_SRC
-
-*** posframe
-
-This configuration used to use mini-frame, but it was giving me issues, so I switched to posframe. I
-set it up to give me a nice view of the minibuffer in a detached child frame.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Detached minibuffer display
-  (use-package posframe
-    :after selectrum
-    :hook
-    (minibuffer-exit . posframe-delete-all))
-
-  ;; Helper to display the minibuffer in a posframe properly
-  (defun C4/display-minibuffer (buffer _alist)
-    (frame-root-window
-     (posframe-show buffer
-                    :min-height 16
-                    :min-width (frame-width)
-                    :internal-border-width 4
-                    :left-fringe 8
-                    :right-fringe 8
-                    :poshandler 'posframe-poshandler-frame-bottom-center)))
 
 #+END_SRC
 
@@ -1210,14 +1177,14 @@ As a bonus, some of the languages I use most come with support out of the box.
 
 #+BEGIN_SRC emacs-lisp
 
-    ;;; A full on parser in Emacs with highlighting definitions
-    (use-package tree-sitter
-      :config
-      (global-tree-sitter-mode 1))
+  ;;; A full on parser in Emacs with highlighting definitions
+  (use-package tree-sitter
+    :config
+    (global-tree-sitter-mode 1))
 
-    ;; A collection of supported tree-sitter languages
-    (use-package tree-sitter-langs
-      :after tree-sitter)
+  ;; A collection of supported tree-sitter languages
+  (use-package tree-sitter-langs
+    :after tree-sitter)
 
 #+END_SRC
 
@@ -1530,7 +1497,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
     (org-superstar-leading ((t (:inherit 'org-hide))))
     :init
     (setq org-superstar-headline-bullets-list
-          '("❖" "◈" "◆" "◇" "⚫" "⚬" " ")))
+          '("*" "*" "*" "*" "*" "*" "*")))
 
 #+END_SRC
 
@@ -1593,7 +1560,7 @@ udiskie &
 dunst &
 
 # Start EXWM
-exec dbus-launch --exit-with-session emacs -mm --debug-init
+exec dbus-launch --exit-with-session emacs -mm --debug-init -f exwm-enable
 #+END_SRC
 
 *** multi-monitor
@@ -1634,9 +1601,7 @@ Like the Org section, I'm breaking up this monolithic block of code into smaller
     (add-hook 'exwm-update-class-hook #'C4/exwm-update-class)
 
     <<exwm-randr>>
-    <<exwm-systemtray>>
-
-    (exwm-enable))
+    <<exwm-systemtray>>)
 
   (defun C4/exwm-update-class ()
     (exwm-workspace-rename-buffer (concat "X: " exwm-class-name)))

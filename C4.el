@@ -436,15 +436,14 @@
 (load-theme 'minimal t t)
 (load-theme 'minimal-black t t)
 
-;;; Define our font
-(setq C4/font "Input 13")
-
 ;;; Set font
-(set-face-attribute 'default nil :font C4/font)
+(set-face-attribute 'default nil :font "Input")
+(set-face-attribute 'bold nil :font "Input Bold")
+(set-face-attribute 'italic nil :font "Input Italic")
+(set-face-attribute 'bold-italic nil :font "Input Bold Italic")
 
 ;;; Org Mode adjustments
-(set-face-attribute 'org-level-1 nil
-      :weight 'bold)
+(set-face-attribute 'org-level-1 nil :weight 'bold)
 
 ;;; Add extended unicode support
 (use-package unicode-fonts
@@ -483,8 +482,6 @@
 
 ;;; Better minibuffer completion
 (use-package selectrum
-  :custom
-  (selectrum-display-action '(C4/display-minibuffer))
   :config
   (selectrum-mode 1))
 
@@ -537,23 +534,6 @@
 (use-package ctrlf
       :config
       (ctrlf-mode 1))
-
-;;; Detached minibuffer display
-(use-package posframe
-  :after selectrum
-  :hook
-  (minibuffer-exit . posframe-delete-all))
-
-;; Helper to display the minibuffer in a posframe properly
-(defun C4/display-minibuffer (buffer _alist)
-  (frame-root-window
-   (posframe-show buffer
-                  :min-height 16
-                  :min-width (frame-width)
-                  :internal-border-width 4
-                  :left-fringe 8
-                  :right-fringe 8
-                  :poshandler 'posframe-poshandler-frame-bottom-center)))
 
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root "~/Code")
@@ -766,7 +746,7 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("❖" "◈" "◆" "◇" "⚫" "⚬" " ")))
+        '("*" "*" "*" "*" "*" "*" "*")))
 
 ;;; Darkroom for a better writing experience
 (use-package darkroom
@@ -852,9 +832,7 @@
   (require 'exwm-systemtray)
   (setq exwm-systemtray-height 16)
   (exwm-systemtray-enable)
-  
-
-  (exwm-enable))
+  )
 
 (defun C4/exwm-update-class ()
   (exwm-workspace-rename-buffer (concat "X: " exwm-class-name)))
