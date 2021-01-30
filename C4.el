@@ -436,10 +436,10 @@
 (load-theme 'minimal t t)
 (load-theme 'minimal-black t t)
 
-;;; Define our fonts
+;;; Define our font
 (setq C4/font "Input 13")
 
-;;; Set fonts
+;;; Set font
 (set-face-attribute 'default nil :font C4/font)
 
 ;;; Org Mode adjustments
@@ -595,6 +595,14 @@
 ;; A collection of supported tree-sitter languages
 (use-package tree-sitter-langs
   :after tree-sitter)
+
+;;; Syntax: comments
+(set-face-attribute 'tree-sitter-hl-face:comment nil
+                    :slant 'italic)
+
+;;Unsupported fallback
+(set-face-attribute 'font-lock-comment-face nil
+                    :slant 'italic)
 
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters

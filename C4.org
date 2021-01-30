@@ -795,10 +795,10 @@ So we need only define our fonts in one place.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Define our fonts
+  ;;; Define our font
   (setq C4/font "Input 13")
 
-  ;;; Set fonts
+  ;;; Set font
   (set-face-attribute 'default nil :font C4/font)
 
   ;;; Org Mode adjustments
@@ -1216,6 +1216,22 @@ As a bonus, some of the languages I use most come with support out of the box.
 This section contains packages with the aim of providing a little more contextual highlighting to programming
 modes. Since I use a default theme that doesn't make a lot of assumptions about how I want my code
 highlighted, it means I can judiciously add syntax information that actually helps rather than creates noise.
+
+*** Faces
+
+    I'm going to adjust some of the faces provided by tree-sitter now.
+
+    #+BEGIN_SRC emacs-lisp
+
+      ;;; Syntax: comments
+      (set-face-attribute 'tree-sitter-hl-face:comment nil
+                          :slant 'italic)
+
+      ;;Unsupported fallback
+      (set-face-attribute 'font-lock-comment-face nil
+                          :slant 'italic)
+
+    #+END_SRC
 
 *** rainbow-delimiters
 
