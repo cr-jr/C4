@@ -437,50 +437,19 @@
 (load-theme 'minimal-black t t)
 
 ;;; Define our fonts
-(setq C4/code-font "Input 13")
-(setq C4/document-font "Lora 16")
+(setq C4/font "Input 13")
 
 ;;; Set fonts
-(set-face-attribute 'default nil :font C4/code-font)
-(set-face-attribute 'fixed-pitch nil :inherit 'default)
-(set-face-attribute 'variable-pitch nil :font C4/document-font)
+(set-face-attribute 'default nil :font C4/font)
 
 ;;; Org Mode adjustments
-(set-face-attribute 'org-block nil
-                    :foreground nil
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-block-begin-line nil
-                    :foreground nil
-                    :weight 'normal
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-block-end-line nil
-                    :foreground nil
-                    :weight 'normal
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-document-info-keyword nil
-                    :foreground nil
-                    :weight 'normal
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-drawer nil
-                    :foreground nil
-                    :weight 'normal
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-property-value nil
-                    :foreground nil
-                    :weight 'normal
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-checkbox nil
-                    :inherit 'fixed-pitch)
-(set-face-attribute 'org-code nil
-                    :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-table nil
-                    :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-verbatim nil
-                    :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-special-keyword nil
-                    :inherit '(font-lock-comment-face fixed-pitch))
-(set-face-attribute 'org-meta-line nil
-                    :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-level-1 nil
+      :weight 'bold)
+
+;;; Add extended unicode support
+(use-package unicode-fonts
+  :config
+  (unicode-fonts-setup))
 
 ;;; Disbable the fringe background
 (set-face-attribute 'fringe nil
@@ -614,10 +583,10 @@
 (use-package diff-hl
   :after magit
   :hook
-  (text-mode . diff-hl-mode)
-  (prog-mode . diff-hl-mode)
   (magit-pre-refresh . diff-hl-magit-pre-refresh)
-  (magit-post-refresh . diff-hl-magit-post-refresh))
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  (global-diff-hl-mode 1))
 
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
@@ -766,7 +735,7 @@
   :config
   (org-indent-mode 1)
   (variable-pitch-mode 1)
-  (auto-fill-mode)
+  (auto-fill-mode 1)
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 ;;; Org Superstar makes your bullets bang louder
@@ -774,14 +743,17 @@
   :after org
   :hook
   (org-mode . org-superstar-mode)
-  :custom
-  (org-superstar-headline-bullets-list
-   '("§" "☙" "჻" " " " " " " " ")))
+  :init
+  (setq org-superstar-headline-bullets-list
+   '("§" "☙" "჻" "፨" "✒" "⚫" " ")))
 
 ;;; Darkroom for a better writing experience
 (use-package darkroom
+  :hook
+  (org-mode . darkroom-tentative-mode)
   :config
-  (darkroom-tentative-mode 1))
+  (setq darkroom-text-scale-increase 1)
+  (setq darkroom-margins '(32 . 32)))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
@@ -795,7 +767,7 @@
 
   (display-time-mode t)
 
-  (setq exwm-workspace-number 6)
+  (setq exwm-workspace-number 4)
   (setq display-time-default-load-average nil)
   (setq exwm-workspace-warp-cursor t)
   (setq focus-follows-mouse t)
@@ -849,8 +821,7 @@
    ;;; Multi monitor workspaces
   (require 'exwm-randr)
   (setq exwm-randr-workspace-monitor-plist
-        '(0 "LVDS" 1 "LVDS"
-            "HDMI-0" 2 "HDMI-0" 3))
+        '(0 "LVDS" 1 "LVDS" 2 "HDMI-0" 3 "HDMI-0"))
   (start-process-shell-command "xrandr" nil
                                (concat user-emacs-directory "desktop/multihead.sh"))
   (exwm-randr-enable)
