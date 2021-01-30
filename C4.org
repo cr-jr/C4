@@ -39,7 +39,7 @@ C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https
            'silent 'inhibit-cookies)
         (goto-char (point-max))
         (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
+ (load bootstrap-file nil 'nomessage))
 
   ;; use-package integration
   (straight-use-package 'use-package)
@@ -169,7 +169,8 @@ Some modes can be set to disable this behavior as exceptions.
 
 ** Debugging the Configuration
 
-When things break, I need ways of figuring out the problem. And without measurements, I can't make improvements.
+When things break, I need ways of figuring out the problem. And without measurements, I can't make
+improvements.
 
 *** esup
 
@@ -1498,9 +1499,11 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
     :after org
     :hook
     (org-mode . org-superstar-mode)
+    :custom-face
+    (org-superstar-leading ((t (:inherit 'org-hide))))
     :init
     (setq org-superstar-headline-bullets-list
-     '("§" "☙" "჻" "፨" "✒" "⚫" " ")))
+          '("❖" "◈" "◆" "◇" "⚫" "⚬" " ")))
 
 #+END_SRC
 

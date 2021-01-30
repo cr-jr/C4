@@ -1,21 +1,21 @@
 ;;; Setup straight.el with use-package
-(setq straight-repository-branch "develop")
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+ (setq straight-repository-branch "develop")
+ (defvar bootstrap-version)
+ (let ((bootstrap-file
+        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+       (bootstrap-version 5))
+   (unless (file-exists-p bootstrap-file)
+     (with-current-buffer
+         (url-retrieve-synchronously
+          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+          'silent 'inhibit-cookies)
+       (goto-char (point-max))
+       (eval-print-last-sexp)))
+(load bootstrap-file nil 'nomessage))
 
-;; use-package integration
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
+ ;; use-package integration
+ (straight-use-package 'use-package)
+ (setq straight-use-package-by-default t)
 
 ;;; Need Org Mode to be first package installed because it builds the config.
 (use-package org
@@ -743,9 +743,11 @@
   :after org
   :hook
   (org-mode . org-superstar-mode)
+  :custom-face
+  (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-   '("§" "☙" "჻" "፨" "✒" "⚫" " ")))
+        '("❖" "◈" "◆" "◇" "⚫" "⚬" " ")))
 
 ;;; Darkroom for a better writing experience
 (use-package darkroom
