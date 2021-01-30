@@ -3,7 +3,7 @@
 #+AUTHOR: Chatman R. Jr
 :PROPERTIES:
 :header-args: :mkdirp yes
-:header-args:emacs-lisp: :tangle "./C4.el" :session "C4"
+:header-args:emacs-lisp: :tangle "./C4.el"
 :END:
 
 * Summary
@@ -11,8 +11,7 @@
 This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
 environment and learn how to do more with it.
 
-C4 prioritizes ease, convenience and performance. The aesthethic and workflow are rather spartan,
-building from a base of Emacs itself instead of forcing it to be something else.
+C4 prioritizes ease, convenience and performance. A minimal UI ensures my attention remains on the wo
 
 This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and
 the =init.el= that loads it on startup.
@@ -60,34 +59,17 @@ to rebuild it on save.
     :straight org-plus-contrib)
 
   ;; Generate C4.el from the source blocks in C4.org
-  (defun C4/init ()
+  (defun C4/load ()
     (org-babel-tangle-file
      (concat user-emacs-directory "C4.org")
      (concat user-emacs-directory "C4.el")))
 
   ;; Always generate on load
-  (C4/init)
+  (C4/load)
 
   ;; Setup a hook to re-tangle the config on modification.
   (add-hook 'org-mode-hook
-            (lambda () (add-hook 'after-save-hook #'C4/init)))
-
-#+END_SRC
-
-C4 is a module-based configuration, so now we load those.
-
-#+BEGIN_SRC emacs-lisp
-
-  (require 'cl-lib)
-
-  (require 'projects
-           (concat user-emacs-directory "modules/projects.el"))
-  (require 'code
-           (concat user-emacs-directory "modules/code.el"))
-  (require 'documents
-           (concat user-emacs-directory "modules/documents.el"))
-  (require 'desktop
-           (concat user-emacs-directory "modules/desktop.el"))
+            (lambda () (add-hook 'after-save-hook #'C4/load)))
 
 #+END_SRC
 
@@ -463,6 +445,7 @@ This domain wraps all commands that affect the filesystem. It includes finding a
   (C4/leader-key-def
     "f" '(:ignore t :wk "file")
     "ff" '(find-file :wk "find")
+    "fx" '(crux-create-scratch-buffer :wk "scratchpad")
     "fr" '(crux-rename-file-and-buffer :wk "rename"))
 
 #+END_SRC
@@ -574,14 +557,13 @@ The dependencies:
 
 **** Session (=q=)
 
-This domain wraps commands that affect Emacs sessions. It allows quick management of sessions and
-workspaces.
+This domain wraps commands that affect Emacs sessions
 
 #+BEGIN_SRC emacs-lisp
 
   (C4/leader-key-def
-    "q" '(:ignore t :wk "quit")
-    "qq" '(save-buffers-kill-emacs :wk "and save")
+    "q" '(:ignore t :wk "session")
+    "qq" '(save-buffers-kill-emacs :wk "quit")
     "qQ" '(kill-emacs :wk "really quit"))
 
 #+END_SRC
@@ -593,38 +575,41 @@ the fly and scale text. It also triggers writeroom-mode in document major modes.
 
 #+BEGIN_SRC emacs-lisp
 
-  (C4/leader-key-def
-    "t" '(:ignore t :wk "toggle")
-    "tt" '(C4/theme-switcher/body :wk "theme")
-    "ts" '(C4/text-scale/body :wk "scale text"))
+        (C4/leader-key-def
+          "t" '(:ignore t :wk "toggle")
+          "tt" '(C4/theme-switcher/body :wk "theme")
+          "ts" '(C4/text-scale/body :wk "scale text")
+          "tz" '(darkroom-tentative-mode :wk "zen mode"))
 
-  (defhydra C4/theme-switcher ()
-    "Select a variant from main C4 themes"
-    ("l" C4/light "light variant")
-    ("d" C4/dark "dark variant")
-    ("b" C4/black "black variant")
-    ("RET" nil "exit" :exit t))
+        (defhydra C4/theme-switcher ()
+          "Select a variant from main C4 themes"
+          ("l" C4/light "light variant")
+          ("d" C4/dark "dark variant")
+          ("b" C4/black "black variant")
+          ("RET" nil "exit" :exit t))
 
-  (defun C4/light ()
-    "Clap on!"
-    (interactive)
-    (consult-theme 'minimal-light))
+        (defun C4/light ()
+          "Clap on!"
+          (interactive)
+          (consult-theme 'minimal-light))
 
-  (defun C4/dark ()
-    "Dimmer switch!"
-    (interactive)
-    (consult-theme 'minimal))
+        (defun C4/dark ()
+          "Dimmer switch!"
+          (interactive)
+          (consult-theme 'minimal)
+          (sml/apply-theme 'dark))
 
-  (defun C4/black ()
-    "Clap off!"
-    (interactive)
-    (consult-theme 'minimal-black))
+        (defun C4/black ()
+          "Clap off!"
+          (interactive)
+          (consult-theme 'minimal-black)
+          (sml/apply-theme 'dark))
 
-  (defhydra C4/text-scale (:timeout 4)
-    "Interatively scale text"
-    ("+" text-scale-increase "inc")
-    ("-" text-scale-decrease "dec")
-    ("RET" nil "exit" :exit t))
+        (defhydra C4/text-scale (:timeout 4)
+          "Interatively scale text"
+          ("+" text-scale-increase "inc")
+          ("-" text-scale-decrease "dec")
+          ("RET" nil "exit" :exit t))
 #+END_SRC
 
 **** Window (=w=)
@@ -737,6 +722,7 @@ workspace as well as establish some global settings.
 
   (setq inhibit-startup-message t) ; inhibit startup message
   (setq initial-scratch-message "") ; no scratch message
+  (setq initial-major-mode 'text-mode)
   (setq visible-bell t)             ; enable visual bell
   (global-auto-revert-mode t) ; autosave buffer on file change
   (delete-selection-mode 1) ; Selected text will be overwritten on typing
@@ -881,11 +867,11 @@ really have no need for anything but basic information about the buffer and slig
 
   (use-package smart-mode-line
     :init
-    (setq sml/theme 'respectful)
+    (setq sml/theme 'light)
     (setq sml/no-confirm-load-theme t)
     (setq sml/name-width '(16 . 32))
     (setq sml/mode-width 'full)
-    (setq sml/extra-filler 14)
+    (setq sml/extra-filler 12)
     (setq rm-blacklist nil)
     (setq rm-whitelist '("↑"))
     :config
@@ -921,7 +907,7 @@ First, install the plugin for Emacs.
   ;;; Universal editor settings
   (use-package editorconfig
     :config
-    (editorconfig-mode))
+    (editorconfig-mode 1))
 
 #+END_SRC
 
@@ -1095,6 +1081,25 @@ narrowing the search until there's only one result: the correct one.
 
 #+END_SRC
 
+*** mini-frame
+
+The mini-frame package opens minibuffers as a child frame at the top of the screen by default. I make some
+slight display adjustments because I use a vertical completion package.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Display the minibuffer as child frame position at top of screen
+  (use-package mini-frame
+    :custom
+    (mini-frame-show-parameters
+     '((top . 16)
+       (width . 0.8)
+       (left . 0.4)))
+    :config
+    (mini-frame-mode 1))
+
+#+END_SRC
+
 * Projects
 ** User Settings
 
@@ -1104,407 +1109,451 @@ I'm going to define some variables for my root project path and my GitHub userna
 #+BEGIN_SRC emacs-lisp
 
   ;;; Set variables for my root project directory and GitHub username
-  (setq C4/project-root "~/Workbench")
+  (setq C4/project-root "~/Code")
   (setq C4/gh-user "cr-jr")
 
 #+END_SRC
 
-** Workspaces
 ** Management
-** Version Control
-* Programming Modes
-** Syntax Checking
-** Autocompletion
-** Language Server Protocol
-** Debuggers
-** Language Support
-* Document Modes
-** Org
-** Markdown
-** LaTeX
-* Desktop Environment
-** Setup
-** Configuration
-** Enhancements
-* Modules
-** Projects
 
-The =projects.el= module configures C4 for my Git/GitHub project workflows.
-
-As with the others, to use it, you'll need to load it.
+Project management in my configuration is handled by projectile, the best-in-class package for efficently
+working with projects under version control.
 
 #+BEGIN_SRC emacs-lisp
 
-(c4/projects
-  :path "~/Workbench"
-  :username "cr-jr")
-
-#+END_SRC
-
-It's pretty straightforward.
-
-It installs projectile and points it to a =path= to look for projects under version control and then
-evaluates the ~c4/git~ submodule with your GitHub =username=.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/projects.el"
-(cl-defun c4/projects (&key path username)
   (use-package projectile
-    :diminish
-    :config
-    (projectile-mode)
-    :custom
-    (projectile-project-search-path (list path))
-    (projectile-completion-system 'ivy)
-    (projectile-switch-project-action #'projectile-dired)
-    :bind-keymap
-    ("C-c p" . projectile-command-map))
-
-  (use-package counsel-projectile
-    :after projectile
-    :config
-    (counsel-projectile-mode))
-  (eval (c4/git username)))
+      :config
+      (projectile-mode)
+      :custom
+      (projectile-project-search-path C4/project-root)
+      (projectile-sort-order 'recently-active)
+      (projectile-switch-project-action #'projectile-dired)
+      :bind-keymap
+      ("C-c p" . projectile-command-map))
 
 #+END_SRC
 
-It has a single submodule for Git configuration you'll want to have a look at.
+** Version Control
 
-*** ~c4/git~
+My workflow is Git and GitHub driven so the packages configured here reflect that.
 
-This submodule does the actual work of installing and configuring magit & forge. It also includes
-[[https://github.com/dgutov/diff-hl][diff-hl]] so you can see changes to the files in your projects in the fringe.
+*** magit
 
-This will make it easier to determine what changes to commit if you choose to stage hunks with magit
-instead of whole files.
+Magit is probably the last Git repo manager I'll ever need. That's how good it is.
 
-#+BEGIN_QUOTE
-Be aware that you *will need* a GitHub account along with a personal access token to make any of this work.
-#+END_QUOTE
+#+BEGIN_SRC emacs-lisp
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/projects.el"
-
-(defun c4/git (user)
+  ;;; Magical Git management
   (use-package magit
     :commands (magit magit-status)
     :custom
+    (magit-completing-read-function #'selectrum-completing-read)
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-  (use-package diff-hl
-    :after magit
-    :hook
-    (after-init . global-diff-hl-mode)
-    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-    (magit-post-refresh . diff-hl-magit-post-refresh))
-
-  (use-package forge
-    :after magit
-    :custom
-    (auth-sources '("~/.authinfo"))
-    :config
-    (ghub-request "GET" "/user" nil
-      :forge 'github
-      :host "api.github.com"
-      :username user
-      :auth 'forge)))
-
-(provide 'projects)
 #+END_SRC
 
-** Code
+*** forge
 
-The =code.el= module contains configuration and functionality for your programming needs.
+Forge is a magit extension that integrates Git forges (GitHub, Gitlab) into the magit interface and flow.
 
-The main module sets up packages for programming modes in general and a rich Emacs Lisp editing
-experience besides.
+It allows complete remote repo management from right in Emacs. Including *handling issues and pull requests*.
 
-You'll also want to include your desired language modules for your main programming projects.
+#+BEGIN_QUOTE
+Be aware that none of this configuration will work unless forge can hook into a personal access token from the
+GitHub account defined by  =C4/gh-user=.
+#+END_QUOTE
 
 #+BEGIN_SRC emacs-lisp
 
-(c4/code)
+  ;;; A Magit extension to manage Git forges (GitHub, GitLab) from Magit
+  (use-package forge
+      :after magit
+      :custom
+      (auth-sources '("~/.authinfo"))
+      :config
+      (ghub-request "GET" "/user" nil
+        :forge 'github
+        :host "api.github.com"
+        :username C4/gh-user
+        :auth 'forge))
 
 #+END_SRC
 
-*** Setup
+*** diff-hl
 
-This module works by including by setting the initial programming experience in a submodule and then
-conditionally loading in rich language functionality.
+The final ingredient is diff-hl: a package that shows whether a file under version control has additions,
+modifications or deletions since the last commit.
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/code.el"
-  (defun c4/code ()
-    (c4/code-init))
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Show how files have changed between commits
+  (use-package diff-hl
+    :after magit
+    :hook
+    (text-mode . diff-hl-mode)
+    (prog-mode . diff-hl-mode)
+    (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    (magit-post-refresh . diff-hl-magit-post-refresh))
 
 #+END_SRC
 
+* Programming Modes
 
-**** ~c4/code-init~
+The richer programming experience offered by Emacs and the lovely ecosystem of community packages was a huge
+part of why I switched over from Vim after nearly a decade of use. It requires a bit of setup, but now I have a
+development workstation I can grow with and easily expand.
 
-This submodule configures the base, essential packages for configuring the programming flow.
+I looked around for packages that set a solid base for programming in general before I started looking for
+language-specific support. That way each language I use gets a good starting point from which I can selectively
+improve the workflow as needed.
 
-The big ones are:
+** Parsing
 
-+ [[https://github.com/Fanael/rainbow-delimiters][rainbow-delimiters]]
-+ [[https://github.com/company-mode/company-mode][company-mode]]
-+ [[https://github.com/flycheck/flycheck][flycheck]]
-+ [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]]
-+ [[https://github.com/emacs-lsp/lsp-ui][lsp-ui]]
+Somewhat unconventional from other configurations is my inclusion of the tree-sitter package for Emacs. I
+include it not just for the faster granular highlighting, but also because it allows me to /query/ syntax
+definitions in supported source code.
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/code.el"
+While this would be a curiosity for most developers, it's a boon for developers thinking about creating new
+programming languages or external *DSLs*. This is a space I've started to explore in my work, so in it goes.
 
-(defun c4/code-init ()
+Oh, and having a full AST I can customize with faces in Emacs means I can implement a lightweight form of
+*semantic highlighting* for the programming languages I use and create.
+
+As a bonus, some of the languages I use most come with support out of the box.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; A full on parser in Emacs with highlighting definitions
+  (use-package tree-sitter
+    :hook (prog-mode . tree-sitter-mode))
+
+  ;; A collection of supported tree-sitter languages
+  (use-package tree-sitter-langs
+    :after tree-sitter)
+
+#+END_SRC
+
+** Syntax Highlighting
+
+This section contains packages with the aim of providing a little more contextual highlighting to programming
+modes. Since I use a default theme that doesn't make a lot of assumptions about how I want my code
+highlighted, it means I can judiciously add syntax information that actually helps rather than creates noise.
+
+*** rainbow-delimiters
+
+This package is incredibly helpful in keeping track of how many levels deep I am in a complex LISP s-exp and it
+helps a little in other ways, too
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; When I'm knee deep in parens
   (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode))
+      :hook (prog-mode . rainbow-delimiters-mode))
 
+#+END_SRC
+
+** Linting
+
+C4 uses flycheck for code linting.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Code linting package that flies
+  (use-package flycheck
+      :hook (prog-mode . flycheck-mode))
+
+#+END_SRC
+
+** Formatting
+
+C4 uses Aphleleia for code formating. It's a language-agnostic formatting package that allows the support of
+new formatters as well.
+
+#+BEGIN_SRC emacs-lisp
+
+    ;;; Universal code formatting package
+    (use-package apheleia
+      :straight
+      '(apheleia
+        :host github
+        :repo "raxod502/apheleia")
+      :hook (prog-mode . apheleia-mode))
+
+#+END_SRC
+
+** Autocompletion
+
+Autocompletion is included with Company with an interface provided by company-box.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Code autocomplete with Company
   (use-package company
     :hook (prog-mode . company-mode))
 
+  ;;; A nice Company interface
   (use-package company-box
     :hook (company-mode . company-box-mode))
 
-  (use-package flycheck
-    :hook (prog-mode . flycheck-mode))
+#+END_SRC
 
+** Language Server Protocol
+
+Language Server Protocol is /the/ killer feature of modern IDEs. The most significant contribution of VSCode
+can be used in Emacs without much issue.
+
+First, I'm setting it up for general use. Later, in the appropriate language's section, I add the enhancements.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Language Server Protocol package for rich IDE features
   (use-package lsp-mode
     :hook (prog-mode . lsp-deferred)
     :commands (lsp lsp-deferred))
 
+  ;; UI enhancements for lsp-mode
   (use-package lsp-ui
     :after lsp-mode
     :commands lsp-ui-mode)
 
-  (use-package lsp-ivy
-    :after lsp-mode
-    :commands lsp-ivy-workspace-symbol))
-
-(provide 'code)
 #+END_SRC
 
+** Debugging
 
-*** Languages
-
-** Documents
-
-The =documents.el= module configures settings and functionality for document modes in Emacs. Its
-primary focus is [[https://orgmode.org][Org Mode]] and configuring it for technical documentation, note-taking, journaling, and
-literate programming.
-
-Make sure you load it in:
+This configuration uses the Debug Adapter Protocol for supported languages while falling back to more
+specialized debgugging packages for unsupported languages in their relevant sections.
 
 #+BEGIN_SRC emacs-lisp
 
-(c4/org :path "~/Org")
-
-#+END_SRC
-
-*** ~c4/org~
-
-This is a top-level module exposed by =documents.el= It wraps all of the submodule Org Mode settings
-under a common interface for =C4.el=.
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
-  (cl-defun c4/org (&key path)
-    (use-package org
-      :init
-      (setq org-ellipsis " ↴")
-      (setq org-directory path)
-      (c4/org-agenda)
-      (c4/org-templates)
-      (c4/org-babel)
-      :config
-      (advice-add 'org-refile :after 'org-save-all-org-buffers)
-      :hook
-      (org-mode . c4/org-init)))
-
-#+END_SRC
-
-**** ~c4/org-init~
-
-A submodule that defines the absolute basic settings for Org Mode whenever an Org buffer opens.
-
-By default I want automatically indent content under Org headings, enable variable pitch so I can
-use my document font, and ensure my text will wrap at the right line length.
-
-Packages in use:
-
-+ [[https://github.com/joostkremers/visual-fill-column][visual-fill-column]]: wraps visual line mode buffers at a given line length and provides the option
-  to center the buffer
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
-
-(defun c4/org-init ()
-  (org-indent-mode 1)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1)
-  (auto-fill-mode 1)
-
-  (use-package visual-fill-column
-    :defer t
-    :custom
-    (visual-fill-column-width 108)
-    (visual-fill-column-center-text t)
-    :hook (org-mode . visual-fill-column-mode)))
-
-#+END_SRC
-
-
-**** ~c4/org-theme~
-
-A submodule that performs some UI tweaks for Org buffers. Mainly, it resets certain faces to the
-code font and makes the bullets look proper.
-
-Packages in use:
-
-+ [[https://github.com/integral-dw/org-superstar-mode][org-superstar-mode]]: make your Org headings /fancy/
-
-#+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
-
-  (use-package org-superstar
-    :after org
+  ;;; The debugging complement to LSP
+  (use-package dap-mode
     :hook
-    (org-mode . org-superstar-mode)
-    :custom
-    (org-superstar-headline-bullets-list
-      '("§" "☙" "჻" " " " " " " " ")))
+    (prog-mode . dap-mode)
+    (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
 
 #+END_SRC
 
+** Language Support
+*** TODO Lisp Family
+*** TODO C
+*** TODO Elixir
+*** TODO Elm
+*** TODO Factor
+*** TODO Go
+*** TODO Haskell
+*** TODO JavaScript/TypeScript
+*** TODO Julia
+*** TODO Nim
+*** TODO Prolog
+*** TODO R
+*** TODO Rust
+*** TODO Web Dev
+* Document Modes
+** Spelling
+** Grammar
+** Dictionary & Thesaurus
+** Format Support
+*** Org
 
-**** ~c4/org-agenda~
+My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured and includes
+quite a few addons.
 
-This submodule sets up the Org agenda flow for creating task lists and project planning.
+**** User Settings
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
+First, I define some variables to make adjustments easier.
 
-(defun c4/org-agenda ()
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Variables for Org Mode configuration
+  (setq C4/org-root-path "~/Documents/Org")
+  (setq C4/org-agenda-files '("Tasks.org" "Projects.org"))
+
+#+END_SRC
+
+**** Configuration
+
+To keep things clean in this section, I use the =noweb= property of Org-babel so I can define more complex
+settings in their own section.
+
+A lot of this setup was lifted directly from Emacs from Scratch and I'll customize it over time as my Org Mode
+flow becomes more personal.
+
+#+BEGIN_SRC emacs-lisp :noweb yes
+
+  ;;; Org setup
+  (use-package org
+    :init
+    (setq org-ellipsis " ↴")
+    (setq org-directory C4/org-root-path)
+    <<org-agenda>>
+    <<org-templates>>
+    <<org-literate>>
+    :config
+    (org-indent-mode 1)
+    (variable-pitch-mode 1)
+    (auto-fill-mode)
+    (advice-add 'org-refile :after 'org-save-all-org-buffers))
+
+#+END_SRC
+
+***** Agenda
+
+Now, I set up Org for task management.
+
+#+NAME: org-agenda
+#+BEGIN_SRC emacs-lisp :tangle no
+
+  ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
 
-  (setq org-agenda-files
-    '("Tasks.org" "Projects.org"))
+  (setq org-agenda-files C4/org-agenda-files)
 
   (setq org-todo-keywords
-    '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-        (sequence
-          "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
-          "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+          (sequence
+           "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
+           "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
   (setq org-refile-targets
-    '(("Archive.org" :maxlevel . 1)
-        ("Tasks.org" :maxlevel . 1)))
+        '(("Archive.org" :maxlevel . 1)
+          ("Tasks.org" :maxlevel . 1)))
 
   (setq org-tag-alist
-    '((:startgroup)
-        ("@product" . ?P)
-        ("@experiment" . ?E)
-        ("@resource" . ?R)
-        ("@learning" . ?L)
-        ("@teaching" . ?T)
-        (:endgroup)
-        ("prototyping" . ?p)
-        ("developing" . ?d)
-        ("documenting" . ?D)
-        ("testing" . ?t)
-        ("refactoring" . ?r)))
+        '((:startgroup)
+          ("@product" . ?P)
+          ("@experiment" . ?E)
+          ("@resource" . ?R)
+          ("@learning" . ?L)
+          ("@teaching" . ?T)
+          (:endgroup)
+          ("prototyping" . ?p)
+          ("developing" . ?d)
+          ("documenting" . ?D)
+          ("testing" . ?t)
+          ("refactoring" . ?r)))
 
   (setq org-agenda-custom-commands
-    '(("d" "Dashboard"
-        ((agenda "" ((org-deadline-warning-days 7)))
-          (todo "NEXT"
-            ((org-agenda-overriding-header "Next Tasks")))))
+        '(("d" "Dashboard"
+       ((agenda "" ((org-deadline-warning-days 7)))
+         (todo "NEXT"
+                ((org-agenda-overriding-header "Next Tasks")))))
 
-        ("P" "Products" tags-todo "@product")
+      ("P" "Products" tags-todo "@product")
         ("E" "Experiments" tags-todo "@experiment")
         ("R" "Resources" tags-todo "@resource")
         ("L" "Learning" tags-todo "@learning")
         ("T" "Teaching" tags-todo "@teaching")
 
         ("s" "Workflow Status"
-          ((todo "WAIT"
-            ((org-agenda-overriding-header "Waiting on External")
-              (org-agenda-files org-agenda-files)))
-          (todo "REVIEW"
-            ((org-agenda-overriding-header "Under Review")
-              (org-agenda-files org-agenda-files)))
+         ((todo "WAIT"
+                 ((org-agenda-overriding-header "Waiting on External")
+             (org-agenda-files org-agenda-files)))
+           (todo "REVIEW"
+                ((org-agenda-overriding-header "Under Review")
+             (org-agenda-files org-agenda-files)))
           (todo "PLAN"
-            ((org-agenda-overriding-header "Planning")
-              (org-agenda-files org-agenda-files)))
+                ((org-agenda-overriding-header "Planning")
+             (org-agenda-files org-agenda-files)))
           (todo "BACKLOG"
-            ((org-agenda-overriding-header "Project Backlog")
-              (org-agenda-files org-agenda-files)))
+                ((org-agenda-overriding-header "Project Backlog")
+             (org-agenda-files org-agenda-files)))
           (todo "READY"
-            ((org-agenda-overriding-header "Ready for Work")
-              (org-agenda-files org-agenda-files)))
+                ((org-agenda-overriding-header "Ready for Work")
+             (org-agenda-files org-agenda-files)))
           (todo "ACTIVE"
-            ((org-agenda-overriding-header "Active Projects")
-              (org-agenda-files org-agenda-files)))
+                ((org-agenda-overriding-header "Active Projects")
+             (org-agenda-files org-agenda-files)))
           (todo "COMPLETED"
-            ((org-agenda-overriding-header "Completed Projects")
-              (org-agenda-files org-agenda-files)))
+                ((org-agenda-overriding-header "Completed Projects")
+             (org-agenda-files org-agenda-files)))
           (todo "CANC"
-            ((org-agenda-overriding-header "Cancelled Projects")
-              (org-agenda-files org-agenda-files))))))))
+                ((org-agenda-overriding-header "Cancelled Projects")
+             (org-agenda-files org-agenda-files)))))))
 
 #+END_SRC
 
+***** Capture Templates
 
-**** ~c4/org-templates~
+In this section, I'm defining my Org-capture templates. It's just the one right now, but more will be added as
+I need them.
 
-This submodule sets up Org capture templates for scaffolding a new task and other TBD templating
-needs.
+#+NAME: org-templates
+#+BEGIN_SRC emacs-lisp :tangle no
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
-
-(defun c4/org-templates ()
+  ;;; Org template definitions
   (setq org-capture-templates
-    `(("t" "Tasks / Projects")
-        ("tt" "Task" entry (file+olp "Tasks.org" "Inbox")
-          "* TODO %?\n %U\n %a\n %i" :empty-lines 1))))
+      `(("t" "Tasks / Projects")
+          ("tt" "Task" entry (file+olp "Tasks.org" "Inbox")
+            "* TODO %?\n %U\n %a\n %i" :empty-lines 1)))
 
 #+END_SRC
 
+***** Literate Programming
 
-**** ~c4/org-babel~
+Finally, I set my configuration up for Org-babel so I can do literate programming in any language I want.
 
-This submodule configures source block tangling and execution. It also defines the languages to
-allow for a literate programming workflow.
+#+NAME: org-literate
+#+BEGIN_SRC emacs-lisp :tangle no
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/documents.el"
-
-(defun c4/org-babel ()
+  ;;; Org-babel setup
   (org-babel-do-load-languages
-    'org-babel-load-languages
-    '((emacs-lisp . t)
-      (js . t)))
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (js . t)))
 
   (setq org-src-fontify-natively t)
-  (setq org-confirm-babel-evaluate nil))
+  (setq org-confirm-babel-evaluate nil)
 
-
-(provide 'documents)
 #+END_SRC
 
-** Desktop
+**** Addons
 
-As I stated earlier, Emacs is the driver of my desktop computing experience.
+***** org-superstar
 
-Therefore, the final piece in my Emacs configuration is EXWM. Using Emacs as my window manager
-brings several advantages:
+Org Superstar is a package that makes Org Mode bullets (even lists) much prettier.
 
-+ A unified desktop interface
-+ Less context switching
-+ A window manager as flexible and extensible as Emacs itself
-+ Enforced focus on my work environment
+#+BEGIN_SRC emacs-lisp
 
-I'm aware this approach isn't for everyone, and I wouldn't use it myself if I didn't trust the
-stability of Emacs as software. If you have trepidations, you can disable the entire desktop module
-and everything else will still work.
+  ;;; Org Superstar makes your bullets bang louder
+  (use-package org-superstar
+    :after org
+    :hook
+    (org-mode . org-superstar-mode)
+    :custom
+    (org-superstar-headline-bullets-list
+     '("§" "☙" "჻" " " " " " " " ")))
 
-#+BEGIN_QUOTE
-EXWM only works on Linux systems, though.
-#+END_QUOTE
+#+END_SRC
 
-*** Setup
+***** darkroom
+
+Darkroom provides a pleasant writing experience for Emacs document modes. It triggers by default, but the
+keybinding =SPC t z= toggles it on and off.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Darkroom for a better writing experience
+  (use-package darkroom
+    :config
+    (darkroom-tentative-mode 1))
+
+#+END_SRC
+
+*** Markdown
+*** LaTeX
+* Desktop Environment
+
+Yes, Emacs is my window manager. And so far, I'm loving EXWM. If you don't love it, add a properties drawer to
+this heading similar to the one at the very top of this file. Then change =:tangle= to =no=. The configuration
+won't build anything in this section after that.
+
+** Setup
+
+For my machine, I need to do a few things before I can even use EXWM.
+
+*** .xinitrc
 
 To actually use Emacs as my desktop environment, I need to create a =.xinitrc=.
 
@@ -1537,6 +1586,8 @@ dunst &
 exec dbus-launch --exit-with-session emacs -mm --debug-init
 #+END_SRC
 
+*** multi-monitor
+
 I also use software (ARandR) to configure my multi-monitor setup.
 
 #+BEGIN_SRC sh :tangle "./desktop/multihead.sh" :tangle-mode (identity #o755)
@@ -1546,103 +1597,151 @@ xrandr --output LVDS --primary --mode 1366x768 --pos 241x1080 --rotate normal --
 
 Finally, I need to load in the main desktop package.
 
-#+BEGIN_SRC emacs-lisp
+** Configuration
 
-(c4/desktop)
+Now, I'll actually configure EXWM.
+
+Like the Org section, I'm breaking up this monolithic block of code into smaller bits.
+
+#+BEGIN_SRC emacs-lisp :noweb yes
+
+  ;;; Initialize EXWM if GUI Emacs
+  (use-package exwm
+    :if window-system
+    :config
+    <<exwm-startup>>
+
+    (display-time-mode t)
+
+    (setq exwm-workspace-number 6)
+    (setq display-time-default-load-average nil)
+    (setq exwm-workspace-warp-cursor t)
+    (setq focus-follows-mouse t)
+
+    <<exwm-keybindings>>
+
+    ;; Update window class with the buffer name
+    (add-hook 'exwm-update-class-hook #'C4/exwm-update-class)
+
+    <<exwm-randr>>
+    <<exwm-systemtray>>
+
+    (exwm-enable))
+
+  (defun C4/exwm-update-class ()
+    (exwm-workspace-rename-buffer (concat "X: " exwm-class-name)))
+
 #+END_SRC
 
+*** startup
 
-*** Configuration
+#+NAME: exwm-startup
+#+BEGIN_SRC emacs-lisp :tangle no
 
-This is the top level module that =desktop.el= exposes. It wraps all the desktop definition
-submodules that are documented below.
+  ;; Wallpaper setup
+  (start-process-shell-command
+   "nitrogen" nil "nitrogen --restore")
 
-#+BEGIN_SRC emacs-lisp :tangle "./modules/desktop.el"
-    (defun c4/desktop ()
-      "A module for my EXWM configuration."
-      (use-package exwm
-        :if window-system
-        :config
-        ;; Startup process
-        (start-process-shell-command
-          "nitrogen" nil "nitrogen --restore")
+#+END_SRC
 
-        (display-time-mode t)
+*** keybindings
 
-        (setq exwm-workspace-number 6)
-        (setq display-time-default-load-average nil)
-        (setq exwm-workspace-warp-cursor t)
-        (setq focus-follows-mouse t)
+#+NAME: exwm-keybindings
+#+BEGIN_SRC emacs-lisp :tangle no
 
-        (setq exwm-input-prefix-keys
-              '(?\C-x
-                ?\C-u
-                ?\C-h
-                ?\C-\
-                ?\M-x
-                ?\M-`
-                ?\M-&
-                ?\M-:
-                ?\s-\ ))
+  ;;; Ensure these keys work everywhere
+  (setq exwm-input-prefix-keys
+        '(?\C-x
+          ?\C-u
+          ?\C-h
+          ?\C-\
+          ?\M-x
+          ?\M-`
+          ?\M-&
+          ?\M-:
+          ?\s-\ ))
 
-        (setq exwm-input-global-keys
-              `(([?\s-I] . windmove-swap-states-up)
-                ([?\s-i] . windmove-up)
-                ([?\s-L] . windmove-swap-states-right)
-                ([?\s-l] . windmove-right)
-                ([?\s-K] . windmove-swap-states-down)
-                ([?\s-K] . windmove-down)
-                ([?\s-J] . windmove-swap-states-left)
-                ([?\s-j] . windmove-left)
-                ([?\s-r] . exwm-reset)
-                ([?\s-Q] . kill-emacs)
-                ([?\s-q] . exwm-restart)
-                ([?\s-W] . exwm-workspace-swap)
-                ([?\s-w] . exwm-workspace-switch)
-                ([?\s-D] . app-launcher-run-app)
-                ([?\s-d] . (lambda (cmd)
-                              (interactive (list (read-shell-command "$ ")))
-                              (start-process-shell-command cmd nil cmd)))
-                ,@(mapcar (lambda (i)
-                            `(,(kbd (format "s-%d" i)) .
-                              (lambda ()
-                                (interactive)
-                                (exwm-workspace-switch-create ,i))))
-                          (number-sequence 0 9))))
+  ;;; Global keys for getting around in EXWM
+  (setq exwm-input-global-keys
+        `(([?\s-I] . windmove-swap-states-up)
+          ([?\s-i] . windmove-up)
+          ([?\s-L] . windmove-swap-states-right)
+          ([?\s-l] . windmove-right)
+          ([?\s-K] . windmove-swap-states-down)
+          ([?\s-k] . windmove-down)
+          ([?\s-J] . windmove-swap-states-left)
+          ([?\s-j] . windmove-left)
+          ([?\s-r] . exwm-reset)
+          ([?\s-Q] . kill-emacs)
+          ([?\s-q] . exwm-restart)
+          ([?\s-W] . exwm-workspace-swap)
+          ([?\s-w] . exwm-workspace-switch)
+          ([?\s-D] . app-launcher-run-app)
+          ([?\s-d] . (lambda (cmd)
+                       (interactive (list (read-shell-command "$ ")))
+                       (start-process-shell-command cmd nil cmd)))
+          ,@(mapcar (lambda (i)
+                      `(,(kbd (format "s-%d" i)) .
+                        (lambda ()
+                          (interactive)
+                          (exwm-workspace-switch-create ,i))))
+                    (number-sequence 0 9))))
 
-        (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
-        ;; Update window class with the buffer name
-        (add-hook 'exwm-update-class-hook #'c4/exwm-update-class)
+#+END_SRC
 
-        (require 'exwm-randr)
-        (setq exwm-randr-workspace-monitor-plist
-              '(0 "LVDS" 2 "LVDS" 4 "LVDS" 1 "HDMI-0" 3 "HDMI-0" 5 "HDMI-0"))
-        (start-process-shell-command "xrandr" nil
-                                      (concat user-emacs-directory "desktop/multihead.sh"))
-        (exwm-randr-enable)
+*** randr
 
-        (require 'exwm-systemtray)
-        (setq exwm-systemtray-height 16)
-        (exwm-systemtray-enable)
+#+NAME: exwm-randr
+#+BEGIN_SRC emacs-lisp :tangle no
 
-        (exwm-enable))
+   ;;; Multi monitor workspaces
+  (require 'exwm-randr)
+  (setq exwm-randr-workspace-monitor-plist
+        '(0 "LVDS" 1 "LVDS"
+            "HDMI-0" 2 "HDMI-0" 3))
+  (start-process-shell-command "xrandr" nil
+                               (concat user-emacs-directory "desktop/multihead.sh"))
+  (exwm-randr-enable)
 
-      ;; Application launcher
-      (use-package app-launcher
-        :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
+#+END_SRC
 
-      ;; EXWM: Desktop Environment
-      (use-package desktop-environment
-        :after exwm
-        :diminish
-        :bind
-        ("s-l" . windmove-right)
-        :config
-        (desktop-environment-mode)))
+*** systemtray
 
-    (defun c4/exwm-update-class ()
-      (exwm-workspace-rename-buffer exwm-class-name))
+#+NAME: exwm-systemtray
+#+BEGIN_SRC emacs-lisp :tangle no
 
-  (provide 'desktop)
+  ;;; Enable a system tray in EXWM
+  (require 'exwm-systemtray)
+  (setq exwm-systemtray-height 16)
+  (exwm-systemtray-enable)
+
+#+END_SRC
+
+** Addons
+
+*** application-launcher
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; Application launcher
+  (use-package app-launcher
+    :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
+
+#+END_SRC
+
+*** desktop-environment
+
+#+BEGIN_SRC emacs-lisp
+
+  ;; EXWM: Desktop Environment
+  (use-package desktop-environment
+    :after exwm
+    :diminish
+    :bind
+    ("s-l" . windmove-right)
+    :config
+    (desktop-environment-mode))
+
 #+END_SRC

@@ -22,28 +22,17 @@
   :straight org-plus-contrib)
 
 ;; Generate C4.el from the source blocks in C4.org
-(defun C4/init ()
+(defun C4/load ()
   (org-babel-tangle-file
    (concat user-emacs-directory "C4.org")
    (concat user-emacs-directory "C4.el")))
 
 ;; Always generate on load
-(C4/init)
+(C4/load)
 
 ;; Setup a hook to re-tangle the config on modification.
 (add-hook 'org-mode-hook
-          (lambda () (add-hook 'after-save-hook #'C4/init)))
-
-(require 'cl-lib)
-
-(require 'projects
-         (concat user-emacs-directory "modules/projects.el"))
-(require 'code
-         (concat user-emacs-directory "modules/code.el"))
-(require 'documents
-         (concat user-emacs-directory "modules/documents.el"))
-(require 'desktop
-         (concat user-emacs-directory "modules/desktop.el"))
+          (lambda () (add-hook 'after-save-hook #'C4/load)))
 
 ;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
@@ -220,6 +209,7 @@
 (C4/leader-key-def
   "f" '(:ignore t :wk "file")
   "ff" '(find-file :wk "find")
+  "fx" '(crux-create-scratch-buffer :wk "scratchpad")
   "fr" '(crux-rename-file-and-buffer :wk "rename"))
 
 (C4/leader-key-def
@@ -291,14 +281,15 @@
  "ps" '(consult-ripgrep :wk "search"))
 
 (C4/leader-key-def
-  "q" '(:ignore t :wk "quit")
-  "qq" '(save-buffers-kill-emacs :wk "and save")
+  "q" '(:ignore t :wk "session")
+  "qq" '(save-buffers-kill-emacs :wk "quit")
   "qQ" '(kill-emacs :wk "really quit"))
 
 (C4/leader-key-def
   "t" '(:ignore t :wk "toggle")
   "tt" '(C4/theme-switcher/body :wk "theme")
-  "ts" '(C4/text-scale/body :wk "scale text"))
+  "ts" '(C4/text-scale/body :wk "scale text")
+  "tz" '(darkroom-tentative-mode :wk "zen mode"))
 
 (defhydra C4/theme-switcher ()
   "Select a variant from main C4 themes"
@@ -315,12 +306,14 @@
 (defun C4/dark ()
   "Dimmer switch!"
   (interactive)
-  (consult-theme 'minimal))
+  (consult-theme 'minimal)
+  (sml/apply-theme 'dark))
 
 (defun C4/black ()
   "Clap off!"
   (interactive)
-  (consult-theme 'minimal-black))
+  (consult-theme 'minimal-black)
+  (sml/apply-theme 'dark))
 
 (defhydra C4/text-scale (:timeout 4)
   "Interatively scale text"
@@ -403,6 +396,7 @@
 
 (setq inhibit-startup-message t) ; inhibit startup message
 (setq initial-scratch-message "") ; no scratch message
+(setq initial-major-mode 'text-mode)
 (setq visible-bell t)             ; enable visual bell
 (global-auto-revert-mode t) ; autosave buffer on file change
 (delete-selection-mode 1) ; Selected text will be overwritten on typing
@@ -494,11 +488,11 @@
 
 (use-package smart-mode-line
   :init
-  (setq sml/theme 'respectful)
+  (setq sml/theme 'light)
   (setq sml/no-confirm-load-theme t)
   (setq sml/name-width '(16 . 32))
   (setq sml/mode-width 'full)
-  (setq sml/extra-filler 14)
+  (setq sml/extra-filler 12)
   (setq rm-blacklist nil)
   (setq rm-whitelist '("↑"))
   :config
@@ -513,7 +507,7 @@
 ;;; Universal editor settings
 (use-package editorconfig
   :config
-  (editorconfig-mode))
+  (editorconfig-mode 1))
 
 ;;; Rich terminal experience
 (use-package vterm)
@@ -573,16 +567,315 @@
       :config
       (ctrlf-mode 1))
 
+;;; Display the minibuffer as child frame position at top of screen
+(use-package mini-frame
+  :custom
+  (mini-frame-show-parameters
+   '((top . 16)
+     (width . 0.8)
+     (left . 0.4)))
+  :config
+  (mini-frame-mode 1))
+
 ;;; Set variables for my root project directory and GitHub username
-(setq C4/project-root "~/Workbench")
+(setq C4/project-root "~/Code")
 (setq C4/gh-user "cr-jr")
 
-(c4/projects
-  :path "~/Workbench"
-  :username "cr-jr")
+(use-package projectile
+    :config
+    (projectile-mode)
+    :custom
+    (projectile-project-search-path C4/project-root)
+    (projectile-sort-order 'recently-active)
+    (projectile-switch-project-action #'projectile-dired)
+    :bind-keymap
+    ("C-c p" . projectile-command-map))
 
-(c4/code)
+;;; Magical Git management
+(use-package magit
+  :commands (magit magit-status)
+  :custom
+  (magit-completing-read-function #'selectrum-completing-read)
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(c4/org :path "~/Org")
+;;; A Magit extension to manage Git forges (GitHub, GitLab) from Magit
+(use-package forge
+    :after magit
+    :custom
+    (auth-sources '("~/.authinfo"))
+    :config
+    (ghub-request "GET" "/user" nil
+      :forge 'github
+      :host "api.github.com"
+      :username C4/gh-user
+      :auth 'forge))
 
-(c4/desktop)
+;;; Show how files have changed between commits
+(use-package diff-hl
+  :after magit
+  :hook
+  (text-mode . diff-hl-mode)
+  (prog-mode . diff-hl-mode)
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh))
+
+;;; A full on parser in Emacs with highlighting definitions
+(use-package tree-sitter
+  :hook (prog-mode . tree-sitter-mode))
+
+;; A collection of supported tree-sitter languages
+(use-package tree-sitter-langs
+  :after tree-sitter)
+
+;;; When I'm knee deep in parens
+(use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+
+;;; Code linting package that flies
+(use-package flycheck
+    :hook (prog-mode . flycheck-mode))
+
+;;; Universal code formatting package
+(use-package apheleia
+  :straight
+  '(apheleia
+    :host github
+    :repo "raxod502/apheleia")
+  :hook (prog-mode . apheleia-mode))
+
+;;; Code autocomplete with Company
+(use-package company
+  :hook (prog-mode . company-mode))
+
+;;; A nice Company interface
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+;;; Language Server Protocol package for rich IDE features
+(use-package lsp-mode
+  :hook (prog-mode . lsp-deferred)
+  :commands (lsp lsp-deferred))
+
+;; UI enhancements for lsp-mode
+(use-package lsp-ui
+  :after lsp-mode
+  :commands lsp-ui-mode)
+
+;;; The debugging complement to LSP
+(use-package dap-mode
+  :hook
+  (prog-mode . dap-mode)
+  (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
+
+;;; Variables for Org Mode configuration
+(setq C4/org-root-path "~/Documents/Org")
+(setq C4/org-agenda-files '("Tasks.org" "Projects.org"))
+
+;;; Org setup
+(use-package org
+  :init
+  (setq org-ellipsis " ↴")
+  (setq org-directory C4/org-root-path)
+  
+  ;;; Org agenda flow
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+  
+  (setq org-agenda-files C4/org-agenda-files)
+  
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+          (sequence
+           "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
+           "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+  
+  (setq org-refile-targets
+        '(("Archive.org" :maxlevel . 1)
+          ("Tasks.org" :maxlevel . 1)))
+  
+  (setq org-tag-alist
+        '((:startgroup)
+          ("@product" . ?P)
+          ("@experiment" . ?E)
+          ("@resource" . ?R)
+          ("@learning" . ?L)
+          ("@teaching" . ?T)
+          (:endgroup)
+          ("prototyping" . ?p)
+          ("developing" . ?d)
+          ("documenting" . ?D)
+          ("testing" . ?t)
+          ("refactoring" . ?r)))
+  
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+       ((agenda "" ((org-deadline-warning-days 7)))
+         (todo "NEXT"
+                ((org-agenda-overriding-header "Next Tasks")))))
+  
+      ("P" "Products" tags-todo "@product")
+        ("E" "Experiments" tags-todo "@experiment")
+        ("R" "Resources" tags-todo "@resource")
+        ("L" "Learning" tags-todo "@learning")
+        ("T" "Teaching" tags-todo "@teaching")
+  
+        ("s" "Workflow Status"
+         ((todo "WAIT"
+                 ((org-agenda-overriding-header "Waiting on External")
+             (org-agenda-files org-agenda-files)))
+           (todo "REVIEW"
+                ((org-agenda-overriding-header "Under Review")
+             (org-agenda-files org-agenda-files)))
+          (todo "PLAN"
+                ((org-agenda-overriding-header "Planning")
+             (org-agenda-files org-agenda-files)))
+          (todo "BACKLOG"
+                ((org-agenda-overriding-header "Project Backlog")
+             (org-agenda-files org-agenda-files)))
+          (todo "READY"
+                ((org-agenda-overriding-header "Ready for Work")
+             (org-agenda-files org-agenda-files)))
+          (todo "ACTIVE"
+                ((org-agenda-overriding-header "Active Projects")
+             (org-agenda-files org-agenda-files)))
+          (todo "COMPLETED"
+                ((org-agenda-overriding-header "Completed Projects")
+             (org-agenda-files org-agenda-files)))
+          (todo "CANC"
+                ((org-agenda-overriding-header "Cancelled Projects")
+             (org-agenda-files org-agenda-files)))))))
+  
+  
+  ;;; Org template definitions
+  (setq org-capture-templates
+      `(("t" "Tasks / Projects")
+          ("tt" "Task" entry (file+olp "Tasks.org" "Inbox")
+            "* TODO %?\n %U\n %a\n %i" :empty-lines 1)))
+  
+  
+  ;;; Org-babel setup
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (js . t)))
+  
+  (setq org-src-fontify-natively t)
+  (setq org-confirm-babel-evaluate nil)
+  
+  :config
+  (org-indent-mode 1)
+  (variable-pitch-mode 1)
+  (auto-fill-mode)
+  (advice-add 'org-refile :after 'org-save-all-org-buffers))
+
+;;; Org Superstar makes your bullets bang louder
+(use-package org-superstar
+  :after org
+  :hook
+  (org-mode . org-superstar-mode)
+  :custom
+  (org-superstar-headline-bullets-list
+   '("§" "☙" "჻" " " " " " " " ")))
+
+;;; Darkroom for a better writing experience
+(use-package darkroom
+  :config
+  (darkroom-tentative-mode 1))
+
+;;; Initialize EXWM if GUI Emacs
+(use-package exwm
+  :if window-system
+  :config
+  
+  ;; Wallpaper setup
+  (start-process-shell-command
+   "nitrogen" nil "nitrogen --restore")
+  
+
+  (display-time-mode t)
+
+  (setq exwm-workspace-number 6)
+  (setq display-time-default-load-average nil)
+  (setq exwm-workspace-warp-cursor t)
+  (setq focus-follows-mouse t)
+
+  
+  ;;; Ensure these keys work everywhere
+  (setq exwm-input-prefix-keys
+        '(?\C-x
+          ?\C-u
+          ?\C-h
+          ?\C-\
+          ?\M-x
+          ?\M-`
+          ?\M-&
+          ?\M-:
+          ?\s-\ ))
+  
+  ;;; Global keys for getting around in EXWM
+  (setq exwm-input-global-keys
+        `(([?\s-I] . windmove-swap-states-up)
+          ([?\s-i] . windmove-up)
+          ([?\s-L] . windmove-swap-states-right)
+          ([?\s-l] . windmove-right)
+          ([?\s-K] . windmove-swap-states-down)
+          ([?\s-k] . windmove-down)
+          ([?\s-J] . windmove-swap-states-left)
+          ([?\s-j] . windmove-left)
+          ([?\s-r] . exwm-reset)
+          ([?\s-Q] . kill-emacs)
+          ([?\s-q] . exwm-restart)
+          ([?\s-W] . exwm-workspace-swap)
+          ([?\s-w] . exwm-workspace-switch)
+          ([?\s-D] . app-launcher-run-app)
+          ([?\s-d] . (lambda (cmd)
+                       (interactive (list (read-shell-command "$ ")))
+                       (start-process-shell-command cmd nil cmd)))
+          ,@(mapcar (lambda (i)
+                      `(,(kbd (format "s-%d" i)) .
+                        (lambda ()
+                          (interactive)
+                          (exwm-workspace-switch-create ,i))))
+                    (number-sequence 0 9))))
+  
+  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+  
+
+  ;; Update window class with the buffer name
+  (add-hook 'exwm-update-class-hook #'C4/exwm-update-class)
+
+  
+   ;;; Multi monitor workspaces
+  (require 'exwm-randr)
+  (setq exwm-randr-workspace-monitor-plist
+        '(0 "LVDS" 1 "LVDS"
+            "HDMI-0" 2 "HDMI-0" 3))
+  (start-process-shell-command "xrandr" nil
+                               (concat user-emacs-directory "desktop/multihead.sh"))
+  (exwm-randr-enable)
+  
+  
+  ;;; Enable a system tray in EXWM
+  (require 'exwm-systemtray)
+  (setq exwm-systemtray-height 16)
+  (exwm-systemtray-enable)
+  
+
+  (exwm-enable))
+
+(defun C4/exwm-update-class ()
+  (exwm-workspace-rename-buffer (concat "X: " exwm-class-name)))
+
+;; Application launcher
+(use-package app-launcher
+  :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
+
+;; EXWM: Desktop Environment
+(use-package desktop-environment
+  :after exwm
+  :diminish
+  :bind
+  ("s-l" . windmove-right)
+  :config
+  (desktop-environment-mode))
