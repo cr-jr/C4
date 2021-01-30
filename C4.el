@@ -536,16 +536,6 @@
       :config
       (ctrlf-mode 1))
 
-;;; Display the minibuffer as child frame position at top of screen
-(use-package mini-frame
-  :custom
-  (mini-frame-show-parameters
-   '((top . 16)
-     (width . 0.8)
-     (left . 0.4)))
-  :config
-  (mini-frame-mode 1))
-
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root "~/Code")
 (setq C4/gh-user "cr-jr")

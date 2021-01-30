@@ -11,7 +11,7 @@
 This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
 environment and learn how to do more with it.
 
-C4 prioritizes ease, convenience and performance. A minimal UI ensures my attention remains on the wo
+C4 prioritizes ease, convenience and performance. A clean, minimal UI is what I love.
 
 This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and
 the =init.el= that loads it on startup.
@@ -1056,25 +1056,6 @@ narrowing the search until there's only one result: the correct one.
   (use-package ctrlf
         :config
         (ctrlf-mode 1))
-
-#+END_SRC
-
-*** mini-frame
-
-The mini-frame package opens minibuffers as a child frame at the top of the screen by default. I make some
-slight display adjustments because I use a vertical completion package.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Display the minibuffer as child frame position at top of screen
-  (use-package mini-frame
-    :custom
-    (mini-frame-show-parameters
-     '((top . 16)
-       (width . 0.8)
-       (left . 0.4)))
-    :config
-    (mini-frame-mode 1))
 
 #+END_SRC
 
