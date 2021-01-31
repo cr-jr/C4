@@ -54,7 +54,7 @@
    `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
 ;; Create parent dirs when opening new files
-(add-to-list 'find-file-not-found-functions #'C4/create-parent)
+ (add-to-list 'find-file-not-found-functions #'C4/create-parent)
 
 (defun C4/create-parent ()
   "Ensures that the parent dirs are created for a nonexistent file."
@@ -293,30 +293,34 @@
 
 (defhydra C4/theme-switcher ()
   "Select a variant from main C4 themes"
-  ("l" C4/light "light variant")
-  ("d" C4/dark "dark variant")
-  ("b" C4/black "black variant")
+  ("d" C4/light "day variant")
+  ("n" C4/dark "night variant")
+  ("f" C4/black "focus variant")
   ("RET" nil "exit" :exit t))
 
 (defun C4/light ()
   "Clap on!"
   (interactive)
-  (consult-theme 'minimal-light))
+  (load-theme 'minimal-light t)
+  (set-face-attribute 'org-hide nil :foreground "white")
+  (sml/apply-theme 'light))
 
 (defun C4/dark ()
   "Dimmer switch!"
   (interactive)
-  (consult-theme 'minimal)
+  (load-theme 'minimal t)
+  (set-face-attribute 'org-hide nil :foreground "gray10")
   (sml/apply-theme 'dark))
 
 (defun C4/black ()
   "Clap off!"
   (interactive)
-  (consult-theme 'minimal-black)
+  (load-theme 'minimal-black t)
+  (set-face-attribute 'org-hide nil :foreground "black")
   (sml/apply-theme 'dark))
 
 (defhydra C4/text-scale (:timeout 4)
-  "Interatively scale text"
+  "Interactively scale text"
   ("+" text-scale-increase "inc")
   ("-" text-scale-decrease "dec")
   ("RET" nil "exit" :exit t))
@@ -426,6 +430,55 @@
 (setq user-full-name "Chatman R. Jr")
 (setq user-mail-address "crjr.code@protonmail.com")
 
+;;; Set some variables for my settings and styles
+(setq C4/font "Input Sans-13")
+(setq C4/font-bold "Input Serif Condensed-13")
+(setq C4/font-italic "Input Serif Narrow-13:extra-light:italic")
+
+(setq C4/document-font "Input Serif-13")
+(setq C4/terminal-font "Input Mono-13")
+
+;;; By default, use Input Sans family at 13px
+(set-face-attribute 'default nil :font C4/font)
+(set-face-attribute 'bold nil :font C4/font-bold)
+(set-face-attribute 'italic nil :font C4/font-italic)
+(set-face-attribute 'bold-italic nil :inherit 'bold)
+
+;;; Code font is the same as UI font
+(set-face-attribute 'fixed-pitch nil :font C4/font)
+
+;;; Set default document font as Input Serif family at 13px
+(set-face-attribute 'variable-pitch nil :font C4/document-font)
+
+;;; Set default terminal font as Input Mono family at 13px
+(set-face-attribute 'term nil :font C4/terminal-font)
+
+;;; Some Org Mode adjustments
+(set-face-attribute 'org-level-1 nil :weight 'bold :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-2 nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-3 nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-4 nil :weight 'light)
+
+(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-block-begin-line nil :weight 'normal :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-block-end-line nil :weight 'normal :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-property-value nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
+(set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
+(set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
+
+;;; Add extended unicode support
+(use-package unicode-fonts
+  :config
+  (unicode-fonts-setup))
+
+;;; Disable the fringe background
+(set-face-attribute 'fringe nil
+                    :background nil)
+
 ;;; Include and load minimal-theme collection
 (use-package minimal-theme)
 
@@ -436,31 +489,12 @@
 (load-theme 'minimal t t)
 (load-theme 'minimal-black t t)
 
-;;; Set font
-(set-face-attribute 'default nil :font "Input")
-(set-face-attribute 'bold nil :font "Input Bold")
-(set-face-attribute 'italic nil :font "Input Italic")
-(set-face-attribute 'bold-italic nil :font "Input Bold Italic")
-
-;;; Org Mode adjustments
-(set-face-attribute 'org-level-1 nil :weight 'bold)
-
-;;; Add extended unicode support
-(use-package unicode-fonts
-  :config
-  (unicode-fonts-setup))
-
-;;; Disbable the fringe background
-(set-face-attribute 'fringe nil
-                    :background nil)
-
 (use-package smart-mode-line
   :init
   (setq sml/theme 'light)
   (setq sml/no-confirm-load-theme t)
   (setq sml/name-width '(16 . 32))
   (setq sml/mode-width 'full)
-  (setq sml/extra-filler 12)
   (setq rm-blacklist nil)
   (setq rm-whitelist '("↑"))
   :config
@@ -586,13 +620,14 @@
 (use-package tree-sitter-langs
   :after tree-sitter)
 
-;;; Syntax: comments
-(set-face-attribute 'tree-sitter-hl-face:comment nil
-                    :slant 'italic)
+;;; Set comment face
+(set-face-attribute 'font-lock-comment-face nil :weight 'light :inherit 'italic)
+(set-face-attribute 'tree-sitter-hl-face:comment nil :inherit 'font-lock-comment-face)
 
-;;Unsupported fallback
-(set-face-attribute 'font-lock-comment-face nil
-                    :slant 'italic)
+;;; Set keyword face
+(set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
+(set-face-attribute 'font-lock-constant-face nil :inherit 'bold)
+(set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
 
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
