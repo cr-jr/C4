@@ -454,10 +454,15 @@
 (set-face-attribute 'term nil :font C4/terminal-font)
 
 ;;; Some Org Mode adjustments
-(set-face-attribute 'org-level-1 nil :weight 'bold :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-2 nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-3 nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-4 nil :weight 'light)
+(set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
+(set-face-attribute 'org-document-info nil :inherit 'org-document-title)
+
+(set-face-attribute 'org-level-1 nil :height 1.8 :weight 'bold :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-2 nil :height 1.6 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-4 nil :height 1.2 :weight 'light :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-5 nil :height 1.0 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-6 nil :height 0.8 :inherit 'fixed-pitch)
 
 (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
 (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
