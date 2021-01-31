@@ -625,14 +625,25 @@
 (use-package tree-sitter-langs
   :after tree-sitter)
 
-;;; Set comment face
-(set-face-attribute 'font-lock-comment-face nil :weight 'light :inherit 'italic)
-(set-face-attribute 'tree-sitter-hl-face:comment nil :inherit 'font-lock-comment-face)
+;;; Set syntax highlighting faces
 
-;;; Set keyword face
+;; set comment face
+(set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
+
+;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
+
+;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'bold)
+
+;; set built-in face
 (set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
+
+;; set function name face
+(set-face-attribute 'font-lock-function-name-face nil :inherit 'bold)
+
+;; set string face
+(set-face-attribute 'font-lock-string-face nil :weight 'light :slant 'normal :inherit 'italic)
 
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters

@@ -1,5 +1,5 @@
 #+TITLE: C4 Configuration
-#+DATE: 2021-01-23
+#+DATE: 2021-01-31
 #+AUTHOR: Chatman R. Jr
 :PROPERTIES:
 :header-args: :mkdirp yes
@@ -1237,18 +1237,29 @@ highlighted, it means I can judiciously add syntax information that actually hel
 
 *** Faces
 
-    I'm going to adjust some of the faces provided by tree-sitter now.
+I'm going to adjust some of the faces provided by tree-sitter now.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Set comment face
-  (set-face-attribute 'font-lock-comment-face nil :weight 'light :inherit 'italic)
-  (set-face-attribute 'tree-sitter-hl-face:comment nil :inherit 'font-lock-comment-face)
+  ;;; Set syntax highlighting faces
 
-  ;;; Set keyword face
+  ;; set comment face
+  (set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
+
+  ;; set keyword face
   (set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
+
+  ;; set constants face
   (set-face-attribute 'font-lock-constant-face nil :inherit 'bold)
+
+  ;; set built-in face
   (set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
+
+  ;; set function name face
+  (set-face-attribute 'font-lock-function-name-face nil :inherit 'bold)
+
+  ;; set string face
+  (set-face-attribute 'font-lock-string-face nil :weight 'light :slant 'normal :inherit 'italic)
 
 #+END_SRC
 
