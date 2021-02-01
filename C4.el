@@ -85,6 +85,206 @@
   :hook
   (find-file . crux-reopen-as-root-mode))
 
+(setq-default cursor-type 'bar) ; default cursor as bar
+(setq-default frame-title-format '("%b")) ; window title is the buffer name
+
+(setq linum-format "%4d ") ; line number format
+(column-number-mode 1) ; set column number display
+(show-paren-mode 1) ; show closing parens by default
+
+(menu-bar-mode -1) ; disable the menubar
+(scroll-bar-mode -1) ; disable visible scroll bar
+(tool-bar-mode -1) ; disable toolbar
+(tooltip-mode -1) ; disable tooltips
+(set-fringe-mode 8) ; allow some space
+
+(setq inhibit-startup-message t) ; inhibit startup message
+(setq initial-scratch-message "") ; no scratch message
+(setq initial-major-mode 'text-mode)
+(setq visible-bell t)             ; enable visual bell
+(global-auto-revert-mode t) ; autosave buffer on file change
+(delete-selection-mode 1) ; Selected text will be overwritten on typing
+(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
+
+;; Show line numbers in programming modes
+(add-hook 'prog-mode-hook
+          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
+              #'display-line-numbers-mode
+            #'linum-mode))
+
+
+;; Disable for document and terminal modes
+(dolist (mode '(
+    org-mode-hook
+    term-mode-hook
+    shell-mode-hook
+    treemacs-mode-hook
+    vterm-mode
+    eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Make some icons available
+(use-package all-the-icons)
+
+;;; Set full name and email address
+(setq user-full-name "Chatman R. Jr")
+(setq user-mail-address "crjr.code@protonmail.com")
+
+;;; Better undo/redo
+(use-package undo-fu)
+
+;; Undo persistence
+(use-package undo-fu-session
+  :hook
+  (prog-mode . undo-fu-session-mode)
+  (text-mode . undo-fu-session-mode)
+  (org-mode . undo-fu-session-mode))
+
+;;; Expand region selections by semantic units
+(use-package expand-region)
+
+;;; Multiple cursors in Emacs
+(use-package multiple-cursors)
+
+;;; Better minibuffer completion
+(use-package selectrum
+  :config
+  (selectrum-mode 1))
+
+;;; Remember frequently used commands and queries
+(use-package selectrum-prescient
+  :after selectrum
+  :config
+  (selectrum-prescient-mode 1)
+  (prescient-persist-mode 1))
+
+;;; Partial completion queries support
+(use-package orderless
+  :init
+  (icomplete-mode)
+  :custom
+  (completion-styles '(orderless)))
+
+;;; Better search utilities
+(use-package consult
+  :init
+  (defun find-fd (&optional dir initial)
+    (interactive "P")
+    (let ((consult-find-command "fd --color=never --full-path ARG OPTS"))
+      (consult-find dir initial)))
+  (advice-add #'register-preview :override #'consult-register-window)
+  :custom
+  (register-preview-delay 0)
+  (register-preview-function #'consult-register-window)
+  (consult-narrow-key "<"))
+
+;;; An interface for minibuffer actions
+(use-package embark-consult
+  :after (embark consult)
+  :demand t
+  :hook
+  (embark-collect-mode . embark-consult-preview-minor-mode))
+
+;;; Adds annotations to minibuffer interfaces
+(use-package marginalia
+  :after consult
+  :init
+  (marginalia-mode)
+  (advice-add #'marginalia-cycle :after
+              (lambda () (when (bound-and-true-p selectrum-mode)
+                           (selectrum-exhibit))))
+  (setq marginalia-annotators
+        '(marginalia-annotators-heavy marginalia-annotators-light)))
+
+;;; Incremental search interface similar to web browsers
+(use-package ctrlf
+      :config
+      (ctrlf-mode 1))
+
+(use-package smart-mode-line
+  :init
+  (setq sml/theme 'light)
+  (setq sml/no-confirm-load-theme t)
+  (setq sml/name-width '(16 . 32))
+  (setq sml/mode-width 'full)
+  (setq rm-blacklist nil)
+  (setq rm-whitelist '("↑"))
+  :config
+  (sml/setup)
+  (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
+  (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
+  (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
+
+;;; Help documentation enhancement
+(use-package helpful)
+
+;;; Universal editor settings
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
+;;; Rich terminal experience
+(use-package vterm)
+
+;;; Set some variables for my settings and styles
+(setq C4/font "Input Sans-13")
+(setq C4/font-bold "Input Sans Condensed-13:normal")
+(setq C4/font-italic "Input Serif Condensed-13:light:italic")
+
+(setq C4/document-font "Input Serif-13")
+(setq C4/terminal-font "Input Mono-13")
+
+;;; By default, use Input Sans family at 13px
+(set-face-attribute 'default nil :font C4/font)
+(set-face-attribute 'bold nil :font C4/font-bold)
+(set-face-attribute 'italic nil :font C4/font-italic)
+(set-face-attribute 'bold-italic nil :inherit 'bold)
+
+;;; Code font is the same as UI font
+(set-face-attribute 'fixed-pitch nil :font C4/font)
+
+;;; Set default document font as Input Serif family at 13px
+(set-face-attribute 'variable-pitch nil :font C4/document-font)
+
+;;; Set default terminal font as Input Mono family at 13px
+(set-face-attribute 'term nil :font C4/terminal-font)
+
+;;; Some Org Mode adjustments
+(set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
+(set-face-attribute 'org-document-info nil :inherit 'org-document-title)
+
+(set-face-attribute 'org-level-1 nil :height 1.8 :weight 'bold :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-2 nil :height 1.6 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-4 nil :height 1.2 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-5 nil :height 1.0 :inherit 'fixed-pitch)
+(set-face-attribute 'org-level-6 nil :height 0.8 :inherit 'fixed-pitch)
+
+(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-block-begin-line nil :weight 'normal :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-block-end-line nil :weight 'normal :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-property-value nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
+(set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
+(set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
+
+;;; Disable the fringe background
+(set-face-attribute 'fringe nil
+                    :background nil)
+
+;;; Include and load minimal-theme collection
+(use-package minimal-theme)
+
+;; Light theme loaded and enabled by default
+(load-theme 'minimal-light t)
+
+;; Dark variants load but not wait for toggling
+(load-theme 'minimal t t)
+(load-theme 'minimal-black t t)
+
 ;;; Setup which-key for keybinding discoverability
 (use-package which-key
   :custom
@@ -97,56 +297,119 @@
   :commands modalka-mode
   :hook
   (text-mode . modalka-mode)
+  (org-mode . modalka-mode)
   (prog-mode . modalka-mode)
   (exwm-mode . modalka-mode))
 
 ;;; Command mode setup
 (use-package general
   :config
+
   ;; Unbind C-SPC and rebind it to toggle Command Mode
   (global-unset-key (kbd "C-SPC"))
   (general-def "C-SPC" 'modalka-mode)
 
+  ;; Also unbind <menu> and rebind it as a toggle
+  (global-unset-key (kbd "<menu>"))
+  (general-def "<menu>" 'modalka-mode)
+
+  ;; C-m is historically bound to ASCII carriage return, so Emacs
+  ;; regards RET and C-m as the same key. Fix that
+  (define-key input-decode-map [?\C-m] [C-m])
+
+
   ;; Create a global definitiion key for non-prefixed Command Mode actions
-  (general-create-definer C4/global-key-def
+  (general-create-definer C4/action-key-def
     :keymaps 'modalka-mode-map)
 
   ;; Create a mnemonic leader key under Command Mode
-  (general-create-definer C4/leader-key-def
+  (general-create-definer C4/command-key-def
     :keymaps 'modalka-mode-map
     :prefix "SPC"
-    :global-prefix [\s-SPC])
-
-  ;; Command mode universals
-  (C4/global-key-def
-    "." '(repeat :wk "repeat last command")
-    ">" '(consult-complex-command :wk "repeat command history")
-    "RET" '(modalka-mode :wk "insert text"))
-
-  ;; Command mode navigation
-  (C4/global-key-def
-    "w" '(scroll-down-command :wk "scroll up the buffer")
-    "W" '(beginning-of-buffer :wk "jump point to beginning of buffer")
-    "s" '(scroll-up-command :wk "scroll down the buffer")
-    "S" '(end-of-buffer :wk "jump point to end of buffer")
-    "a" '(beginning-of-line-text :wk "jump point to beginning of line")
-    "A" '(beginning-of-line :wk "jump point to beginning of line [absolute]")
-    "d" '(end-of-line :wk "jump point to end of line")
-    "i" '(previous-logical-line :wk "previous line")
-    "k" '(next-logical-line :wk "next line")
-    "j" '(backward-char :wk "previous char")
-    "l" '(forward-char :wk "next char")
-    "h" '(backward-word :wk "jump point to previous word")
-    ";" '(forward-word :wk "jump point to next word")))
+    :global-prefix [\s-SPC]))
 
 ;;; Setup transient mode-ish states
 (use-package hydra)
 
-(C4/leader-key-def
-  "'" '(vterm :wk "open terminal from current dir")
-  "SPC" '(universal-argument :wk "command modifier"))
+;;; Actions: Insertion
+(C4/action-key-def
+  "q" '(modalka-mode :wk "insert at point")
+  "<return>" '(C4/newline :wk "insert new line")
+  "<C-return>" '(C4/newline-above :wk "insert new line above"))
 
-(C4/leader-key-def
+(defun C4/newline ()
+  "Insert a newline after point"
+  (interactive)
+  (modalka-mode 0)
+  (crux-smart-open-line nil))
+
+(defun C4/newline-above ()
+  "Insert a newline before point"
+  (interactive)
+  (modalka-mode 0)
+  (crux-smart-open-line-above))
+
+(C4/command-key-def
+  "SPC" '(modalka-mode :wk "insert at point"))
+
+;;; Action numeric modifier
+(modalka-define-kbd "-" "C--")
+(modalka-define-kbd "1" "C-1")
+(modalka-define-kbd "2" "C-2")
+(modalka-define-kbd "3" "C-3")
+(modalka-define-kbd "4" "C-4")
+(modalka-define-kbd "5" "C-5")
+(modalka-define-kbd "6" "C-6")
+(modalka-define-kbd "7" "C-7")
+(modalka-define-kbd "8" "C-8")
+(modalka-define-kbd "9" "C-9")
+(modalka-define-kbd "0" "C-0")
+
+;;; Action procedural modifier
+(C4/action-key-def
+  "." '(repeat :wk "repeat last action"))
+
+;;; Actions: movement
+(C4/action-key-def
+  "i" '(previous-logical-line :wk "previous line")
+  "I" '(scroll-down-command :wk "scroll up the buffer")
+  "C-i" '(beginning-of-buffer :wk "jump point to beginning of buffer")
+  "k" '(next-logical-line :wk "next line")
+  "K" '(scroll-up-command :wk "scroll down the buffer")
+  "C-k" '(end-of-buffer :wk "jump point to end of buffer")
+  "j" '(backward-char :wk "previous char")
+  "J" '(backward-word :wk "jump point to previous word")
+  "C-j" '(beginning-of-line-text :wk "jump point to beginning text of line")
+  "M-j" '(beginning-of-line :wk "jump point to beginning of line")
+  "l" '(forward-char :wk "next char")
+  "L" '(forward-word :wk "jump point to next word")
+  "C-l" '(end-of-line :wk "jump point to end of line")
+  "M-l" '(end-of-line :wk "jump point to end of line"))
+
+;;; Actions: undo/redo
+(C4/action-key-def
+  "z" '(undo-fu-only-undo :wk "undo last edit")
+  "Z" '(undo-fu-only-redo :wk "redo last edit")
+  "C-z" '(undo-fu-only-redo-all :wk "restore edits to most recent state"))
+
+;;; Actions: marking/selecting text
+(C4/action-key-def
+  "m" '(set-mark-command :wk "set a mark at point")
+  "M" '(C4/mark-line :wk "mark the current line")
+  "<C-m>" '(rectangle-mark-mode :wk "mark region as rectangle")
+  "M-m" '(er/expand-region :wk "expand region semantically"))
+
+(defun C4/mark-line ()
+  "Mark the entire line"
+  (interactive)
+  (end-of-line)
+  (set-mark-command nil)
+  (beginning-of-line))
+
+(C4/command-key-def
+  "'" '(vterm :wk "open terminal from current dir"))
+
+(C4/command-key-def
   "b" '(:ignore t :wk "buffer")
   "bb" '(consult-buffer :wk "switch")
   "bB" '(consult-buffer-other-window :wk "switch other window")
@@ -169,7 +432,7 @@
   "bw" '(save-buffer :wk "write")
   "bW" '(save-some-buffers :wk "write modified"))
 
-(C4/leader-key-def
+(C4/command-key-def
  "c" '(:ignore t :wk "C4 config")
  "cc" '(C4/open-config :wk "open")
  "cd" '(:ignore t :wk "debug")
@@ -206,24 +469,24 @@
   (interactive)
   (load-file (C4/generated-conf)))
 
-(C4/leader-key-def
+(C4/command-key-def
   "f" '(:ignore t :wk "file")
   "ff" '(find-file :wk "find")
   "fx" '(crux-create-scratch-buffer :wk "scratchpad")
   "fr" '(crux-rename-file-and-buffer :wk "rename"))
 
-(C4/leader-key-def
+(C4/command-key-def
  "h" '(:ignore t :wk "help")
  "ha" '(consult-apropos :wk "apropos")
- "hf" '(describe-function :wk "function")
+ "hf" '(helpful-function :wk "function")
  "hF" '(describe-face :wk "face")
  "hc" '(helpful-command :wk "command")
- "hv" '(describe-variable :wk "variable")
+ "hv" '(helpful-variable :wk "variable")
  "hk" '(helpful-key :wk "keybinding")
  "hs" '(helpful-at-point :wk "symbol at point")
  "hm" '(info-emacs-manual :wk "Emacs"))
 
-(C4/leader-key-def
+(C4/command-key-def
   "o" '(:ignore t :wk "org")
   "oa" '(:ignore t :wk "agenda")
   "oaa" '(org-agenda-list :wk "weekly")
@@ -258,7 +521,7 @@
   ("V" org-previous-visible-heading "previous visible heading")
   ("RET" nil "exit" :exit t))
 
-(C4/leader-key-def
+(C4/command-key-def
  "p" '(:ignore t :wk "project")
  "p'" '(projectile-run-vterm :wk "open terminal")
  "pp" '(projectile-switch-project :wk "switch")
@@ -280,16 +543,15 @@
  "pgS" '(magit-stage-file :wk "stage file")
  "ps" '(consult-ripgrep :wk "search"))
 
-(C4/leader-key-def
+(C4/command-key-def
   "q" '(:ignore t :wk "session")
   "qq" '(save-buffers-kill-emacs :wk "quit")
   "qQ" '(kill-emacs :wk "really quit"))
 
-(C4/leader-key-def
+(C4/command-key-def
   "t" '(:ignore t :wk "toggle")
   "tt" '(C4/theme-switcher/body :wk "theme")
-  "ts" '(C4/text-scale/body :wk "scale text")
-  "tz" '(darkroom-tentative-mode :wk "zen mode"))
+  "ts" '(C4/text-scale/body :wk "scale text"))
 
 (defhydra C4/theme-switcher ()
   "Select a variant from main C4 themes"
@@ -325,7 +587,7 @@
   ("-" text-scale-decrease "dec")
   ("RET" nil "exit" :exit t))
 
-(C4/leader-key-def
+(C4/command-key-def
  "w" '(:ignore t :wk "window")
  "ww" '(other-window :wk "cycle windows")
  "wc" '(delete-window :wk "close")
@@ -384,195 +646,6 @@
   ("d" windmove-display-right "open next to right")
   ("D" windmove-delete-right "close right")
   ("RET" nil "exit" :exit t))
-
-(setq-default cursor-type 'bar) ; default cursor as bar
-(setq-default frame-title-format '("%b")) ; window title is the buffer name
-
-(setq linum-format "%4d ") ; line number format
-(column-number-mode 1) ; set column number display
-(show-paren-mode 1) ; show closing parens by default
-
-(menu-bar-mode -1) ; disable the menubar
-(scroll-bar-mode -1) ; disable visible scroll bar
-(tool-bar-mode -1) ; disable toolbar
-(tooltip-mode -1) ; disable tooltips
-(set-fringe-mode 8) ; allow some space
-
-(setq inhibit-startup-message t) ; inhibit startup message
-(setq initial-scratch-message "") ; no scratch message
-(setq initial-major-mode 'text-mode)
-(setq visible-bell t)             ; enable visual bell
-(global-auto-revert-mode t) ; autosave buffer on file change
-(delete-selection-mode 1) ; Selected text will be overwritten on typing
-(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
-
-;; Show line numbers in programming modes
-(add-hook 'prog-mode-hook
-          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
-              #'display-line-numbers-mode
-            #'linum-mode))
-
-
-;; Disable for document and terminal modes
-(dolist (mode '(
-    org-mode-hook
-    term-mode-hook
-    shell-mode-hook
-    treemacs-mode-hook
-    vterm-mode
-    eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-;; Make some icons available
-(use-package all-the-icons)
-
-;;; Set full name and email address
-(setq user-full-name "Chatman R. Jr")
-(setq user-mail-address "crjr.code@protonmail.com")
-
-;;; Set some variables for my settings and styles
-(setq C4/font "Input Sans-13")
-(setq C4/font-bold "Input Serif Condensed-13")
-(setq C4/font-italic "Input Serif Narrow-13:extra-light:italic")
-
-(setq C4/document-font "Input Serif-13")
-(setq C4/terminal-font "Input Mono-13")
-
-;;; By default, use Input Sans family at 13px
-(set-face-attribute 'default nil :font C4/font)
-(set-face-attribute 'bold nil :font C4/font-bold)
-(set-face-attribute 'italic nil :font C4/font-italic)
-(set-face-attribute 'bold-italic nil :inherit 'bold)
-
-;;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font C4/font)
-
-;;; Set default document font as Input Serif family at 13px
-(set-face-attribute 'variable-pitch nil :font C4/document-font)
-
-;;; Set default terminal font as Input Mono family at 13px
-(set-face-attribute 'term nil :font C4/terminal-font)
-
-;;; Some Org Mode adjustments
-(set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
-(set-face-attribute 'org-document-info nil :inherit 'org-document-title)
-
-(set-face-attribute 'org-level-1 nil :height 1.8 :weight 'bold :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-2 nil :height 1.6 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-4 nil :height 1.2 :weight 'light :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-5 nil :height 1.0 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-6 nil :height 0.8 :inherit 'fixed-pitch)
-
-(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-block nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-block-begin-line nil :weight 'normal :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-block-end-line nil :weight 'normal :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-property-value nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
-(set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
-(set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
-
-;;; Add extended unicode support
-(use-package unicode-fonts
-  :config
-  (unicode-fonts-setup))
-
-;;; Disable the fringe background
-(set-face-attribute 'fringe nil
-                    :background nil)
-
-;;; Include and load minimal-theme collection
-(use-package minimal-theme)
-
-;; Light theme loaded and enabled by default
-(load-theme 'minimal-light t)
-
-;; Dark variants load but not wait for toggling
-(load-theme 'minimal t t)
-(load-theme 'minimal-black t t)
-
-(use-package smart-mode-line
-  :init
-  (setq sml/theme 'light)
-  (setq sml/no-confirm-load-theme t)
-  (setq sml/name-width '(16 . 32))
-  (setq sml/mode-width 'full)
-  (setq rm-blacklist nil)
-  (setq rm-whitelist '("↑"))
-  :config
-  (sml/setup)
-  (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
-
-;;; Help documentation enhancement
-(use-package helpful)
-
-;;; Universal editor settings
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
-
-;;; Rich terminal experience
-(use-package vterm)
-
-;;; Better minibuffer completion
-(use-package selectrum
-  :config
-  (selectrum-mode 1))
-
-;;; Remember frequently used commands and queries
-(use-package selectrum-prescient
-  :after selectrum
-  :config
-  (selectrum-prescient-mode 1)
-  (prescient-persist-mode 1))
-
-;;; Partial completion queries support
-(use-package orderless
-  :init
-  (icomplete-mode)
-  :custom
-  (completion-styles '(orderless)))
-
-;;; Better search utilities
-(use-package consult
-  :init
-  (defun find-fd (&optional dir initial)
-    (interactive "P")
-    (let ((consult-find-command "fd --color=never --full-path ARG OPTS"))
-      (consult-find dir initial)))
-  (advice-add #'register-preview :override #'consult-register-window)
-  :custom
-  (register-preview-delay 0)
-  (register-preview-function #'consult-register-window)
-  (consult-narrow-key "<"))
-
-;;; An interface for minibuffer actions
-(use-package embark-consult
-  :after (embark consult)
-  :demand t
-  :hook
-  (embark-collect-mode . embark-consult-preview-minor-mode))
-
-;;; Adds annotations to minibuffer interfaces
-(use-package marginalia
-  :after consult
-  :init
-  (marginalia-mode)
-  (advice-add #'marginalia-cycle :after
-              (lambda () (when (bound-and-true-p selectrum-mode)
-                           (selectrum-exhibit))))
-  (setq marginalia-annotators
-        '(marginalia-annotators-heavy marginalia-annotators-light)))
-
-;;; Incremental search interface similar to web browsers
-(use-package ctrlf
-      :config
-      (ctrlf-mode 1))
 
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root "~/Code")
@@ -634,20 +707,22 @@
 (set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
 
 ;; set constants face
-(set-face-attribute 'font-lock-constant-face nil :inherit 'bold)
+(set-face-attribute 'font-lock-constant-face nil :font C4/font :weight 'black)
 
 ;; set built-in face
 (set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil :inherit 'bold)
+(set-face-attribute 'font-lock-function-name-face nil :font C4/font :weight 'black)
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :weight 'light :slant 'normal :inherit 'italic)
+(set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
 
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode))
+  :hook
+  (prog-mode . rainbow-delimiters-mode)
+  (prog-mode . prettify-symbols-mode))
 
 ;;; Code linting package that flies
 (use-package flycheck
@@ -784,6 +859,7 @@
   :hook
   (org-mode . org-indent-mode)
   (org-mode . variable-pitch-mode)
+  (org-mode . visual-fill-mode)
   (org-mode . auto-fill-mode)
   :config
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
@@ -799,13 +875,15 @@
   (setq org-superstar-headline-bullets-list
         '("*" "*" "*" "*" "*" "*" "*")))
 
-;;; Darkroom for a better writing experience
-(use-package darkroom
+;;; visual-fill-column does just enough UI adjustment
+;;; for Org Mode
+(use-package visual-fill-column
   :hook
-  (org-mode . darkroom-tentative-mode)
+  (visual-line-mode . visual-fill-column-mode)
   :config
-  (setq darkroom-text-scale-increase 1)
-  (setq darkroom-margins '(16 . 16)))
+  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
+  (setq visual-fill-column-width 108)
+  (setq visual-fill-column-center-text t))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
