@@ -398,7 +398,8 @@
   "M [" '(er/mark-inside-pairs :wk "mark between delimiters")
   "M {" '(er/mark-outside-pairs :wk "mark around delimiters")
   "M '" '(er/mark-inside-quotes :wk "mark between quotes")
-  "M \"" '(er/mark-outside-quotes :wk "mark around quotes"))
+  "M \"" '(er/mark-outside-quotes :wk "mark around quotes")
+  "M b" '(er/mark-org-code-block :wk "mark org code block"))
 
 (defun C4/mark-line ()
   "Mark the entire line"
