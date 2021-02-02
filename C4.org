@@ -211,7 +211,7 @@ over for more than just startup times.
 
 #+END_SRC
 * Utilities
-*** crux
+** crux
 
 This configuration includes the crux package. It's way too useful not to use. Especially since I
 opted out of Vim emulation.
@@ -1067,6 +1067,29 @@ to quickly bring up the Emacs manual for browsing.
 
 #+END_SRC
 
+**** Lang (=l=)
+
+This domain wraps commands for working with programming major modes. It has some =prog-mode= globals
+such as for Auto-YASnippet commands, but most of its keybindings are local to major modes for
+specific languages.
+
+#+BEGIN_SRC emacs-lisp
+
+  (C4/command-key-def
+    "l" '(:ignore t :wk "lang")
+    "ls" '(:ignore t :wk "snippets")
+    "lss" '(aya-create :wk "create a snippet")
+    "lse" '(C4/expand-snippet :wk "expand last created snippet")
+    "lsw" '(aya-persist-snippet :wk "save created snippet"))
+
+  (defun C4/expand-snippet ()
+    "Expand the last created snippet."
+    (interactive)
+    (modalka-mode 0)
+    (aya-expand))
+
+#+END_SRC
+
 **** Org (=o=)
 
 This domain wraps all commands that affect Org Mode. They allow me to view my agenda, schedule dates
@@ -1465,6 +1488,21 @@ I'm going to adjust some of the faces provided by tree-sitter now.
 
 #+END_SRC
 
+*** smartparens
+
+This package autopairs delimiters for a variety of programming modes.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Autopair delimiters
+  (use-package smartparens
+    :hook
+    (prog-mode . smartparens-mode)
+    :config
+    (require 'smartparens-config))
+
+#+END_SRC
+
 *** rainbow-delimiters
 
 This package is incredibly helpful in keeping track of how many levels deep I am in a complex LISP s-exp and it
@@ -1561,7 +1599,37 @@ specialized debgugging packages for unsupported languages in their relevant sect
 
 #+END_SRC
 
+** Snippets
+
+Snippets are valuable for my workflow. And YASnippet is the Emacs standard for using them. I also
+included a community-supported snippet package auto-yasnippet to create custom snippets as needed.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Snippet support
+
+  ;; Setup YASnippet
+  (use-package yasnippet
+    :config
+    (yas-global-mode 1))
+
+  ;; Setup snippet collection
+  (use-package yasnippet-snippets)
+
+  ;; Setup Auto-YASnippet
+  (use-package auto-yasnippet)
+
+#+END_SRC
+
 ** Language Support
+
+The groundwork is in place, so now I'm going to selectively enhance some programming modes. The
+language support of my configuration includes both languages I work with and those I'm interested in
+studying.
+
+If you don't need support for a language below, adding a =PROPERTIES= block under the heading for
+that language with =:header-args:emacs-lisp: :tangle no= will disable generation.
+
 *** TODO Lisp Family
 *** TODO C
 *** TODO Elixir
@@ -1754,7 +1822,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
     (org-superstar-leading ((t (:inherit 'org-hide))))
     :init
     (setq org-superstar-headline-bullets-list
-          '("*" "*₂" "*₃" "*₄" "*₅" "*₆" "*₇")))
+          '("⚀" "⚁" "⚂" "⚃" "⚄" "⚅")))
 
 #+END_SRC
 

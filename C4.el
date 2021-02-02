@@ -508,6 +508,19 @@
  "hm" '(info-emacs-manual :wk "Emacs"))
 
 (C4/command-key-def
+  "l" '(:ignore t :wk "lang")
+  "ls" '(:ignore t :wk "snippets")
+  "lss" '(aya-create :wk "create a snippet")
+  "lse" '(C4/expand-snippet :wk "expand last created snippet")
+  "lsw" '(aya-persist-snippet :wk "save created snippet"))
+
+(defun C4/expand-snippet ()
+  "Expand the last created snippet."
+  (interactive)
+  (modalka-mode 0)
+  (aya-expand))
+
+(C4/command-key-def
   "o" '(:ignore t :wk "org")
   "oa" '(:ignore t :wk "agenda")
   "oaa" '(org-agenda-list :wk "weekly")
@@ -739,6 +752,13 @@
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
 
+;;; Autopair delimiters
+(use-package smartparens
+  :hook
+  (prog-mode . smartparens-mode)
+  :config
+  (require 'smartparens-config))
+
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
@@ -780,6 +800,19 @@
   :hook
   (prog-mode . dap-mode)
   (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
+
+;;; Snippet support
+
+;; Setup YASnippet
+(use-package yasnippet
+  :config
+  (yas-global-mode 1))
+
+;; Setup snippet collection
+(use-package yasnippet-snippets)
+
+;; Setup Auto-YASnippet
+(use-package auto-yasnippet)
 
 ;;; Variables for Org Mode configuration
 (setq C4/org-root-path "~/Documents/Org")
@@ -893,7 +926,7 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("*" "*₂" "*₃" "*₄" "*₅" "*₆" "*₇")))
+        '("⚀" "⚁" "⚂" "⚃" "⚄" "⚅")))
 
 ;;; visual-fill-column does just enough UI adjustment
 ;;; for Org Mode
