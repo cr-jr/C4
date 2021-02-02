@@ -724,11 +724,6 @@ If you're not using EXWM, make sure you remove that last hook.
     (global-unset-key (kbd "<menu>"))
     (general-def "<menu>" 'modalka-mode)
 
-    ;; C-m is historically bound to ASCII carriage return, so Emacs
-    ;; regards RET and C-m as the same key. Fix that
-    (define-key input-decode-map [?\C-m] [C-m])
-
-
     ;; Create a global definitiion key for non-prefixed Command Mode actions
     (general-create-definer C4/action-key-def
       :keymaps 'modalka-mode-map)
@@ -759,7 +754,7 @@ Command Mode has a few simple escape hatches for when I'm ready to enter some te
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Actions: Insertion
+  ;;; Actions: insertion
   (C4/action-key-def
     "q" '(modalka-mode :wk "insert at point")
     "<return>" '(C4/newline :wk "insert new line")
@@ -768,14 +763,14 @@ Command Mode has a few simple escape hatches for when I'm ready to enter some te
   (defun C4/newline ()
     "Insert a newline after point"
     (interactive)
-    (modalka-mode 0)
-    (crux-smart-open-line nil))
+    (crux-smart-open-line nil)
+    (modalka-mode 0))
 
   (defun C4/newline-above ()
     "Insert a newline before point"
     (interactive)
-    (modalka-mode 0)
-    (crux-smart-open-line-above))
+    (crux-smart-open-line-above)
+    (modalka-mode 0))
 
   (C4/command-key-def
     "SPC" '(modalka-mode :wk "insert at point"))
@@ -789,9 +784,14 @@ I set two kinds of action modifiers: numeric and procedural.
 + Numeric action modifiers: repeat an action =n= times (ex: =4 i= will move the point 4 lines up)
 + Procedural action modifier: repeat last action explicitly (ex: =4 i .= will move the point 8 lines up)
 
+#+BEGIN_QUOTE
+Note: giving a numeric modifier to the procedural modifier will give the repeated action a /new/
+numeric modifier. This is the expected Emacs behavior for =digit-argument=.
+#+END_QUOTE
+
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Action numeric modifier
+  ;;; Actions: numeric modifiers
   (modalka-define-kbd "-" "C--")
   (modalka-define-kbd "1" "C-1")
   (modalka-define-kbd "2" "C-2")
@@ -804,7 +804,7 @@ I set two kinds of action modifiers: numeric and procedural.
   (modalka-define-kbd "9" "C-9")
   (modalka-define-kbd "0" "C-0")
 
-  ;;; Action procedural modifier
+  ;;; Actions: procedural modifier
   (C4/action-key-def
     "." '(repeat :wk "repeat last action"))
 
@@ -852,19 +852,27 @@ the hood.
 
 **** Text manipulation
 
-***** Marking/selecting
-
 Next, I'm defining some actions for text manipulation. These use either native Emacs functionality
 or commands provided by those packages in the equivalent section above.
+
+***** Marking/selecting
+
+These actions are mapped to marking regions and text selection.
 
 #+BEGIN_SRC emacs-lisp
 
   ;;; Actions: marking/selecting text
   (C4/action-key-def
     "m" '(set-mark-command :wk "set a mark at point")
-    "M" '(C4/mark-line :wk "mark the current line")
-    "<C-m>" '(rectangle-mark-mode :wk "mark region as rectangle")
-    "M-m" '(er/expand-region :wk "expand region semantically"))
+    "M m" '(er/expand-region :wk "cycle semantics")
+    "M w" '(mark-word :wk "mark word")
+    "M s" '(er/mark-sentence :wk "mark sentence")
+    "M l" '(C4/mark-line :wk "mark whole line")
+    "M p" '(mark-paragraph :wk "mark paragraph")
+    "M [" '(er/mark-inside-pairs :wk "mark between delimiters")
+    "M {" '(er/mark-outside-pairs :wk "mark around delimiters")
+    "M '" '(er/mark-inside-quotes :wk "mark between quotes")
+    "M \"" '(er/mark-outside-quotes :wk "mark around quotes"))
 
   (defun C4/mark-line ()
     "Mark the entire line"
@@ -876,7 +884,51 @@ or commands provided by those packages in the equivalent section above.
 #+END_SRC
 
 ***** Killing/cutting
+
+Now, some actions for killing and cutting text.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: killing/cutting text
+  (C4/action-key-def
+    "x" '(kill-region :wk "cut selection")
+    "X" '(clipboard-kill-region :wk "cut selection (system)"))
+
+#+END_SRC
+
 ***** Copy/paste
+
+Some actions for copying and pasting text.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: copy/paste
+  (C4/action-key-def
+    "c" '(kill-ring-save :wk "copy selection")
+    "C" '(clipboard-kill-ring-save :wk "copy selection (system)")
+    "v" '(yank :wk "paste")
+    "V" '(clipboard-yank :wk "paste (system)")
+    "C-v" '(consult-yank :wk "paste from registry"))
+
+#+END_SRC
+
+***** Deletion
+
+Finally, some actions for deleting text. This is the final manipulation. Deleted text will
+/not/ be saved to the kill ring or anywhere else. It's gone.
+
+Also, following the conventions of other actions, =D= is a modifier that opens other actions
+for deletion. In this case, it begins deletion chords.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: deleting text
+  (C4/action-key-def
+    "d" '(delete-char :wk "delete char after point")
+    "D d" '(backward-delete-char :wk "delete char before point")
+    "D r" '(delete-region :wk "delete region"))
+
+#+END_SRC
 
 *** Commands
 
@@ -1563,12 +1615,11 @@ flow becomes more personal.
     <<org-agenda>>
     <<org-templates>>
     <<org-literate>>
-    :hook
-    (org-mode . org-indent-mode)
-    (org-mode . variable-pitch-mode)
-    (org-mode . visual-fill-mode)
-    (org-mode . auto-fill-mode)
     :config
+    (variable-pitch-mode t)
+    (visual-line-mode t)
+    (auto-fill-mode t)
+    (org-indent-mode t)
     (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 #+END_SRC
@@ -1702,7 +1753,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
     (org-superstar-leading ((t (:inherit 'org-hide))))
     :init
     (setq org-superstar-headline-bullets-list
-          '("*" "*" "*" "*" "*" "*" "*")))
+          '("*" "*₂" "*₃" "*₄" "*₅" "*₆" "*₇")))
 
 #+END_SRC
 
@@ -1720,7 +1771,7 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
     (visual-line-mode . visual-fill-column-mode)
     :config
     (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    (setq visual-fill-column-width 108)
+    (setq visual-fill-column-width 120)
     (setq visual-fill-column-center-text t))
 #+END_SRC
 

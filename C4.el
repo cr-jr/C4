@@ -313,11 +313,6 @@
   (global-unset-key (kbd "<menu>"))
   (general-def "<menu>" 'modalka-mode)
 
-  ;; C-m is historically bound to ASCII carriage return, so Emacs
-  ;; regards RET and C-m as the same key. Fix that
-  (define-key input-decode-map [?\C-m] [C-m])
-
-
   ;; Create a global definitiion key for non-prefixed Command Mode actions
   (general-create-definer C4/action-key-def
     :keymaps 'modalka-mode-map)
@@ -331,7 +326,7 @@
 ;;; Setup transient mode-ish states
 (use-package hydra)
 
-;;; Actions: Insertion
+;;; Actions: insertion
 (C4/action-key-def
   "q" '(modalka-mode :wk "insert at point")
   "<return>" '(C4/newline :wk "insert new line")
@@ -340,19 +335,19 @@
 (defun C4/newline ()
   "Insert a newline after point"
   (interactive)
-  (modalka-mode 0)
-  (crux-smart-open-line nil))
+  (crux-smart-open-line nil)
+  (modalka-mode 0))
 
 (defun C4/newline-above ()
   "Insert a newline before point"
   (interactive)
-  (modalka-mode 0)
-  (crux-smart-open-line-above))
+  (crux-smart-open-line-above)
+  (modalka-mode 0))
 
 (C4/command-key-def
   "SPC" '(modalka-mode :wk "insert at point"))
 
-;;; Action numeric modifier
+;;; Actions: numeric modifiers
 (modalka-define-kbd "-" "C--")
 (modalka-define-kbd "1" "C-1")
 (modalka-define-kbd "2" "C-2")
@@ -365,7 +360,7 @@
 (modalka-define-kbd "9" "C-9")
 (modalka-define-kbd "0" "C-0")
 
-;;; Action procedural modifier
+;;; Actions: procedural modifier
 (C4/action-key-def
   "." '(repeat :wk "repeat last action"))
 
@@ -395,9 +390,15 @@
 ;;; Actions: marking/selecting text
 (C4/action-key-def
   "m" '(set-mark-command :wk "set a mark at point")
-  "M" '(C4/mark-line :wk "mark the current line")
-  "<C-m>" '(rectangle-mark-mode :wk "mark region as rectangle")
-  "M-m" '(er/expand-region :wk "expand region semantically"))
+  "M m" '(er/expand-region :wk "cycle semantics")
+  "M w" '(mark-word :wk "mark word")
+  "M s" '(er/mark-sentence :wk "mark sentence")
+  "M l" '(C4/mark-line :wk "mark whole line")
+  "M p" '(mark-paragraph :wk "mark paragraph")
+  "M [" '(er/mark-inside-pairs :wk "mark between delimiters")
+  "M {" '(er/mark-outside-pairs :wk "mark around delimiters")
+  "M '" '(er/mark-inside-quotes :wk "mark between quotes")
+  "M \"" '(er/mark-outside-quotes :wk "mark around quotes"))
 
 (defun C4/mark-line ()
   "Mark the entire line"
@@ -405,6 +406,25 @@
   (end-of-line)
   (set-mark-command nil)
   (beginning-of-line))
+
+;;; Actions: killing/cutting text
+(C4/action-key-def
+  "x" '(kill-region :wk "cut selection")
+  "X" '(clipboard-kill-region :wk "cut selection (system)"))
+
+;;; Actions: copy/paste
+(C4/action-key-def
+  "c" '(kill-ring-save :wk "copy selection")
+  "C" '(clipboard-kill-ring-save :wk "copy selection (system)")
+  "v" '(yank :wk "paste")
+  "V" '(clipboard-yank :wk "paste (system)")
+  "C-v" '(consult-yank :wk "paste from registry"))
+
+;;; Actions: deleting text
+(C4/action-key-def
+  "d" '(delete-char :wk "delete char after point")
+  "D d" '(backward-delete-char :wk "delete char before point")
+  "D r" '(delete-region :wk "delete region"))
 
 (C4/command-key-def
   "'" '(vterm :wk "open terminal from current dir"))
@@ -856,12 +876,11 @@
   (setq org-src-fontify-natively t)
   (setq org-confirm-babel-evaluate nil)
   
-  :hook
-  (org-mode . org-indent-mode)
-  (org-mode . variable-pitch-mode)
-  (org-mode . visual-fill-mode)
-  (org-mode . auto-fill-mode)
   :config
+  (variable-pitch-mode t)
+  (visual-line-mode t)
+  (auto-fill-mode t)
+  (org-indent-mode t)
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 ;;; Org Superstar makes your bullets bang louder
@@ -873,7 +892,7 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("*" "*" "*" "*" "*" "*" "*")))
+        '("*" "*₂" "*₃" "*₄" "*₅" "*₆" "*₇")))
 
 ;;; visual-fill-column does just enough UI adjustment
 ;;; for Org Mode
@@ -882,7 +901,7 @@
   (visual-line-mode . visual-fill-column-mode)
   :config
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-  (setq visual-fill-column-width 108)
+  (setq visual-fill-column-width 120)
   (setq visual-fill-column-center-text t))
 
 ;;; Initialize EXWM if GUI Emacs
