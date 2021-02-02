@@ -509,16 +509,30 @@
 
 (C4/command-key-def
   "l" '(:ignore t :wk "lang")
+  "ll" '(:keymap lsp-command-map :package lsp-mode :wk "lsp prefix")
   "ls" '(:ignore t :wk "snippets")
   "lss" '(aya-create :wk "create a snippet")
+  "lsS" '(C4/create-one-liner :wk "create a one line snippet")
   "lse" '(C4/expand-snippet :wk "expand last created snippet")
-  "lsw" '(aya-persist-snippet :wk "save created snippet"))
+  "lsw" '(C4/save-snippet :wk "save created snippet"))
+
+(defun C4/create-one-liner ()
+  "Create a one line snippet to expand immediately."
+  (interactive)
+  (modalka-mode 0)
+  (aya-create-one-line))
 
 (defun C4/expand-snippet ()
-  "Expand the last created snippet."
+  "Expand the last created snippet and fill it in."
   (interactive)
   (modalka-mode 0)
   (aya-expand))
+
+(defun C4/save-snippet ()
+  "Save the created snippet to database."
+  (interactive)
+  (aya-persist-snippet)
+  (yas/reload-all))
 
 (C4/command-key-def
   "o" '(:ignore t :wk "org")
@@ -787,7 +801,11 @@
 
 ;;; Language Server Protocol package for rich IDE features
 (use-package lsp-mode
-  :hook (prog-mode . lsp-deferred)
+  :init
+  (setq lsp-keymap-prefix "")
+  :hook
+  (prog-mode . lsp-deferred)
+  (lsp-mode . lsp-enable-which-key-integration)
   :commands (lsp lsp-deferred))
 
 ;; UI enhancements for lsp-mode
@@ -910,11 +928,12 @@
   (setq org-src-fontify-natively t)
   (setq org-confirm-babel-evaluate nil)
   
+  :hook
+  (org-mode . variable-pitch-mode)
+  (org-mode . visual-line-mode)
+  (org-mode . org-indent-mode)
+  (org-mode . auto-fill-mode)
   :config
-  (variable-pitch-mode t)
-  (visual-line-mode t)
-  (auto-fill-mode t)
-  (org-indent-mode t)
   (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 ;;; Org Superstar makes your bullets bang louder
@@ -931,12 +950,13 @@
 ;;; visual-fill-column does just enough UI adjustment
 ;;; for Org Mode
 (use-package visual-fill-column
+  :custom
+  (visual-fill-column-width 120)
+  (visual-fill-column-center-text t)
   :hook
   (visual-line-mode . visual-fill-column-mode)
   :config
-  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-  (setq visual-fill-column-width 120)
-  (setq visual-fill-column-center-text t))
+  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm

@@ -1071,22 +1071,36 @@ to quickly bring up the Emacs manual for browsing.
 
 This domain wraps commands for working with programming major modes. It has some =prog-mode= globals
 such as for Auto-YASnippet commands, but most of its keybindings are local to major modes for
-specific languages.
+specific languages. These are defined in their relevant sections.
 
 #+BEGIN_SRC emacs-lisp
 
   (C4/command-key-def
     "l" '(:ignore t :wk "lang")
+    "ll" '(:keymap lsp-command-map :package lsp-mode :wk "lsp prefix")
     "ls" '(:ignore t :wk "snippets")
     "lss" '(aya-create :wk "create a snippet")
+    "lsS" '(C4/create-one-liner :wk "create a one line snippet")
     "lse" '(C4/expand-snippet :wk "expand last created snippet")
-    "lsw" '(aya-persist-snippet :wk "save created snippet"))
+    "lsw" '(C4/save-snippet :wk "save created snippet"))
+
+  (defun C4/create-one-liner ()
+    "Create a one line snippet to expand immediately."
+    (interactive)
+    (modalka-mode 0)
+    (aya-create-one-line))
 
   (defun C4/expand-snippet ()
-    "Expand the last created snippet."
+    "Expand the last created snippet and fill it in."
     (interactive)
     (modalka-mode 0)
     (aya-expand))
+
+  (defun C4/save-snippet ()
+    "Save the created snippet to database."
+    (interactive)
+    (aya-persist-snippet)
+    (yas/reload-all))
 
 #+END_SRC
 
@@ -1574,14 +1588,17 @@ First, I'm setting it up for general use. Later, in the appropriate language's s
 
   ;;; Language Server Protocol package for rich IDE features
   (use-package lsp-mode
-    :hook (prog-mode . lsp-deferred)
+    :init
+    (setq lsp-keymap-prefix "")
+    :hook
+    (prog-mode . lsp-deferred)
+    (lsp-mode . lsp-enable-which-key-integration)
     :commands (lsp lsp-deferred))
 
   ;; UI enhancements for lsp-mode
   (use-package lsp-ui
     :after lsp-mode
     :commands lsp-ui-mode)
-
 #+END_SRC
 
 ** Debugging
@@ -1684,11 +1701,12 @@ flow becomes more personal.
     <<org-agenda>>
     <<org-templates>>
     <<org-literate>>
+    :hook
+    (org-mode . variable-pitch-mode)
+    (org-mode . visual-line-mode)
+    (org-mode . org-indent-mode)
+    (org-mode . auto-fill-mode)
     :config
-    (variable-pitch-mode t)
-    (visual-line-mode t)
-    (auto-fill-mode t)
-    (org-indent-mode t)
     (advice-add 'org-refile :after 'org-save-all-org-buffers))
 
 #+END_SRC
@@ -1806,7 +1824,6 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
 #+END_SRC
 
 **** Addons
-
 ***** org-superstar
 
 Org Superstar is a package that makes Org Mode bullets (even lists) much prettier.
@@ -1836,12 +1853,14 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
   ;;; visual-fill-column does just enough UI adjustment
   ;;; for Org Mode
   (use-package visual-fill-column
+    :custom
+    (visual-fill-column-width 120)
+    (visual-fill-column-center-text t)
     :hook
     (visual-line-mode . visual-fill-column-mode)
     :config
-    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust)
-    (setq visual-fill-column-width 120)
-    (setq visual-fill-column-center-text t))
+    (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
+
 #+END_SRC
 
 *** Markdown
