@@ -297,7 +297,6 @@
   :commands modalka-mode
   :hook
   (text-mode . modalka-mode)
-  (org-mode . modalka-mode)
   (prog-mode . modalka-mode)
   (exwm-mode . modalka-mode))
 
@@ -313,11 +312,11 @@
   (global-unset-key (kbd "<menu>"))
   (general-def "<menu>" 'modalka-mode)
 
-  ;; Create a global definitiion key for non-prefixed Command Mode actions
+  ;; Create a global definitiion key for actions
   (general-create-definer C4/action-key-def
     :keymaps 'modalka-mode-map)
 
-  ;; Create a mnemonic leader key under Command Mode
+  ;; Create a global definition key for commands
   (general-create-definer C4/command-key-def
     :keymaps 'modalka-mode-map
     :prefix "SPC"
@@ -766,13 +765,6 @@
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
 
-;;; Autopair delimiters
-(use-package smartparens
-  :hook
-  (prog-mode . smartparens-mode)
-  :config
-  (require 'smartparens-config))
-
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
@@ -790,6 +782,18 @@
     :host github
     :repo "raxod502/apheleia")
   :hook (prog-mode . apheleia-mode))
+
+;;; Autopair delimiters
+(use-package smartparens
+  :hook
+  (prog-mode . smartparens-mode)
+  :config
+  (require 'smartparens-config))
+
+;;; Automatic indentation for my sanity
+(use-package aggressive-indent
+  :hook
+  (prog-mode . aggressive-indent-mode))
 
 ;;; Code autocomplete with Company
 (use-package company
@@ -832,13 +836,122 @@
 ;; Setup Auto-YASnippet
 (use-package auto-yasnippet)
 
+;;; Lang: Common Lisp
+
+;; Setup SLY
+(use-package sly
+  :general
+
+  ;; Connections
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "lC" '(:ignore t :wk "SLY: connections")
+    "lCc" '(sly :wk "invoke")
+    "lCl" '(sly-list-connections :wk "list active")
+    "lC>" '(sly-next-connection :wk "next")
+    "lC<" '(sly-prev-connection :wk "previous")
+    )
+
+  ;; Annotations
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "la" '(:ignore t :wk "SLY: annotations")
+    "lan" '(sly-next-note :wk "next note")
+    "laN" '(sly-previous-note :wk "prev note")
+    "laR" '(sly-remove-notes :wk "remove all"))
+
+  ;; Docs
+ (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "ld" '(:ignore t :wk "SLY: doc")
+    "ldd" '(sly-autodoc-mode :wk "autodoc toggle")
+    "ldm" '(sly-autodoc-manually :wk "autodoc manually")
+    "lda" '(sly-arglist :wk "defun arglist")
+    "lds" '(sly-info :wk "SLY manual"))
+
+  ;; Compiling
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "lc" '(:ignore t :wk "SLY: compile")
+    "lcc" '(sly-compile-defun :wk "defun")
+    "lE" '(next-error :wk "show errors")
+    "lcr" '(sly-compile-region :wk "region")
+    "lcf" '(sly-compile-file :wk "file")
+    "lcF" '(sly-compile-and-load-file :wk "and load"))
+
+  ;; Evaluation
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "le" '(:ignore t :wk "SLY: eval")
+    "lee" '(sly-eval-last-expression :wk "expression")
+    "leE" '(sly-pprint-eval-last-expression :wk "expression to buffer")
+    "lei" '(sly-interactive-eval :wk "interactive")
+    "led" '(sly-eval-defun :wk "defun")
+    "ler" '(sly-eval-region :wk "region")
+    "leR" '(sly-pprint-eval-region :wk "region to buffer")
+    "leb" '(sly-eval-buffer :wk "buffer"))
+
+  ;; Files
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "lf" '(sly-load-file :wk "load file"))
+
+  ;; Macros
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "lm" '(:ignore t :wk "macro")
+    "lmm" '(sly-expand-1 :wk "expand")
+    "lmM" '(sly-macroexpand-all :wk "expand all")
+    "lmc" '(sly-compiler-macroexpand-1 :wk "compiler expand")
+    "lmC" '(sly-compiler-macroexpand :wk "compiler expand repeatedly")
+    "lmf" '(sly-format-string-expand :wk "format string")
+    "lmr" '(sly-macroexpand-1-inplace :wk "expand repeatedly")
+    "lmR" '(sly-macroexpand-again :wk "repeat last expansion")
+    "lmu" '(sly-macroexpand-undo :wk "undo last expansion"))
+
+  ;; Source
+  (C4/command-key-def
+    :keymaps 'sly-mode-map
+    "lS" '(:ignore t :wk "SLY: source code")
+    "lSs" '(:ignore t :wk "SLY: definitions")
+    "lSss" '(sly-edit-definition :wk "edit")
+    "lSsS" '(sly-edit-definition-other-window :wk "edit (other window)")
+    "lSsp" '(sly-pop-find-definition-stack :wk "go back to invocation")
+    "lSd" '(:ignore t :wk "SLY: describe")
+    "lSdd" '(sly-describe-symbol :wk "symbol")
+    "lSdf" '(sly-describe-function :wk "function")
+    "lSda" '(sly-apropos :wk "apropos")
+    "lSdA" '(sly-apropos-all :wk "apropos all")
+    "lSd C-a" '(sly-apropos-package :wk "apropos package")
+    "lSdh" '(sly-hyperspec-lookup :wk "hyperspec lookup")
+    "lSdH" '(sly-hyperspec-lookup-format :wk "hyperspec lookup [format]")
+    "lSd C-h" '(sly-hyperspec-lookup-reader-macro :wk "hyperspec lookup [reader macro]")
+    "lSx" '(:ignore t :wk "SLY: cross-reference")
+    "lSxr" '(sly-edit-uses :wk "find symbol")
+    "lSxc" '(sly-who-calls :wk "find callers")
+    "lSxC" '(sly-calls-who :wk "find callees")
+    "lSxg" '(sly-who-references :wk "find global")
+    "lSxG" '(sly-who-binds :wk "find global bindings")
+    "lSx C-g" '(sly-who-sets :wk "find global assignments")
+    "lSxm" '(sly-who-macroexpands :wk "show macroexpansions")
+    "lSxM" '(sly-who-specializes :wk "show methods")
+    "lSe" '(sly-edit-value "edit value")
+    "lSu" '(sly-undefine-function "undefine function"))
+  :hook
+  (common-lisp-mode . sly-mode))
+
 ;;; Variables for Org Mode configuration
 (setq C4/org-root-path "~/Documents/Org")
 (setq C4/org-agenda-files '("Tasks.org" "Projects.org"))
 
 ;;; Org setup
 (use-package org
-  :init
+  :hook
+  (org-mode . variable-pitch-mode)
+  (org-mode . visual-line-mode)
+  (org-mode . org-indent-mode)
+  (org-mode . auto-fill-mode)
+  :config
   (setq org-ellipsis " ↴")
   (setq org-directory C4/org-root-path)
   
@@ -928,13 +1041,8 @@
   (setq org-src-fontify-natively t)
   (setq org-confirm-babel-evaluate nil)
   
-  :hook
-  (org-mode . variable-pitch-mode)
-  (org-mode . visual-line-mode)
-  (org-mode . org-indent-mode)
-  (org-mode . auto-fill-mode)
-  :config
-  (advice-add 'org-refile :after 'org-save-all-org-buffers))
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 3)))
 
 ;;; Org Superstar makes your bullets bang louder
 (use-package org-superstar
