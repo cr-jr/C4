@@ -836,6 +836,20 @@
 ;; Setup Auto-YASnippet
 (use-package auto-yasnippet)
 
+;;; Lang: Emacs Lisp
+
+;; Inline Emacs Lisp evaluation results
+(use-package eros
+  :general
+  (C4/command-key-def
+    :keymaps 'eros-mode-map
+    "le" '(:ignore t :wk "eval")
+    "lee" '(eros-eval-last-sexp :wk "expression")
+    "led" '(eros-eval-defun :wk "defun"))
+  :hook
+  (emacs-lisp-mode . eros-mode)
+  (lisp-interaction-mode . eros-mode))
+
 ;;; Lang: Common Lisp
 
 ;; Setup SLY
@@ -939,6 +953,38 @@
     "lSu" '(sly-undefine-function "undefine function"))
   :hook
   (common-lisp-mode . sly-mode))
+
+;;; Lang: Racket
+
+;; Initialize racket-mode
+(use-package racket-mode
+  :general
+  ;; Run
+  (C4/command-key-def
+    :keymaps '(modalka-mode-map racket-mode-map)
+    "lr" '(:ignore t :wk "program")
+    "lrr" '(racket-run :wk "run")
+    "lrR" '(racket-run-and-switch-to-repl :wk "and switch to REPL")
+    "lrm" '(racket-run-module-at-point :wk "run module"))
+
+  ;; Eval
+  (C4/command-key-def
+    "le" '(:ignore t :wk "eval")
+    "lee" '(racket-send-last-sexp :wk "expression")
+    "led" '(racket-send-definition :wk "definition")
+    "ler" '(racket-send-region :wk "region"))
+
+  ;; Testing
+  (C4/command-key-def
+    "lt" '(:ignore t :wk "tests")
+    "ltt" '(racket-test :wk "run")
+    "ltf" '(racket-fold-all-tests :wk "fold")
+    "ltF" '(racket-unfold-all-tests :wk "unfold"))
+  :hook
+  (racket-mode . racket-xp-mode)
+  (racket-mode . racket-smart-open-bracket-mode)
+  (racket-mode . racket-unicode-input-method-enable)
+  (racket-repl-mode . racket-unicode-input-method-enable))
 
 ;;; Variables for Org Mode configuration
 (setq C4/org-root-path "~/Documents/Org")

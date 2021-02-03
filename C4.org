@@ -1661,6 +1661,32 @@ If you don't need support for a language below, adding a =PROPERTIES= block unde
 that language with =:header-args:emacs-lisp: :tangle no= will disable generation.
 
 *** TODO Lisp Family
+****
+**** Emacs Lisp
+
+Having a good Emacs Lisp experience ensures I'll want to keep editing and improving this
+configuration. A few packages are available to enhance Emacs' own programming language.
+
+The main one is Eros.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: Emacs Lisp
+
+  ;; Inline Emacs Lisp evaluation results
+  (use-package eros
+    :general
+    (C4/command-key-def
+      :keymaps 'eros-mode-map
+      "le" '(:ignore t :wk "eval")
+      "lee" '(eros-eval-last-sexp :wk "expression")
+      "led" '(eros-eval-defun :wk "defun"))
+    :hook
+    (emacs-lisp-mode . eros-mode)
+    (lisp-interaction-mode . eros-mode))
+
+#+END_SRC
+
 **** Common Lisp
 
 The premier package for editing Common Lisp is SLIME, and I'm using a newer, actively maintained
@@ -1776,6 +1802,46 @@ fork called SLY in my configuration.
 
 I set keybindings for common SLY operations under the =lang= mnemonic. So when =common-lisp= is the
 major mode of a buffer, these keybindings activate.
+
+**** Racket
+
+For editing Racket source, racket-mode is the way to go.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: Racket
+
+  ;; Initialize racket-mode
+  (use-package racket-mode
+    :general
+    ;; Run
+    (C4/command-key-def
+      :keymaps '(modalka-mode-map racket-mode-map)
+      "lr" '(:ignore t :wk "program")
+      "lrr" '(racket-run :wk "run")
+      "lrR" '(racket-run-and-switch-to-repl :wk "and switch to REPL")
+      "lrm" '(racket-run-module-at-point :wk "run module"))
+
+    ;; Eval
+    (C4/command-key-def
+      "le" '(:ignore t :wk "eval")
+      "lee" '(racket-send-last-sexp :wk "expression")
+      "led" '(racket-send-definition :wk "definition")
+      "ler" '(racket-send-region :wk "region"))
+
+    ;; Testing
+    (C4/command-key-def
+      "lt" '(:ignore t :wk "tests")
+      "ltt" '(racket-test :wk "run")
+      "ltf" '(racket-fold-all-tests :wk "fold")
+      "ltF" '(racket-unfold-all-tests :wk "unfold"))
+    :hook
+    (racket-mode . racket-xp-mode)
+    (racket-mode . racket-smart-open-bracket-mode)
+    (racket-mode . racket-unicode-input-method-enable)
+    (racket-repl-mode . racket-unicode-input-method-enable))
+
+#+END_SRC
 
 *** TODO C
 *** TODO Elixir
