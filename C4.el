@@ -208,7 +208,7 @@
   (setq sml/name-width '(16 . 32))
   (setq sml/mode-width 'full)
   (setq rm-blacklist nil)
-  (setq rm-whitelist '("↑"))
+  (setq rm-whitelist '(" "))
   :config
   (sml/setup)
   (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
@@ -293,112 +293,78 @@
   (which-key-mode))
 
 ;;; Command mode initialization
-(use-package modalka
-  :commands modalka-mode
+(use-package ryo-modal
+  :commands ryo-modal-mode
+  :bind
+  ("C-SPC" . ryo-modal-mode)
+  ("<menu>" . ryo-modal-mode)
   :hook
-  (text-mode . modalka-mode)
-  (prog-mode . modalka-mode)
-  (exwm-mode . modalka-mode))
-
-;;; Command mode setup
-(use-package general
+  (text-mode . ryo-modal-mode)
+  (prog-mode . ryo-modal-mode)
+  (exwm-mode . ryo-modal-mode)
   :config
-
-  ;; Unbind C-SPC and rebind it to toggle Command Mode
-  (global-unset-key (kbd "C-SPC"))
-  (general-def "C-SPC" 'modalka-mode)
-
-  ;; Also unbind <menu> and rebind it as a toggle
-  (global-unset-key (kbd "<menu>"))
-  (general-def "<menu>" 'modalka-mode)
-
-  ;; Create a global definitiion key for actions
-  (general-create-definer C4/action-key-def
-    :keymaps 'modalka-mode-map)
-
-  ;; Create a global definition key for commands
-  (general-create-definer C4/command-key-def
-    :keymaps 'modalka-mode-map
-    :prefix "SPC"
-    :global-prefix [\s-SPC]))
+  ;; which-key integration
+  (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
 
 ;;; Setup transient mode-ish states
 (use-package hydra)
 
-;;; Actions: insertion
-(C4/action-key-def
-  "q" '(modalka-mode :wk "insert at point")
-  "<return>" '(C4/newline :wk "insert new line")
-  "<C-return>" '(C4/newline-above :wk "insert new line above"))
-
 (defun C4/newline ()
   "Insert a newline after point"
   (interactive)
-  (crux-smart-open-line nil)
-  (modalka-mode 0))
+  (crux-smart-open-line nil))
 
 (defun C4/newline-above ()
   "Insert a newline before point"
   (interactive)
-  (crux-smart-open-line-above)
-  (modalka-mode 0))
+  (crux-smart-open-line-above))
 
-(C4/command-key-def
-  "SPC" '(modalka-mode :wk "insert at point"))
+;;; Actions: insertion
+(ryo-modal-keys
+ ("q" ryo-modal-mode :name "insert at point")
+ ("SPC" (("SPC" ryo-modal-mode :name "insert at point")))
+ ("<return>" C4/newline :name "insert new line" :exit t)
+ ("C-<return>" C4/newline-above :name "insert new line above" :exit t))
 
-;;; Actions: numeric modifiers
-(modalka-define-kbd "-" "C--")
-(modalka-define-kbd "1" "C-1")
-(modalka-define-kbd "2" "C-2")
-(modalka-define-kbd "3" "C-3")
-(modalka-define-kbd "4" "C-4")
-(modalka-define-kbd "5" "C-5")
-(modalka-define-kbd "6" "C-6")
-(modalka-define-kbd "7" "C-7")
-(modalka-define-kbd "8" "C-8")
-(modalka-define-kbd "9" "C-9")
-(modalka-define-kbd "0" "C-0")
-
-;;; Actions: procedural modifier
-(C4/action-key-def
-  "." '(repeat :wk "repeat last action"))
+;;; Action modifiers
+(ryo-modal-keys
+ ;; procedural modifier
+ ("." ryo-modal-repeat)
+ ;; numeric modifiers
+ ("-" "M--" :norepeat t)
+ ("0" "M-0" :norepeat t)
+ ("1" "M-1" :norepeat t)
+ ("2" "M-2" :norepeat t)
+ ("3" "M-3" :norepeat t)
+ ("4" "M-4" :norepeat t)
+ ("5" "M-5" :norepeat t)
+ ("6" "M-6" :norepeat t)
+ ("7" "M-7" :norepeat t)
+ ("8" "M-8" :norepeat t)
+ ("9" "M-9" :norepeat t))
 
 ;;; Actions: movement
-(C4/action-key-def
-  "i" '(previous-logical-line :wk "previous line")
-  "I" '(scroll-down-command :wk "scroll up the buffer")
-  "C-i" '(beginning-of-buffer :wk "jump point to beginning of buffer")
-  "k" '(next-logical-line :wk "next line")
-  "K" '(scroll-up-command :wk "scroll down the buffer")
-  "C-k" '(end-of-buffer :wk "jump point to end of buffer")
-  "j" '(backward-char :wk "previous char")
-  "J" '(backward-word :wk "jump point to previous word")
-  "C-j" '(beginning-of-line-text :wk "jump point to beginning text of line")
-  "M-j" '(beginning-of-line :wk "jump point to beginning of line")
-  "l" '(forward-char :wk "next char")
-  "L" '(forward-word :wk "jump point to next word")
-  "C-l" '(end-of-line :wk "jump point to end of line")
-  "M-l" '(end-of-line :wk "jump point to end of line"))
+(ryo-modal-keys
+ ("i" previous-logical-line :name "previous line")
+ ("I" scroll-down-command :name "scroll up the buffer")
+ ("C-i" beginning-of-buffer :name "jump point to beginning of buffer")
+ ("k" next-logical-line :name "next line")
+ ("K" scroll-up-command :name "scroll down the buffer")
+ ("C-k" end-of-buffer :name "jump point to end of buffer")
+ ("j" backward-char :name "previous char")
+ ("J" backward-word :name "jump point to previous word")
+ ("C-j" beginning-of-line-text :name "jump point to beginning text of line")
+ ("M-j" beginning-of-line :name "jump point to beginning of line")
+ ("l" forward-char :name "next char")
+ ("L" forward-word :name "jump point to next word")
+ ("C-l" end-of-line :name "jump point to end of line")
+ ("M-l" end-of-line :name "jump point to end of line"))
 
 ;;; Actions: undo/redo
-(C4/action-key-def
-  "z" '(undo-fu-only-undo :wk "undo last edit")
-  "Z" '(undo-fu-only-redo :wk "redo last edit")
-  "C-z" '(undo-fu-only-redo-all :wk "restore edits to most recent state"))
-
-;;; Actions: marking/selecting text
-(C4/action-key-def
-  "m" '(set-mark-command :wk "set a mark at point")
-  "M m" '(er/expand-region :wk "cycle semantics")
-  "M w" '(mark-word :wk "mark word")
-  "M s" '(er/mark-sentence :wk "mark sentence")
-  "M l" '(C4/mark-line :wk "mark whole line")
-  "M p" '(mark-paragraph :wk "mark paragraph")
-  "M [" '(er/mark-inside-pairs :wk "mark between delimiters")
-  "M {" '(er/mark-outside-pairs :wk "mark around delimiters")
-  "M '" '(er/mark-inside-quotes :wk "mark between quotes")
-  "M \"" '(er/mark-outside-quotes :wk "mark around quotes")
-  "M b" '(er/mark-org-code-block :wk "mark org code block"))
+(ryo-modal-keys
+ ("z" undo-fu-only-undo :name "undo last edit")
+ ("Z" undo-fu-only-redo :name "redo last edit")
+ ("C-z" undo-fu-only-redo-all :name "restore edits to most recent state"))
 
 (defun C4/mark-line ()
   "Mark the entire line"
@@ -407,292 +373,39 @@
   (set-mark-command nil)
   (beginning-of-line))
 
+;;; Actions: marking/selecting text
+(ryo-modal-keys
+ ("m" set-mark-command :wk "set a mark at point")
+ ("M"
+  (("m" er/expand-region :name "cycle semantics")
+   ("w" mark-word :name "mark word")
+   ("s" er/mark-sentence :name "mark sentence")
+   ("l" C4/mark-line :name "mark current line")
+   ("p" mark-paragraph :name "mark paragraph")
+   ("[" er/mark-inside-pairs :name "mark between delimiters")
+   ("{" er/mark-outside-pairs :name "mark around delimiters")
+   ("'" er/mark-inside-quotes :name "mark between quotes")
+   ("\"" er/mark-outside-quotes :name "mark around quotes"))))
+
 ;;; Actions: killing/cutting text
-(C4/action-key-def
-  "x" '(kill-region :wk "cut selection")
-  "X" '(clipboard-kill-region :wk "cut selection (system)"))
+(ryo-modal-keys
+  ("x" kill-region :wk "cut selection")
+  ("X" clipboard-kill-region :wk "cut selection (system)"))
 
 ;;; Actions: copy/paste
-(C4/action-key-def
-  "c" '(kill-ring-save :wk "copy selection")
-  "C" '(clipboard-kill-ring-save :wk "copy selection (system)")
-  "v" '(yank :wk "paste")
-  "V" '(clipboard-yank :wk "paste (system)")
-  "C-v" '(consult-yank :wk "paste from registry"))
+(ryo-modal-keys
+  ("c" kill-ring-save :name "copy selection")
+  ("C" clipboard-kill-ring-save :name "copy selection (system)")
+  ("v" yank :name "paste")
+  ("V" clipboard-yank :name "paste (system)")
+  ("C-v" consult-yank :name "paste from registry"))
 
 ;;; Actions: deleting text
-(C4/action-key-def
-  "d" '(delete-char :wk "delete char after point")
-  "D d" '(backward-delete-char :wk "delete char before point")
-  "D r" '(delete-region :wk "delete region"))
-
-(C4/command-key-def
-  "'" '(vterm :wk "open terminal from current dir"))
-
-(C4/command-key-def
-  "b" '(:ignore t :wk "buffer")
-  "bb" '(consult-buffer :wk "switch")
-  "bB" '(consult-buffer-other-window :wk "switch other window")
-  "bd" '(kill-current-buffer :wk "kill")
-  "bD" '(kill-some-buffers :wk "kill multiple")
-  "bn" '(:ignore t :wk "narrow")
-  "bnn" '(widen :wk "reset")
-  "bnd" '(narrow-to-defun :wk "to defun")
-  "bnp" '(narrow-to-page :wk "to page")
-  "bnr" '(narrow-to-region :wk "to region")
-  "bk" '(kill-current-buffer :wk "kill")
-  "bK" '(kill-some-buffers :wk "kill multiple")
-  "bs" '(:ignore t :wk "search")
-  "bss" '(ctrlf-forward-literal :wk "forward literal")
-  "bsS" '(ctrlf-backward-literal :wk "backward literal")
-  "bsf" '(ctrlf-forward-fuzzy :wk "forward fuzzy")
-  "bsF" '(ctrlf-backward-fuzzy :wk "backward fuzzy")
-  "bsr" '(ctrlf-forward-regexp :wk "forward regexp")
-  "bsR" '(ctrlf-backward-regexp :wk "backward regexp")
-  "bw" '(save-buffer :wk "write")
-  "bW" '(save-some-buffers :wk "write modified"))
-
-(C4/command-key-def
- "c" '(:ignore t :wk "C4 config")
- "cc" '(C4/open-config :wk "open")
- "cd" '(:ignore t :wk "debug")
- "cdd" '(C4/esup-init :wk "startup")
- "cde" '(C4/bug-hunter-init :wk "errors")
- "cdp" '(explain-pause-top :wk "processes")
- "cr" '(C4/reload-config :wk "reload")
- "ce" '(:ignore t :wk "eval")
- "cee" '(eval-last-sexp :wk "S-exp")
- "ceb" '(eval-buffer :wk "buffer")
- "ced" '(eval-defun :wk "defun")
- "cer" '(eval-region :wk "region"))
-
-(defun C4/generated-conf ()
-  (concat user-emacs-directory "C4.el"))
-
-(defun C4/esup-init ()
-  "Profiles the correct init file"
-  (interactive)
-  (esup (C4/generated-conf)))
-
-(defun C4/bug-hunter-init ()
-  "Debugs the correct init file"
-  (interactive)
-  (bug-hunter-file (C4/generated-conf)))
-
-(defun C4/open-config ()
-  "Open files in config directory."
-  (interactive)
-  (find-file (concat user-emacs-directory "C4.org")))
-
-(defun C4/reload-config ()
-  "Reloads the config in place."
-  (interactive)
-  (load-file (C4/generated-conf)))
-
-(C4/command-key-def
-  "f" '(:ignore t :wk "file")
-  "ff" '(find-file :wk "find")
-  "fx" '(crux-create-scratch-buffer :wk "scratchpad")
-  "fr" '(crux-rename-file-and-buffer :wk "rename"))
-
-(C4/command-key-def
- "h" '(:ignore t :wk "help")
- "ha" '(consult-apropos :wk "apropos")
- "hf" '(helpful-function :wk "function")
- "hF" '(describe-face :wk "face")
- "hc" '(helpful-command :wk "command")
- "hv" '(helpful-variable :wk "variable")
- "hk" '(helpful-key :wk "keybinding")
- "hs" '(helpful-at-point :wk "symbol at point")
- "hm" '(info-emacs-manual :wk "Emacs"))
-
-(C4/command-key-def
-  "l" '(:ignore t :wk "lang")
-  "ll" '(:keymap lsp-command-map :package lsp-mode :wk "lsp prefix")
-  "ls" '(:ignore t :wk "snippets")
-  "lss" '(aya-create :wk "create a snippet")
-  "lsS" '(C4/create-one-liner :wk "create a one line snippet")
-  "lse" '(C4/expand-snippet :wk "expand last created snippet")
-  "lsw" '(C4/save-snippet :wk "save created snippet"))
-
-(defun C4/create-one-liner ()
-  "Create a one line snippet to expand immediately."
-  (interactive)
-  (modalka-mode 0)
-  (aya-create-one-line))
-
-(defun C4/expand-snippet ()
-  "Expand the last created snippet and fill it in."
-  (interactive)
-  (modalka-mode 0)
-  (aya-expand))
-
-(defun C4/save-snippet ()
-  "Save the created snippet to database."
-  (interactive)
-  (aya-persist-snippet)
-  (yas/reload-all))
-
-(C4/command-key-def
-  "o" '(:ignore t :wk "org")
-  "oa" '(:ignore t :wk "agenda")
-  "oaa" '(org-agenda-list :wk "weekly")
-  "oaf" '(org-agenda :wk "full")
-  "oat" '(org-set-tags-command :wk "tags")
-  "ob" '(:ignore t :wk "buffer")
-  "obb" '(org-insert-link :wk "link")
-  "obc" '(org-capture :wk "capture")
-  "obn" '(:ignore t :wk "narrow")
-  "obnn" '(org-toggle-narrow-to-subtree :wk "subtree")
-  "obnb" '(org-narrow-to-block :wk "block")
-  "obne" '(org-narrow-to-element :wk "element")
-  "obr" '(org-refile :wk "refile")
-  "obs" '(C4/org-trek/body t :wk "search")
-  "od" '(:ignore t :wk "date")
-  "odd" '(org-deadline :wk "deadline")
-  "ods" '(org-schedule :wk "schedule")
-  "os" '(:ignore t :wk "special")
-  "oss" '(org-edit-special :wk "edit")
-  "osx" '(org-edit-src-exit :wk "exit with edits")
-  "osX" '(org-edit-src-abort :wk "exit without edits")
-  "ose" '(org-babel-execute-src-block :wk "execute")
-  "ost" '(org-babel-tangle :wk "tangle"))
-
-(defhydra C4/org-trek (:timeout 10)
-  "A transient mode to logically traverse an Org file."
-  ("s" org-babel-next-src-block "next source block")
-  ("S" org-babel-previous-src-block "previous source block")
-  ("h" org-forward-heading-same-level "next heading at current level")
-  ("H" org-backward-heading-same-level "previous heading at current level")
-  ("v" org-next-visible-heading "next visible heading")
-  ("V" org-previous-visible-heading "previous visible heading")
-  ("RET" nil "exit" :exit t))
-
-(C4/command-key-def
- "p" '(:ignore t :wk "project")
- "p'" '(projectile-run-vterm :wk "open terminal")
- "pp" '(projectile-switch-project :wk "switch")
- "pf" '(projectile-find-file :wk "find file")
- "pg" '(:ignore t :wk "git")
- "pgg" '(magit-status :wk "status")
- "pgc" '(magit-commit :wk "commit")
- "pgd" '(magit-diff :wk "diff")
- "pgf" '(:ignore t :wk "forge")
- "pgff" '(forge-pull :wk "pull")
- "pgfF" '(forge-fork :wk "fork repo")
- "pgfi" '(forge-list-issues :wk "issues")
- "pgfI" '(forge-create-issue :wk "create issue")
- "pgi" '(magit-init :wk "init")
- "pgp" '(magit-push :wk "push")
- "pgP" '(magit-pull :wk "pull")
- "pgr" '(magit-remote :wk "remote")
- "pgs" '(magit-stage :wk "stage")
- "pgS" '(magit-stage-file :wk "stage file")
- "ps" '(consult-ripgrep :wk "search"))
-
-(C4/command-key-def
-  "q" '(:ignore t :wk "session")
-  "qq" '(save-buffers-kill-emacs :wk "quit")
-  "qQ" '(kill-emacs :wk "really quit"))
-
-(C4/command-key-def
-  "t" '(:ignore t :wk "toggle")
-  "tt" '(C4/theme-switcher/body :wk "theme")
-  "ts" '(C4/text-scale/body :wk "scale text"))
-
-(defhydra C4/theme-switcher ()
-  "Select a variant from main C4 themes"
-  ("d" C4/light "day variant")
-  ("n" C4/dark "night variant")
-  ("f" C4/black "focus variant")
-  ("RET" nil "exit" :exit t))
-
-(defun C4/light ()
-  "Clap on!"
-  (interactive)
-  (load-theme 'minimal-light t)
-  (set-face-attribute 'org-hide nil :foreground "white")
-  (sml/apply-theme 'light))
-
-(defun C4/dark ()
-  "Dimmer switch!"
-  (interactive)
-  (load-theme 'minimal t)
-  (set-face-attribute 'org-hide nil :foreground "gray10")
-  (sml/apply-theme 'dark))
-
-(defun C4/black ()
-  "Clap off!"
-  (interactive)
-  (load-theme 'minimal-black t)
-  (set-face-attribute 'org-hide nil :foreground "black")
-  (sml/apply-theme 'dark))
-
-(defhydra C4/text-scale (:timeout 4)
-  "Interactively scale text"
-  ("+" text-scale-increase "inc")
-  ("-" text-scale-decrease "dec")
-  ("RET" nil "exit" :exit t))
-
-(C4/command-key-def
- "w" '(:ignore t :wk "window")
- "ww" '(other-window :wk "cycle windows")
- "wc" '(delete-window :wk "close")
- "wC" '(delete-other-windows :wk "fill frame")
- "wd" '(:ignore t :wk "desktop")
- "wdf" '(exwm-floating-toggle-floating :wk "floating")
- "wdF" '(exwm-layout-toggle-fullscreen :wk "fullscreen")
- "wdk" '(exwm-layout-toggle-keyboard :wk "keyboard mode")
- "wdm" '(exwm-layout-toggle-mode-line :wk "mode line")
- "wdM" '(exwm-layout-toggle-minibuffer :wk "minibuffer")
- "wn" '(:ignore t :wk "navigator")
- "wnn" '(C4/window-commander/body :wk "interactive")
- "wni" '(windmove-up :wk "jump up")
- "wnI" '(windmove-swap-states-up "swap up")
- "wnk" '(windmove-down :wk "jump down")
- "wnK" '(windmove-swap-states-down :wk "swap down")
- "wnj" '(windmove-left :wk "jump left")
- "wnJ" '(windmove-swap-states-left :wk "swap left")
- "wnl" '(windmove-right :wk "jump right")
- "wnL" '(windmove-swap-states-right :wk "swap right")
- "wnw" '(windmove-display-up :wk "open next window above")
- "wnW" '(windmove-delete-up :wk "close window above")
- "wns" '(windmove-display-down :wk "open next window below")
- "wnS" '(windmove-delete-down :wk "close window below")
- "wna" '(windmove-display-left :wk "open next window left")
- "wnA" '(windmove-delete-left :wk "close window to left")
- "wnd" '(windmove-display-right :wk "open next window right")
- "wnD" '(windmove-delete-right :wk "close window to right")
- "wo" '(:ignore t :wk "open")
- "woo" '(consult-buffer-other-window :wk "buffer")
- "wof" '(find-file-other-window :wk "file")
- "wod" '(counsel-linux-app :wk "desktop app")
- "ws" '(:ignore t :wk "split")
- "wss" '(split-window-below :wk "horizontal")
- "wsS" '(split-window-right :wk "vertical"))
-
-(defhydra C4/window-commander (:timeout 10)
-  "Interactive window navigation"
-  ("SPC" other-window "cycle")
-  ("c" delete-window "close")
-  ("C" delete-other-windows "fill frame")
-  ("i" windmove-up "jump up")
-  ("I" windmove-swap-states-up "swap up")
-  ("k" windmove-down "jump down")
-  ("K" windmove-swap-states-down "swap down")
-  ("j" windmove-left "jump left")
-  ("J" windmove-swap-states-left "swap left")
-  ("l" windmove-right "jump right")
-  ("L" windmove-swap-states-right "swap right")
-  ("w" windmove-display-up "open next above")
-  ("W" windmove-delete-up "close above")
-  ("s" windmove-display-down "open next below")
-  ("S" windmove-delete-down "close below")
-  ("a" windmove-display-left "open next to left")
-  ("A" windmove-delete-left "close left")
-  ("d" windmove-display-right "open next to right")
-  ("D" windmove-delete-right "close right")
-  ("RET" nil "exit" :exit t))
+(ryo-modal-keys
+  ("d" delete-char :wk "delete char after point")
+  ("D"
+   (("d" backward-delete-char :name "delete char before point")
+    ("r" delete-region :name "delete-region"))))
 
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root "~/Code")
@@ -835,156 +548,6 @@
 
 ;; Setup Auto-YASnippet
 (use-package auto-yasnippet)
-
-;;; Lang: Emacs Lisp
-
-;; Inline Emacs Lisp evaluation results
-(use-package eros
-  :general
-  (C4/command-key-def
-    :keymaps 'eros-mode-map
-    "le" '(:ignore t :wk "eval")
-    "lee" '(eros-eval-last-sexp :wk "expression")
-    "led" '(eros-eval-defun :wk "defun"))
-  :hook
-  (emacs-lisp-mode . eros-mode)
-  (lisp-interaction-mode . eros-mode))
-
-;;; Lang: Common Lisp
-
-;; Setup SLY
-(use-package sly
-  :general
-
-  ;; Connections
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "lC" '(:ignore t :wk "SLY: connections")
-    "lCc" '(sly :wk "invoke")
-    "lCl" '(sly-list-connections :wk "list active")
-    "lC>" '(sly-next-connection :wk "next")
-    "lC<" '(sly-prev-connection :wk "previous")
-    )
-
-  ;; Annotations
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "la" '(:ignore t :wk "SLY: annotations")
-    "lan" '(sly-next-note :wk "next note")
-    "laN" '(sly-previous-note :wk "prev note")
-    "laR" '(sly-remove-notes :wk "remove all"))
-
-  ;; Docs
- (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "ld" '(:ignore t :wk "SLY: doc")
-    "ldd" '(sly-autodoc-mode :wk "autodoc toggle")
-    "ldm" '(sly-autodoc-manually :wk "autodoc manually")
-    "lda" '(sly-arglist :wk "defun arglist")
-    "lds" '(sly-info :wk "SLY manual"))
-
-  ;; Compiling
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "lc" '(:ignore t :wk "SLY: compile")
-    "lcc" '(sly-compile-defun :wk "defun")
-    "lE" '(next-error :wk "show errors")
-    "lcr" '(sly-compile-region :wk "region")
-    "lcf" '(sly-compile-file :wk "file")
-    "lcF" '(sly-compile-and-load-file :wk "and load"))
-
-  ;; Evaluation
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "le" '(:ignore t :wk "SLY: eval")
-    "lee" '(sly-eval-last-expression :wk "expression")
-    "leE" '(sly-pprint-eval-last-expression :wk "expression to buffer")
-    "lei" '(sly-interactive-eval :wk "interactive")
-    "led" '(sly-eval-defun :wk "defun")
-    "ler" '(sly-eval-region :wk "region")
-    "leR" '(sly-pprint-eval-region :wk "region to buffer")
-    "leb" '(sly-eval-buffer :wk "buffer"))
-
-  ;; Files
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "lf" '(sly-load-file :wk "load file"))
-
-  ;; Macros
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "lm" '(:ignore t :wk "macro")
-    "lmm" '(sly-expand-1 :wk "expand")
-    "lmM" '(sly-macroexpand-all :wk "expand all")
-    "lmc" '(sly-compiler-macroexpand-1 :wk "compiler expand")
-    "lmC" '(sly-compiler-macroexpand :wk "compiler expand repeatedly")
-    "lmf" '(sly-format-string-expand :wk "format string")
-    "lmr" '(sly-macroexpand-1-inplace :wk "expand repeatedly")
-    "lmR" '(sly-macroexpand-again :wk "repeat last expansion")
-    "lmu" '(sly-macroexpand-undo :wk "undo last expansion"))
-
-  ;; Source
-  (C4/command-key-def
-    :keymaps 'sly-mode-map
-    "lS" '(:ignore t :wk "SLY: source code")
-    "lSs" '(:ignore t :wk "SLY: definitions")
-    "lSss" '(sly-edit-definition :wk "edit")
-    "lSsS" '(sly-edit-definition-other-window :wk "edit (other window)")
-    "lSsp" '(sly-pop-find-definition-stack :wk "go back to invocation")
-    "lSd" '(:ignore t :wk "SLY: describe")
-    "lSdd" '(sly-describe-symbol :wk "symbol")
-    "lSdf" '(sly-describe-function :wk "function")
-    "lSda" '(sly-apropos :wk "apropos")
-    "lSdA" '(sly-apropos-all :wk "apropos all")
-    "lSd C-a" '(sly-apropos-package :wk "apropos package")
-    "lSdh" '(sly-hyperspec-lookup :wk "hyperspec lookup")
-    "lSdH" '(sly-hyperspec-lookup-format :wk "hyperspec lookup [format]")
-    "lSd C-h" '(sly-hyperspec-lookup-reader-macro :wk "hyperspec lookup [reader macro]")
-    "lSx" '(:ignore t :wk "SLY: cross-reference")
-    "lSxr" '(sly-edit-uses :wk "find symbol")
-    "lSxc" '(sly-who-calls :wk "find callers")
-    "lSxC" '(sly-calls-who :wk "find callees")
-    "lSxg" '(sly-who-references :wk "find global")
-    "lSxG" '(sly-who-binds :wk "find global bindings")
-    "lSx C-g" '(sly-who-sets :wk "find global assignments")
-    "lSxm" '(sly-who-macroexpands :wk "show macroexpansions")
-    "lSxM" '(sly-who-specializes :wk "show methods")
-    "lSe" '(sly-edit-value "edit value")
-    "lSu" '(sly-undefine-function "undefine function"))
-  :hook
-  (common-lisp-mode . sly-mode))
-
-;;; Lang: Racket
-
-;; Initialize racket-mode
-(use-package racket-mode
-  :general
-  ;; Run
-  (C4/command-key-def
-    :keymaps '(modalka-mode-map racket-mode-map)
-    "lr" '(:ignore t :wk "program")
-    "lrr" '(racket-run :wk "run")
-    "lrR" '(racket-run-and-switch-to-repl :wk "and switch to REPL")
-    "lrm" '(racket-run-module-at-point :wk "run module"))
-
-  ;; Eval
-  (C4/command-key-def
-    "le" '(:ignore t :wk "eval")
-    "lee" '(racket-send-last-sexp :wk "expression")
-    "led" '(racket-send-definition :wk "definition")
-    "ler" '(racket-send-region :wk "region"))
-
-  ;; Testing
-  (C4/command-key-def
-    "lt" '(:ignore t :wk "tests")
-    "ltt" '(racket-test :wk "run")
-    "ltf" '(racket-fold-all-tests :wk "fold")
-    "ltF" '(racket-unfold-all-tests :wk "unfold"))
-  :hook
-  (racket-mode . racket-xp-mode)
-  (racket-mode . racket-smart-open-bracket-mode)
-  (racket-mode . racket-unicode-input-method-enable)
-  (racket-repl-mode . racket-unicode-input-method-enable))
 
 ;;; Variables for Org Mode configuration
 (setq C4/org-root-path "~/Documents/Org")
