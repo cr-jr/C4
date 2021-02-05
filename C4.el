@@ -146,11 +146,11 @@
 
 ;;; Actions: marking/selecting text
 (ryo-modal-keys
- ("m" set-mark-command :wk "set a mark at point")
+ ("m" set-mark-command :name "set a mark at point")
  ("M"
   (("w" mark-word :name "mark word")
    ("l" C4/mark-line :name "mark current line")
-   ("p" mark-paragraph :name "mark paragraph"))))
+   ("p" mark-paragraph :name "mark paragraph")) :name "semantic mark"))
 
 ;;; Actions: killing/cutting text
 (ryo-modal-keys
@@ -382,8 +382,7 @@
     ("[" er/mark-inside-pairs :name "mark between delimiters")
     ("{" er/mark-outside-pairs :name "mark around delimiters")
     ("'" er/mark-inside-quotes :name "mark inside quotes")
-    ("\"" er/mark-outside-quotes :name "mark around quotes"))
-   :name "semantic marking"))
+    ("\"" er/mark-outside-quotes :name "mark around quotes"))))
 
 ;;; Better minibuffer completion
 (use-package selectrum
