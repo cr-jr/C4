@@ -9,10 +9,6 @@
 ;;;
 ;;; Code:
 
-;;; Set user-emacs-directory & user-init-file properly
-(setq user-emacs-directory "~/.config/emacs/")
-(setq user-init-file  (concat user-emacs-directory "init.el"))
-
 ;;; Load in generated config
 (load-file (concat user-emacs-directory "C4.el"))
 

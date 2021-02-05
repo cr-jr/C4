@@ -167,6 +167,456 @@ Some modes can be set to disable this behavior as exceptions.
 
 #+END_SRC
 
+** Keybindings
+
+This configuration sets up keybindings with a non-evil modal setup bound either to a global modal
+state or major/minor modes.
+
+*** Why?
+
+Emacs is slowly pushing me to think less like a Vimmer, and because of this, evil-mode feels limiting.
+
+I'm beginning to understand that major and minor modes *are already contextual* and it makes the
+most sense to define keybindings in Emacs according to which modes are /active/ in a buffer rather
+than by toggling arbitrary states.
+
+That said, I do like the modal editing workflow. It's better for my health than many of the default
+Emacs keybinding contortions.
+
+*** Setup
+**** which-key
+
+which-key provides an interface for discovering keybindings in Emacs. Both built-in and user
+defined. It's absolutely essential since I'm building an evolving custom modal setup and can't keep
+it all in my head.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Setup which-key for keybinding discoverability
+  (use-package which-key
+    :custom
+    (which-key-idle-delay 1.5)
+    (which-key-enable-extended-define-key t)
+    (which-key-sort-order 'which-key-prefix-then-key-order)
+    :config
+    (which-key-mode))
+
+#+END_SRC
+
+**** ryo-modal
+
+RYO modal allows me to create modal keybindings of my own design.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Command mode initialization
+  (use-package ryo-modal
+    :commands ryo-modal-mode
+    :bind
+    ("C-SPC" . ryo-modal-mode)
+    ("<menu>" . ryo-modal-mode)
+    :hook
+    (text-mode . ryo-modal-mode)
+    (prog-mode . ryo-modal-mode)
+    (exwm-mode . ryo-modal-mode)
+    :config
+    ;; which-key integration
+    (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
+    ;; C-i needs to be its own keybinding
+    (keyboard-translate ?\C-i ?\M-i))
+
+#+END_SRC
+
+**** hydra
+
+This package allows me to create keybinding sandboxes for more complex operations. Kind of like a
+mode within a mode.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Setup transient mode-ish interfaces
+  (use-package hydra)
+
+#+END_SRC
+
+*** Structure
+**** Command Mode
+
+Command Mode is defined by RYO and is the global "normal" state from where I can issue actions
+or mnemonic commands. With C4, Emacs loads in this state.
+
+When Command mode is disabled, Emacs works as usual.
+
+Built-in commands are bound in the following sections, while package-supplied commands are bound
+alongside the installation and configuration of those packages.
+
+**** Actions
+
+Actions are low level commands. These include moving around the buffer, toggling command mode,
+undo/redo motions and more.
+
+***** Exiting Command Mode
+
+Command Mode has a few simple escape hatches for when I'm ready to enter some text:
+
++ =SPC SPC= and =q= to insert at point
++ =<return>= to insert a new line below point
++ =<C-return>= to insert a new line above point
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: insertion
+  (ryo-modal-keys
+   ("q" ryo-modal-mode :name "insert at point")
+   ("SPC SPC" ryo-modal-mode :name "insert at point"))
+
+#+END_SRC
+
+***** Modifiers
+
+I set two kinds of action modifiers: numeric and procedural.
+
++ Numeric action modifiers: repeat an action =n= times (ex: =4 i= will move the point 4 lines up)
++ Procedural action modifier: repeat last action explicitly (ex: =4 i .= will move the point 8 lines up)
+
+#+BEGIN_QUOTE
+Note: giving a numeric modifier to the procedural modifier will give the repeated action a /new/
+numeric modifier. This is the expected Emacs behavior for =digit-argument=.
+#+END_QUOTE
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Action modifiers
+  (ryo-modal-keys
+   ;; procedural modifier
+   ("." ryo-modal-repeat)
+   ;; numeric modifiers
+   ("-" "M--" :norepeat t)
+   ("0" "M-0" :norepeat t)
+   ("1" "M-1" :norepeat t)
+   ("2" "M-2" :norepeat t)
+   ("3" "M-3" :norepeat t)
+   ("4" "M-4" :norepeat t)
+   ("5" "M-5" :norepeat t)
+   ("6" "M-6" :norepeat t)
+   ("7" "M-7" :norepeat t)
+   ("8" "M-8" :norepeat t)
+   ("9" "M-9" :norepeat t))
+
+#+END_SRC
+
+***** Movement
+
+These actions help me get around the buffer quickly. They're somewhat modeled after Xah Fly Keys but
+use modifiers to change the scope of the action. So I can use the same four keys to hop around.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: movement
+  (ryo-modal-keys
+   ("i" previous-logical-line :name "previous line")
+   ("I" scroll-down-command :name "scroll up the buffer")
+   ("M-i" beginning-of-buffer :name "jump point to beginning of buffer")
+   ("k" next-logical-line :name "next line")
+   ("K" scroll-up-command :name "scroll down the buffer")
+   ("C-k" end-of-buffer :name "jump point to end of buffer")
+   ("j" backward-char :name "previous char")
+   ("J" backward-word :name "jump point to previous word")
+   ("C-j" beginning-of-line-text :name "jump point to beginning text of line")
+   ("M-j" beginning-of-line :name "jump point to beginning of line")
+   ("l" forward-char :name "next char")
+   ("L" forward-word :name "jump point to next word")
+   ("C-l" end-of-line :name "jump point to end of line")
+   ("M-l" end-of-line :name "jump point to end of line"))
+
+#+END_SRC
+
+***** Text manipulation
+
+Next, I'm defining some actions for text manipulation.
+
+****** Marking/selecting
+
+These actions are mapped to marking regions and text selection.
+
+#+BEGIN_SRC emacs-lisp
+
+  (defun C4/mark-line ()
+    "Mark the entire line"
+    (interactive)
+    (end-of-line)
+    (set-mark-command nil)
+    (beginning-of-line))
+
+  ;;; Actions: marking/selecting text
+  (ryo-modal-keys
+   ("m" set-mark-command :wk "set a mark at point")
+   ("M"
+    (("w" mark-word :name "mark word")
+     ("l" C4/mark-line :name "mark current line")
+     ("p" mark-paragraph :name "mark paragraph"))))
+
+#+END_SRC
+
+****** Killing/cutting
+
+Now, some actions for killing and cutting text.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: killing/cutting text
+  (ryo-modal-keys
+    ("x" kill-region :wk "cut selection")
+    ("X" clipboard-kill-region :wk "cut selection (system)"))
+
+#+END_SRC
+
+****** Copy/paste
+
+Some actions for copying and pasting text.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: copy/paste
+  (ryo-modal-keys
+    ("c" kill-ring-save :name "copy selection")
+    ("C" clipboard-kill-ring-save :name "copy selection (system)")
+    ("v" yank :name "paste")
+    ("V" clipboard-yank :name "paste (system)"))
+
+#+END_SRC
+
+****** Deletion
+
+Finally, some actions for deleting text. This is the final manipulation. Deleted text will
+/not/ be saved to the kill ring or anywhere else. It's gone.
+
+Also, following the conventions of other actions, =D= is a modifier that opens other actions
+for deletion. In this case, it begins deletion chords.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Actions: deleting text
+  (ryo-modal-keys
+    ("d" delete-char :wk "delete char after point")
+    ("D"
+     (("d" backward-delete-char :name "delete char before point")
+      ("r" delete-region :name "delete-region"))))
+
+#+END_SRC
+
+**** Commands
+
+The C4 command keybindings all share =SPC= as a prefix and =s-SPC= to issue these keybindings in X
+windows launched by EXWM.
+
+I create a few global commands and then the rest are encapsulated in domains of influence.
+
+Some of the commands will trigger a transient state with its own local keybindings.
+
+Keybindings mapped to built-in commands are documented in this section.
+
+Beyond that, package provided commands are defined alongside their packages. Some keybindings, like
+those of a major programming mode, define their own major prefixes.
+
+C4 uses command prefixes to group bindings to their area of influence.
+
+***** Buffer (=b=)
+
+This prefix wraps all commands that affect buffers Lowercase bindings affect only the current
+buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local command.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Domain: buffers
+  (ryo-modal-keys
+   ;; state
+   ("SPC b"
+    (("d" kill-this-buffer :name "kill")
+     ("D" kill-some-buffers :name "kill multiple")
+     ("k" kill-this-buffer :name "kill")
+     ("K" kill-some-buffers :name "kill multiple")
+     ("w" save-buffer :name "save")
+     ("W" save-some-buffers :name "save modified")
+     ;; narrowing
+     ("n"
+      (("n" widen :name "reset")
+       ("d" narrow-to-defun :name "to defun")
+       ("p" narrow-to-page :name "to page")
+       ("r" narrow-to-region :name "to region")) :name "narrow")) :name "buffer"))
+
+#+END_SRC
+
+***** Config (=c=)
+
+This prefix wraps all commands that make it easier to work with my configuration itself. This
+includes quickly opening and reloading my config.
+
+In addition, I define bindings that make it easier to evaluate expressions, defuns and regions in
+place as I try out new settings.
+
+#+BEGIN_SRC emacs-lisp
+
+  (defun C4/open-config ()
+    "Open C4 configuration Org file."
+    (interactive)
+    (find-file (concat user-emacs-directory "C4.org")))
+
+  (defun C4/reload-config ()
+    "Reload C4 configuration."
+    (interactive)
+    (load-file (concat user-emacs-directory "C4.el")))
+
+  ;;; Domain: config
+  (ryo-modal-keys
+   ;; manage
+   ("SPC c"
+    (("c" C4/open-config :name "open")
+     ("r" C4/reload-config :name "reload")
+     ;; eval
+     ("e"
+      (("e" eval-last-sexp :name "expression")
+       ("d" eval-defun :name "defun")
+       ("r" eval-region :name "region")
+       ("b" eval-buffer :name "buffer")) :name "eval")) :name "C4 config"))
+
+#+END_SRC
+
+***** File (=f=)
+
+This prefix wraps all commands that affect the filesystem. It includes finding and renaming files.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Domain: file
+  (ryo-modal-keys
+   ("SPC f"
+    (("f" find-file :name "find")
+     ("F" find-file-other-window :name "other window")) :name "file"))
+
+#+END_SRC
+
+***** Help (=h=)
+
+This domain wraps all commands that query Emacs for help about its functionality. It also allows me
+to quickly bring up the Emacs manual for browsing.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Domain: help
+  (ryo-modal-keys
+   ("SPC h"
+    (("F" describe-face :name "face")
+     ("m" info-emacs-manual :name "Emacs manual")) :name "help"))
+
+#+END_SRC
+
+***** Session (=q=)
+
+This domain wraps commands that affect Emacs sessions
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Domain: session
+  (ryo-modal-keys
+   ("SPC q"
+    (("q" save-buffers-kill-emacs :name "quit")
+     ("Q" kill-emacs :name "really quit")) :name "session"))
+
+#+END_SRC
+
+***** Toggle (=t=)
+
+This domain wraps commands that can be toggled. It allows me to switch variants of the main theme on
+the fly and scale text. It also triggers writeroom-mode in document major modes.
+
+#+BEGIN_SRC emacs-lisp
+
+  (defhydra C4/text-scale (:timeout 15)
+    "Interactively scale text"
+    ("+" text-scale-increase "inc")
+    ("-" text-scale-decrease "dec")
+    ("RET" nil "exit" :exit t))
+
+  ;;; Domain: toggle
+  (ryo-modal-keys
+   ("SPC t"
+    (("s" C4/text-scale/body :name "text scaling")) :name "toggle"))
+
+#+END_SRC
+
+***** Window (=w=)
+
+This domain wraps all commands that affect windows.
+
+Windows in Emacs can be split, moved, and closed when not needed.
+
+This marks one of the biggest differences between Vim and Emacs: windows are /views/. Buffers in
+Emacs are detached from windows and are not killed when a window closes. They persist in the
+background until called into another window.
+
+Their state is preserved.
+
+#+BEGIN_QUOTE
+C4 is built to center Emacs as the driver of my entire desktop computing experience. At this point,
+Emacs largely /is/ my workstation.
+
+So this domain includes bindings for manipulating X windows served by EXWM.
+
+If you use this configuration and find you don't want or need Emacs to be your window manager, you
+can remove the desktop bindings and the environment configuration.
+
+Everything will still work in standalone Emacs instances. If it doesn't, please submit an issue.
+#+END_QUOTE
+
+#+BEGIN_SRC emacs-lisp
+
+  (defhydra C4/window-commander (:timeout 45)
+    "Interactive window navigation"
+    ("SPC" other-window "cycle")
+    ("c" delete-window "close")
+    ("C" delete-other-windows "fill frame")
+    ("i" windmove-up "jump up")
+    ("I" windmove-swap-states-up "swap up")
+    ("M-i" windmove-delete-up "close above")
+    ("k" windmove-down "jump down")
+    ("K" windmove-swap-states-down "swap down")
+    ("C-k" windmove-delete-down "close below")
+    ("j" windmove-left "jump left")
+    ("J" windmove-swap-states-left "swap left")
+    ("C-j" windmove-delete-left "close left")
+    ("l" windmove-right "jump right")
+    ("L" windmove-swap-states-right "swap right")
+    ("C-l" windmove-delete-right "close right")
+    ("RET" nil "exit" :exit t))
+
+  ;;; Domain: window
+  (ryo-modal-keys
+   ("SPC w"
+    (("w" other-window :name "switch")
+     ("c" delete-window :name "close")
+     ("C" delete-other-windows :name "close other")
+     ("n"
+      (("n" C4/window-commander/body :name "state: window commander")
+       ("i" windmove-up :name "jump up")
+       ("I" windmove-swap-states-up :name "swap up")
+       ("M-i" windmove-delete-up :name "close above")
+       ("k" windmove-down :name "jump down")
+       ("K" windmove-swap-states-down :name "swap down")
+       ("C-k" windmove-delete-down :name "close below")
+       ("j" windmove-left :name "jump left")
+       ("J" windmove-swap-states-left :name "swap left")
+       ("C-j" windmove-delete-left :name "close left")
+       ("l" windmove-right :name "jump right")
+       ("L" windmove-swap-states-right :name "swap right")
+       ("C-l" windmove-delete-right :name "close fright")) :name "navigator")
+     ("s"
+      (("s" split-window-below :name "horizontal")
+       ("S" split-window-right :name "vertical")) :name "split"))
+    :name "window"))
+
+#+END_SRC
+
 ** Debugging the Configuration
 
 When things break, I need ways of figuring out the problem. And without measurements, I can't make
@@ -180,7 +630,10 @@ aim: make C4 feature complete for my needs while also loading fast enough for my
 #+BEGIN_SRC emacs-lisp
 
   ;;; Benchmark Emacs startup to debug performance
-  (use-package esup)
+  (use-package esup
+    :ryo
+    ("SPC c d"
+     (("d" esup :name "startup")) :name "debug"))
 
 #+END_SRC
 
@@ -192,7 +645,10 @@ hiding in the tall grass.
 #+BEGIN_SRC emacs-lisp
 
   ;;; Debug init file errors
-  (use-package bug-hunter)
+  (use-package bug-hunter
+    :ryo
+    ("SPC c d"
+     (("e" bug-hunter-init-file :name "errors"))))
 
 #+END_SRC
 
@@ -206,6 +662,9 @@ over for more than just startup times.
 
   ;;; Check running processes in Emacs for slowdowns
   (use-package explain-pause-mode
+    :ryo
+    ("SPC c d"
+     (("p" explain-pause-top :name "processes")))
     :config
     (explain-pause-mode))
 
@@ -219,10 +678,18 @@ opted out of Vim emulation.
 #+BEGIN_SRC emacs-lisp
 
   (use-package crux
+    :ryo
+    ("<return>" crux-smart-open-line :name "insert new line" :exit t)
+    ("<C-return>" crux-smart-open-line-above :name "insert new line above" :exit t)
+    ("SPC f"
+     (("x" crux-create-scratch-buffer :name "scratch")
+      ("r" crux-rename-file-and-buffer :name "rename")))
     :hook
     (find-file . crux-reopen-as-root-mode))
 
 #+END_SRC
+
+Crux supplies the commands for insertion actions that open a new line.
 
 * Defaults
 
@@ -296,7 +763,11 @@ a history of editing actions performed on a file through its whole existence.
 #+BEGIN_SRC emacs-lisp
 
   ;;; Better undo/redo
-  (use-package undo-fu)
+  (use-package undo-fu
+    :ryo
+    ("z" undo-fu-only-undo :name "undo last edit")
+    ("Z" undo-fu-only-redo :name "redo last edit")
+    ("C-z" undo-fu-only-redo-all :name "restore edits to most recent state"))
 
   ;; Undo persistence
   (use-package undo-fu-session
@@ -318,19 +789,16 @@ This is a package that expands marked regions by semantic units.
 #+BEGIN_SRC emacs-lisp
 
   ;;; Expand region selections by semantic units
-  (use-package expand-region)
-
-#+END_SRC
-
-*** multiple-cursors
-
-A staple package that allows multiple cursors. The rectangle mark functionality seems a little
-finicky, and multiple insertion is the main reason I use it.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Multiple cursors in Emacs
-  (use-package multiple-cursors)
+  (use-package expand-region
+    :ryo
+    ("M"
+     (("m" er/expand-region :name "cycle targets")
+      ("s" er/mark-sentence :name "mark sentence")
+      ("[" er/mark-inside-pairs :name "mark between delimiters")
+      ("{" er/mark-outside-pairs :name "mark around delimiters")
+      ("'" er/mark-inside-quotes :name "mark inside quotes")
+      ("\"" er/mark-outside-quotes :name "mark around quotes"))
+     :name "semantic marking"))
 
 #+END_SRC
 
@@ -392,6 +860,13 @@ don't have to know the whole, proper name of something to find it in Emacs.
 
   ;;; Better search utilities
   (use-package consult
+    :ryo
+    ("C-v" consult-yank "paste from registry")
+    ("SPC b"
+     (("b" consult-buffer :name "switch")
+      ("B" consult-buffer-other-window :name "other window")))
+    ("SPC h" (("a" consult-apropos :name "apropos")))
+    ("SPC p" (("s" consult-ripgrep :name "search")) :name "project")
     :init
     (defun find-fd (&optional dir initial)
       (interactive "P")
@@ -456,10 +931,23 @@ narrowing the search until there's only one result: the correct one.
 
   ;;; Incremental search interface similar to web browsers
   (use-package ctrlf
-        :config
-        (ctrlf-mode 1))
+    :ryo
+    ("SPC b s"
+     (("s" ctrlf-forward-literal :name "forward literal")
+      ("S" ctrlf-backward-literal :name "backward literal")
+      ("f" ctrlf-forward-fuzzy :name "forward fuzzy")
+      ("F" ctrlf-backward-fuzzy :name "backward fuzzy")
+      ("r" ctrlf-forward-regexp :name "forward regexp")
+      ("R" ctrlf-backward-regexp :name "backward regexp")) :name "isearch")
+    :hook
+    (text-mode . ctrlf-mode)
+    (prog-mode . ctrlf-mode)
+    (org-mode . ctrlf-mode))
 
 #+END_SRC
+
+This package provides the buffer-local keybindings for incremental search.
+
 ** Enhancements
 
 Now I'll add some improvements to my baseline experience.
@@ -478,7 +966,7 @@ really have no need for anything but basic information about the buffer and slig
     (setq sml/name-width '(16 . 32))
     (setq sml/mode-width 'full)
     (setq rm-blacklist nil)
-    (setq rm-whitelist '(" "))
+    (setq rm-whitelist '(" ryo"))
     :config
     (sml/setup)
     (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
@@ -494,8 +982,16 @@ includes its own extremely /helpful/ utilities like checking a symbol at its poi
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Help documentation enhancement
-  (use-package helpful)
+  ;;; Help documentation enhancements
+  (use-package helpful
+    :ryo
+    ("SPC h"
+     (("h" helpful-at-point :name "symbol at point")
+      ("f" helpful-function :name "function")
+      ("c" helpful-command :name "command")
+      ("C" helpful-callable :name "callable")
+      ("v" helpful-variable :name "variable")
+      ("k" helpful-key :name "keybinding"))))
 
 #+END_SRC
 
@@ -555,7 +1051,9 @@ makes sense to have a rich terminal package instead of opening an external termi
 #+BEGIN_SRC emacs-lisp
 
   ;;; Rich terminal experience
-  (use-package vterm)
+  (use-package vterm
+    :ryo
+    ("SPC '" vterm :name "vterm: open terminal from current dir"))
 
 #+END_SRC
 
@@ -575,9 +1073,7 @@ to get exactly the effect I want.
   (setq C4/font "Input Sans-13")
   (setq C4/font-bold "Input Sans Condensed-13:normal")
   (setq C4/font-italic "Input Serif Condensed-13:light:italic")
-
   (setq C4/document-font "Input Serif-13")
-  (setq C4/terminal-font "Input Mono-13")
 
   ;;; By default, use Input Sans family at 13px
   (set-face-attribute 'default nil :font C4/font)
@@ -590,9 +1086,6 @@ to get exactly the effect I want.
 
   ;;; Set default document font as Input Serif family at 13px
   (set-face-attribute 'variable-pitch nil :font C4/document-font)
-
-  ;;; Set default terminal font as Input Mono family at 13px
-  (set-face-attribute 'term nil :font C4/terminal-font)
 
   ;;; Some Org Mode adjustments
   (set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
@@ -636,563 +1129,6 @@ syntax highlighting.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Include and load minimal-theme collection
-  (use-package minimal-theme)
-
-  ;; Light theme loaded and enabled by default
-  (load-theme 'minimal-light t)
-
-  ;; Dark variants load but not wait for toggling
-  (load-theme 'minimal t t)
-  (load-theme 'minimal-black t t)
-
-#+END_SRC
-
-* Keybindings
-
-This configuration sets up keybindings immediately after initialization, because it uses a non-evil
-modal setup that responds to modes in context.
-
-It does this by using:
-
-+ RYO modal to set and configure a global modal state (used to be modalka + general.el)
-+ hydra for definining transient mode states for complex operations
-+ which-key allows keybinding discoverability
-
-** Rationale
-
-Emacs is slowly pushing me to think less like a Vimmer, and because of this, evil-mode feels limiting.
-
-I'm beginning to understand that major and minor modes *are already contextual* and it makes the
-most sense to define keybindings in Emacs according to which modes are /active/ in a buffer rather
-than by toggling arbitrary states.
-
-** Making bindings discoverable
-
-which-key provides an interface for discovering keybindings in Emacs. Both built-in and user
-defined. It's absolutely essential since I'm building an entirely custom modal setup and can't keep
-it all in my head.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Setup which-key for keybinding discoverability
-  (use-package which-key
-    :custom
-    (which-key-idle-delay 1.5)
-    :config
-    (which-key-mode))
-
-#+END_SRC
-
-** Command Mode
-
-Command Mode is a global modal state for quickly issuing commands to Emacs via a set of mnemonic bindings.
-
-*** Initialization
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Command mode initialization
-  (use-package ryo-modal
-    :commands ryo-modal-mode
-    :bind
-    ("C-SPC" . ryo-modal-mode)
-    ("<menu>" . ryo-modal-mode)
-    :hook
-    (text-mode . ryo-modal-mode)
-    (prog-mode . ryo-modal-mode)
-    (exwm-mode . ryo-modal-mode)
-    :config
-    ;; which-key integration
-    (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist))
-
-  ;;; Setup transient mode-ish states
-  (use-package hydra)
-
-#+END_SRC
-
-*** Actions
-
-Actions are low level commands. These include moving around the buffer, toggling command mode,
-undo/redo motions and more.
-
-**** Exiting Command Mode
-
-Command Mode has a few simple escape hatches for when I'm ready to enter some text:
-
-+ =SPC SPC= and =q= to insert at point
-+ =<return>= to insert a new line below point
-+ =<C-return>= to insert a new line above point
-
-#+BEGIN_SRC emacs-lisp
-
-  (defun C4/newline ()
-    "Insert a newline after point"
-    (interactive)
-    (crux-smart-open-line nil))
-
-  (defun C4/newline-above ()
-    "Insert a newline before point"
-    (interactive)
-    (crux-smart-open-line-above))
-
-  ;;; Actions: insertion
-  (ryo-modal-keys
-   ("q" ryo-modal-mode :name "insert at point")
-   ("SPC" (("SPC" ryo-modal-mode :name "insert at point")))
-   ("<return>" C4/newline :name "insert new line" :exit t)
-   ("C-<return>" C4/newline-above :name "insert new line above" :exit t))
-
-#+END_SRC
-
-**** Modifiers
-
-I set two kinds of action modifiers: numeric and procedural.
-
-+ Numeric action modifiers: repeat an action =n= times (ex: =4 i= will move the point 4 lines up)
-+ Procedural action modifier: repeat last action explicitly (ex: =4 i .= will move the point 8 lines up)
-
-#+BEGIN_QUOTE
-Note: giving a numeric modifier to the procedural modifier will give the repeated action a /new/
-numeric modifier. This is the expected Emacs behavior for =digit-argument=.
-#+END_QUOTE
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Action modifiers
-  (ryo-modal-keys
-   ;; procedural modifier
-   ("." ryo-modal-repeat)
-   ;; numeric modifiers
-   ("-" "M--" :norepeat t)
-   ("0" "M-0" :norepeat t)
-   ("1" "M-1" :norepeat t)
-   ("2" "M-2" :norepeat t)
-   ("3" "M-3" :norepeat t)
-   ("4" "M-4" :norepeat t)
-   ("5" "M-5" :norepeat t)
-   ("6" "M-6" :norepeat t)
-   ("7" "M-7" :norepeat t)
-   ("8" "M-8" :norepeat t)
-   ("9" "M-9" :norepeat t))
-
-#+END_SRC
-
-**** Movement
-
-These actions help me get around the buffer quickly. They're somewhat modeled after Xah Fly Keys but
-use modifiers to change the scope of the action. So I can use the same four keys to hop around.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Actions: movement
-  (ryo-modal-keys
-   ("i" previous-logical-line :name "previous line")
-   ("I" scroll-down-command :name "scroll up the buffer")
-   ("C-i" beginning-of-buffer :name "jump point to beginning of buffer")
-   ("k" next-logical-line :name "next line")
-   ("K" scroll-up-command :name "scroll down the buffer")
-   ("C-k" end-of-buffer :name "jump point to end of buffer")
-   ("j" backward-char :name "previous char")
-   ("J" backward-word :name "jump point to previous word")
-   ("C-j" beginning-of-line-text :name "jump point to beginning text of line")
-   ("M-j" beginning-of-line :name "jump point to beginning of line")
-   ("l" forward-char :name "next char")
-   ("L" forward-word :name "jump point to next word")
-   ("C-l" end-of-line :name "jump point to end of line")
-   ("M-l" end-of-line :name "jump point to end of line"))
-
-#+END_SRC
-
-**** Undo/redo
-
-Undo/redo is an essential action so I don't shoot myself in the foot. The actions use undo-fu under
-the hood.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Actions: undo/redo
-  (ryo-modal-keys
-   ("z" undo-fu-only-undo :name "undo last edit")
-   ("Z" undo-fu-only-redo :name "redo last edit")
-   ("C-z" undo-fu-only-redo-all :name "restore edits to most recent state"))
-
-#+END_SRC
-
-**** Text manipulation
-
-Next, I'm defining some actions for text manipulation. These use either native Emacs functionality
-or commands provided by those packages in the equivalent section above.
-
-***** Marking/selecting
-
-These actions are mapped to marking regions and text selection.
-
-#+BEGIN_SRC emacs-lisp
-
-  (defun C4/mark-line ()
-    "Mark the entire line"
-    (interactive)
-    (end-of-line)
-    (set-mark-command nil)
-    (beginning-of-line))
-
-  ;;; Actions: marking/selecting text
-  (ryo-modal-keys
-   ("m" set-mark-command :wk "set a mark at point")
-   ("M"
-    (("m" er/expand-region :name "cycle semantics")
-     ("w" mark-word :name "mark word")
-     ("s" er/mark-sentence :name "mark sentence")
-     ("l" C4/mark-line :name "mark current line")
-     ("p" mark-paragraph :name "mark paragraph")
-     ("[" er/mark-inside-pairs :name "mark between delimiters")
-     ("{" er/mark-outside-pairs :name "mark around delimiters")
-     ("'" er/mark-inside-quotes :name "mark between quotes")
-     ("\"" er/mark-outside-quotes :name "mark around quotes"))))
-
-#+END_SRC
-
-***** Killing/cutting
-
-Now, some actions for killing and cutting text.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Actions: killing/cutting text
-  (ryo-modal-keys
-    ("x" kill-region :wk "cut selection")
-    ("X" clipboard-kill-region :wk "cut selection (system)"))
-
-#+END_SRC
-
-***** Copy/paste
-
-Some actions for copying and pasting text.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Actions: copy/paste
-  (ryo-modal-keys
-    ("c" kill-ring-save :name "copy selection")
-    ("C" clipboard-kill-ring-save :name "copy selection (system)")
-    ("v" yank :name "paste")
-    ("V" clipboard-yank :name "paste (system)")
-    ("C-v" consult-yank :name "paste from registry"))
-
-#+END_SRC
-
-***** Deletion
-
-Finally, some actions for deleting text. This is the final manipulation. Deleted text will
-/not/ be saved to the kill ring or anywhere else. It's gone.
-
-Also, following the conventions of other actions, =D= is a modifier that opens other actions
-for deletion. In this case, it begins deletion chords.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Actions: deleting text
-  (ryo-modal-keys
-    ("d" delete-char :wk "delete char after point")
-    ("D"
-     (("d" backward-delete-char :name "delete char before point")
-      ("r" delete-region :name "delete-region"))))
-
-#+END_SRC
-
-*** Commands
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle no
-:END:
-
-The C4 command keybindings all share =SPC= as a prefix and =s-SPC= to issue these keybindings
-globally (as in X applications when using EXWM).
-
-I create a few global commands and then the rest are encapsulated in domains of influence.
-
-Some of the commands will trigger a transient state with its own local keybindings.
-
-Now, the global commands:
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "'" '(vterm :wk "open terminal from current dir"))
-
-#+END_SRC
-
-Now we can open a terminal from anywhere.
-
-**** Buffer (=b=)
-
-This domain wraps all commands that affect buffers Lowercase bindings affect only the current
-buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local command.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "b" '(:ignore t :wk "buffer")
-    "bb" '(consult-buffer :wk "switch")
-    "bB" '(consult-buffer-other-window :wk "switch other window")
-    "bd" '(kill-current-buffer :wk "kill")
-    "bD" '(kill-some-buffers :wk "kill multiple")
-    "bn" '(:ignore t :wk "narrow")
-    "bnn" '(widen :wk "reset")
-    "bnd" '(narrow-to-defun :wk "to defun")
-    "bnp" '(narrow-to-page :wk "to page")
-    "bnr" '(narrow-to-region :wk "to region")
-    "bk" '(kill-current-buffer :wk "kill")
-    "bK" '(kill-some-buffers :wk "kill multiple")
-    "bs" '(:ignore t :wk "search")
-    "bss" '(ctrlf-forward-literal :wk "forward literal")
-    "bsS" '(ctrlf-backward-literal :wk "backward literal")
-    "bsf" '(ctrlf-forward-fuzzy :wk "forward fuzzy")
-    "bsF" '(ctrlf-backward-fuzzy :wk "backward fuzzy")
-    "bsr" '(ctrlf-forward-regexp :wk "forward regexp")
-    "bsR" '(ctrlf-backward-regexp :wk "backward regexp")
-    "bw" '(save-buffer :wk "write")
-    "bW" '(save-some-buffers :wk "write modified"))
-
-#+END_SRC
-
-**** Config (=c=)
-
-This domain wraps all commands that make it easier to work with my configuration itself. This
-includes quickly opening my config, debugging, and reloading my config.
-
-In addition, I define bindings that make it easier to evaluate expressions, defuns and regions in
-place as I try out new settings.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-   "c" '(:ignore t :wk "C4 config")
-   "cc" '(C4/open-config :wk "open")
-   "cd" '(:ignore t :wk "debug")
-   "cdd" '(C4/esup-init :wk "startup")
-   "cde" '(C4/bug-hunter-init :wk "errors")
-   "cdp" '(explain-pause-top :wk "processes")
-   "cr" '(C4/reload-config :wk "reload")
-   "ce" '(:ignore t :wk "eval")
-   "cee" '(eval-last-sexp :wk "S-exp")
-   "ceb" '(eval-buffer :wk "buffer")
-   "ced" '(eval-defun :wk "defun")
-   "cer" '(eval-region :wk "region"))
-
-  (defun C4/generated-conf ()
-    (concat user-emacs-directory "C4.el"))
-
-  (defun C4/esup-init ()
-    "Profiles the correct init file"
-    (interactive)
-    (esup (C4/generated-conf)))
-
-  (defun C4/bug-hunter-init ()
-    "Debugs the correct init file"
-    (interactive)
-    (bug-hunter-file (C4/generated-conf)))
-
-  (defun C4/open-config ()
-    "Open files in config directory."
-    (interactive)
-    (find-file (concat user-emacs-directory "C4.org")))
-
-  (defun C4/reload-config ()
-    "Reloads the config in place."
-    (interactive)
-    (load-file (C4/generated-conf)))
-
-#+END_SRC
-
-**** File (=f=)
-
-This domain wraps all commands that affect the filesystem. It includes finding and renaming files.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "f" '(:ignore t :wk "file")
-    "ff" '(find-file :wk "find")
-    "fx" '(crux-create-scratch-buffer :wk "scratchpad")
-    "fr" '(crux-rename-file-and-buffer :wk "rename"))
-
-#+END_SRC
-
-**** Help (=h=)
-
-This domain wraps all commands that query Emacs for help about its functionality. It also allows me
-to quickly bring up the Emacs manual for browsing.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-   "h" '(:ignore t :wk "help")
-   "ha" '(consult-apropos :wk "apropos")
-   "hf" '(helpful-function :wk "function")
-   "hF" '(describe-face :wk "face")
-   "hc" '(helpful-command :wk "command")
-   "hv" '(helpful-variable :wk "variable")
-   "hk" '(helpful-key :wk "keybinding")
-   "hs" '(helpful-at-point :wk "symbol at point")
-   "hm" '(info-emacs-manual :wk "Emacs"))
-
-#+END_SRC
-
-**** Lang (=l=)
-
-This domain wraps commands for working with programming major modes. It has some =prog-mode= globals
-such as for Auto-YASnippet commands, but most of its keybindings are local to major modes for
-specific languages. These are defined in their relevant sections.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "l" '(:ignore t :wk "lang")
-    "ll" '(:keymap lsp-command-map :package lsp-mode :wk "lsp prefix")
-    "ls" '(:ignore t :wk "snippets")
-    "lss" '(aya-create :wk "create a snippet")
-    "lsS" '(C4/create-one-liner :wk "create a one line snippet")
-    "lse" '(C4/expand-snippet :wk "expand last created snippet")
-    "lsw" '(C4/save-snippet :wk "save created snippet"))
-
-  (defun C4/create-one-liner ()
-    "Create a one line snippet to expand immediately."
-    (interactive)
-    (modalka-mode 0)
-    (aya-create-one-line))
-
-  (defun C4/expand-snippet ()
-    "Expand the last created snippet and fill it in."
-    (interactive)
-    (modalka-mode 0)
-    (aya-expand))
-
-  (defun C4/save-snippet ()
-    "Save the created snippet to database."
-    (interactive)
-    (aya-persist-snippet)
-    (yas/reload-all))
-
-#+END_SRC
-
-**** Org (=o=)
-
-This domain wraps all commands that affect Org Mode. They allow me to view my agenda, schedule dates
-and deadlines for todo items, evaluate source blocks and tangle on demand.
-
-In addition, it binds some commands local to Org buffers like capturing and refiling.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "o" '(:ignore t :wk "org")
-    "oa" '(:ignore t :wk "agenda")
-    "oaa" '(org-agenda-list :wk "weekly")
-    "oaf" '(org-agenda :wk "full")
-    "oat" '(org-set-tags-command :wk "tags")
-    "ob" '(:ignore t :wk "buffer")
-    "obb" '(org-insert-link :wk "link")
-    "obc" '(org-capture :wk "capture")
-    "obn" '(:ignore t :wk "narrow")
-    "obnn" '(org-toggle-narrow-to-subtree :wk "subtree")
-    "obnb" '(org-narrow-to-block :wk "block")
-    "obne" '(org-narrow-to-element :wk "element")
-    "obr" '(org-refile :wk "refile")
-    "obs" '(C4/org-trek/body t :wk "search")
-    "od" '(:ignore t :wk "date")
-    "odd" '(org-deadline :wk "deadline")
-    "ods" '(org-schedule :wk "schedule")
-    "os" '(:ignore t :wk "special")
-    "oss" '(org-edit-special :wk "edit")
-    "osx" '(org-edit-src-exit :wk "exit with edits")
-    "osX" '(org-edit-src-abort :wk "exit without edits")
-    "ose" '(org-babel-execute-src-block :wk "execute")
-    "ost" '(org-babel-tangle :wk "tangle"))
-
-  (defhydra C4/org-trek (:timeout 10)
-    "A transient mode to logically traverse an Org file."
-    ("s" org-babel-next-src-block "next source block")
-    ("S" org-babel-previous-src-block "previous source block")
-    ("h" org-forward-heading-same-level "next heading at current level")
-    ("H" org-backward-heading-same-level "previous heading at current level")
-    ("v" org-next-visible-heading "next visible heading")
-    ("V" org-previous-visible-heading "previous visible heading")
-    ("RET" nil "exit" :exit t))
-
-#+END_SRC
-
-**** Project (=p=)
-
-This domain wraps all commands that affect git project management.
-
-I set it up to navigate projects, find files within my active ones, switch between them, and provide
-a powerful git interface for managing them.
-
-The dependencies:
-
-+ projecile: feature rich project management for Emacs
-+ magit: probably the last git workflow I'll ever need
-+ forge: superior integration with Git forges (GitHub, Gitlab) to manage remote repos
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-   "p" '(:ignore t :wk "project")
-   "p'" '(projectile-run-vterm :wk "open terminal")
-   "pp" '(projectile-switch-project :wk "switch")
-   "pf" '(projectile-find-file :wk "find file")
-   "pg" '(:ignore t :wk "git")
-   "pgg" '(magit-status :wk "status")
-   "pgc" '(magit-commit :wk "commit")
-   "pgd" '(magit-diff :wk "diff")
-   "pgf" '(:ignore t :wk "forge")
-   "pgff" '(forge-pull :wk "pull")
-   "pgfF" '(forge-fork :wk "fork repo")
-   "pgfi" '(forge-list-issues :wk "issues")
-   "pgfI" '(forge-create-issue :wk "create issue")
-   "pgi" '(magit-init :wk "init")
-   "pgp" '(magit-push :wk "push")
-   "pgP" '(magit-pull :wk "pull")
-   "pgr" '(magit-remote :wk "remote")
-   "pgs" '(magit-stage :wk "stage")
-   "pgS" '(magit-stage-file :wk "stage file")
-   "ps" '(consult-ripgrep :wk "search"))
-
-#+END_SRC
-
-**** Session (=q=)
-
-This domain wraps commands that affect Emacs sessions
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "q" '(:ignore t :wk "session")
-    "qq" '(save-buffers-kill-emacs :wk "quit")
-    "qQ" '(kill-emacs :wk "really quit"))
-
-#+END_SRC
-
-**** Toggle (=t=)
-
-This domain wraps commands that can be toggled. It allows me to switch variants of the main theme on
-the fly and scale text. It also triggers writeroom-mode in document major modes.
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-    "t" '(:ignore t :wk "toggle")
-    "tt" '(C4/theme-switcher/body :wk "theme")
-    "ts" '(C4/text-scale/body :wk "scale text"))
-
-  (defhydra C4/theme-switcher ()
-    "Select a variant from main C4 themes"
-    ("d" C4/light "day variant")
-    ("n" C4/dark "night variant")
-    ("f" C4/black "focus variant")
-    ("RET" nil "exit" :exit t))
-
   (defun C4/light ()
     "Clap on!"
     (interactive)
@@ -1214,101 +1150,26 @@ the fly and scale text. It also triggers writeroom-mode in document major modes.
     (set-face-attribute 'org-hide nil :foreground "black")
     (sml/apply-theme 'dark))
 
-  (defhydra C4/text-scale (:timeout 4)
-    "Interactively scale text"
-    ("+" text-scale-increase "inc")
-    ("-" text-scale-decrease "dec")
-    ("RET" nil "exit" :exit t))
+  ;;; Include and load minimal-theme collection
+  (use-package minimal-theme
+    :ryo
+    ("SPC t t" :hydra
+     '(theme-switcher ()
+                      "Select a variant from main C4 themes"
+                      ("d" C4/light "day variant")
+                      ("n" C4/dark "night variant")
+                      ("f" C4/black "focus variant")
+                      ("RET" nil "exit" :exit t)) :name "theme variant"))
+
+  ;; Light theme loaded and enabled by default
+  (load-theme 'minimal-light t)
+
+  ;; Dark variants load but wait for toggling
+  (load-theme 'minimal t t)
+  (load-theme 'minimal-black t t)
 
 #+END_SRC
 
-**** Window (=w=)
-
-This domain wraps all commands that affect windows.
-
-Windows in Emacs can be split, moved, and closed when not needed.
-
-This marks one of the biggest differences between Vim and Emacs: windows are /views/. Buffers in
-Emacs are detached from windows and are not killed when a window closes. They persist in the
-background until called into another window.
-
-Their state is preserved.
-
-#+BEGIN_QUOTE
-C4 is built to center Emacs as the driver of my entire desktop computing experience. At this point,
-Emacs largely /is/ my workstation.
-
-So this domain includes bindings for manipulating X windows served by EXWM.
-
-If you use this configuration and find you don't want or need Emacs to be your window manager, you
-can remove the desktop bindings and the environment configuration.
-
-Everything will still work in standalone Emacs instances. If it doesn't, please submit an issue.
-#+END_QUOTE
-
-#+BEGIN_SRC emacs-lisp
-
-  (C4/command-key-def
-   "w" '(:ignore t :wk "window")
-   "ww" '(other-window :wk "cycle windows")
-   "wc" '(delete-window :wk "close")
-   "wC" '(delete-other-windows :wk "fill frame")
-   "wd" '(:ignore t :wk "desktop")
-   "wdf" '(exwm-floating-toggle-floating :wk "floating")
-   "wdF" '(exwm-layout-toggle-fullscreen :wk "fullscreen")
-   "wdk" '(exwm-layout-toggle-keyboard :wk "keyboard mode")
-   "wdm" '(exwm-layout-toggle-mode-line :wk "mode line")
-   "wdM" '(exwm-layout-toggle-minibuffer :wk "minibuffer")
-   "wn" '(:ignore t :wk "navigator")
-   "wnn" '(C4/window-commander/body :wk "interactive")
-   "wni" '(windmove-up :wk "jump up")
-   "wnI" '(windmove-swap-states-up "swap up")
-   "wnk" '(windmove-down :wk "jump down")
-   "wnK" '(windmove-swap-states-down :wk "swap down")
-   "wnj" '(windmove-left :wk "jump left")
-   "wnJ" '(windmove-swap-states-left :wk "swap left")
-   "wnl" '(windmove-right :wk "jump right")
-   "wnL" '(windmove-swap-states-right :wk "swap right")
-   "wnw" '(windmove-display-up :wk "open next window above")
-   "wnW" '(windmove-delete-up :wk "close window above")
-   "wns" '(windmove-display-down :wk "open next window below")
-   "wnS" '(windmove-delete-down :wk "close window below")
-   "wna" '(windmove-display-left :wk "open next window left")
-   "wnA" '(windmove-delete-left :wk "close window to left")
-   "wnd" '(windmove-display-right :wk "open next window right")
-   "wnD" '(windmove-delete-right :wk "close window to right")
-   "wo" '(:ignore t :wk "open")
-   "woo" '(consult-buffer-other-window :wk "buffer")
-   "wof" '(find-file-other-window :wk "file")
-   "wod" '(counsel-linux-app :wk "desktop app")
-   "ws" '(:ignore t :wk "split")
-   "wss" '(split-window-below :wk "horizontal")
-   "wsS" '(split-window-right :wk "vertical"))
-
-  (defhydra C4/window-commander (:timeout 10)
-    "Interactive window navigation"
-    ("SPC" other-window "cycle")
-    ("c" delete-window "close")
-    ("C" delete-other-windows "fill frame")
-    ("i" windmove-up "jump up")
-    ("I" windmove-swap-states-up "swap up")
-    ("k" windmove-down "jump down")
-    ("K" windmove-swap-states-down "swap down")
-    ("j" windmove-left "jump left")
-    ("J" windmove-swap-states-left "swap left")
-    ("l" windmove-right "jump right")
-    ("L" windmove-swap-states-right "swap right")
-    ("w" windmove-display-up "open next above")
-    ("W" windmove-delete-up "close above")
-    ("s" windmove-display-down "open next below")
-    ("S" windmove-delete-down "close below")
-    ("a" windmove-display-left "open next to left")
-    ("A" windmove-delete-left "close left")
-    ("d" windmove-display-right "open next to right")
-    ("D" windmove-delete-right "close right")
-    ("RET" nil "exit" :exit t))
-
-#+END_SRC
 * Projects
 ** User Settings
 
@@ -1318,7 +1179,7 @@ I'm going to define some variables for my root project path and my GitHub userna
 #+BEGIN_SRC emacs-lisp
 
   ;;; Set variables for my root project directory and GitHub username
-  (setq C4/project-root "~/Code")
+  (setq C4/project-root '("~/Code"))
   (setq C4/gh-user "cr-jr")
 
 #+END_SRC
@@ -1330,15 +1191,21 @@ working with projects under version control.
 
 #+BEGIN_SRC emacs-lisp
 
+  ;;; Project management
   (use-package projectile
-      :config
-      (projectile-mode)
-      :custom
-      (projectile-project-search-path C4/project-root)
-      (projectile-sort-order 'recently-active)
-      (projectile-switch-project-action #'projectile-dired)
-      :bind-keymap
-      ("C-c p" . projectile-command-map))
+    :ryo
+    ("SPC p"
+     (("p" projectile-switch-project :name "switch")
+      ("'" projectile-run-vterm :name "open terminal")
+      ("f" projectile-find-file :name "find file")))
+    :hook
+    (ryo-modal-mode . projectile-mode)
+    :custom
+    (projectile-project-search-path C4/project-root)
+    (projectile-sort-order 'recently-active)
+    (projectile-switch-project-action #'projectile-dired)
+    :bind-keymap
+    ("C-c p" . projectile-command-map))
 
 #+END_SRC
 
@@ -1354,6 +1221,17 @@ Magit is probably the last Git repo manager I'll ever need. That's how good it i
 
   ;;; Magical Git management
   (use-package magit
+    :ryo
+    ("SPC g"
+     (("g" magit :name "status")
+      ("c" magit-commit :name "commit")
+      ("d" magit-diff :name "diff")
+      ("i" magit-init :name "init")
+      ("p" magit-push :name "push")
+      ("P" magit-pull :name "pull")
+      ("r" magit-remote :name "remote")
+      ("s" magit-stage :name "stage")
+      ("S" magit-stage-file :name "stage current file")) :name "git")
     :commands (magit magit-status)
     :custom
     (magit-completing-read-function #'selectrum-completing-read)
@@ -1376,15 +1254,21 @@ GitHub account defined by  =C4/gh-user=.
 
   ;;; A Magit extension to manage Git forges (GitHub, GitLab) from Magit
   (use-package forge
-      :after magit
-      :custom
-      (auth-sources '("~/.authinfo"))
-      :config
-      (ghub-request "GET" "/user" nil
-        :forge 'github
-        :host "api.github.com"
-        :username C4/gh-user
-        :auth 'forge))
+    :after magit
+    :ryo
+    ("SPC g f"
+     (("f" forge-pull :name "pull")
+      ("F" forge-fork :name "fork repo")
+      ("i" forge-list-issues :name "issues")
+      ("I" forge-create-issue :name "create issue")) :name "forge")
+    :custom
+    (auth-sources '("~/.authinfo"))
+    :config
+    (ghub-request "GET" "/user" nil
+                  :forge 'github
+                  :host "api.github.com"
+                  :username C4/gh-user
+                  :auth 'forge))
 
 #+END_SRC
 
@@ -1609,18 +1493,40 @@ included a community-supported snippet package auto-yasnippet to create custom s
 
 #+BEGIN_SRC emacs-lisp
 
+  (defun C4/create-one-liner ()
+    "Create a one line snippet to expand immediately."
+    (interactive)
+    (aya-create-one-line))
+
+  (defun C4/expand-snippet ()
+    "Expand the last created snippet and fill it in."
+    (interactive)
+    (aya-expand))
+
+  (defun C4/save-snippet ()
+    "Save the created snippet to database."
+    (interactive)
+    (aya-persist-snippet)
+    (yas/reload-all))
+
   ;;; Snippet support
 
   ;; Setup YASnippet
   (use-package yasnippet
-    :config
-    (yas-global-mode 1))
+    :hook
+    (prog-mode . yas-minor-mode))
 
   ;; Setup snippet collection
   (use-package yasnippet-snippets)
 
   ;; Setup Auto-YASnippet
-  (use-package auto-yasnippet)
+  (use-package auto-yasnippet
+    :ryo
+    (:mode 'prog-mode)
+    ("SPC s"
+     (("s" aya-create :name "create")
+      ("e" C4/expand-snippet :name "expand" :exit t)
+      ("w" C4/save-snippet :name "save")) :name "auto-YASnippet"))
 
 #+END_SRC
 
@@ -1863,8 +1769,41 @@ flow becomes more personal.
 
 #+BEGIN_SRC emacs-lisp :noweb yes
 
+  (defhydra org-trek (:timeout 30)
+    "A transient mode to logically browse an Org file"
+    ("h" org-forward-heading-same-level "jump to next heading (same level)")
+    ("H" org-backward-heading-same-level "jump to prev heading (same level)")
+    ("s" org-babel-next-src-block "jump to next src block")
+    ("S" org-babel-previous-src-block "jump to prev src block")
+    ("v" org-next-visible-heading "jump to next heading")
+    ("V" org-previous-visible-heading "jump to prev heading")
+    ("RET" nil "exit state: org-trek" :exit t))
+
   ;;; Org setup
   (use-package org
+    :ryo
+    ("SPC o" nil :name "org")
+    (:mode 'org-mode)
+    ("SPC o a"
+     (("a" org-agenda-list :name "weekly")
+      ("f" org-agenda :name "full")
+      ("t" org-set-tags-command :name "tags")) :name "agenda")
+    ("SPC o b"
+     (("b" org-insert-link :name "link")
+      ("c" org-capture :name "capture")
+      ("r" org-refile :name "refile")
+      ("n"
+       (("n" org-toggle-narrow-to-subtree :name "subtree")
+        ("b" org-narrow-to-block :name "block")
+        ("e" org-narrow-to-element :name "element")) :name "narrow")
+      ("s" org-trek/body :name "state: org-trek")) :name "buffer")
+    ("SPC o d"
+     (("d" org-deadline :name "deadline")
+      ("s" org-schedule :name "schedule")) :name "date")
+    ("SPC o s"
+     (("s" org-edit-special :name "edit")
+      ("e" org-babel-execute-src-block :name "execute")
+      ("t" org-babel-tangle :name "tangle")) :name "special")
     :hook
     (org-mode . variable-pitch-mode)
     (org-mode . visual-line-mode)
@@ -2100,6 +2039,24 @@ Like the Org section, I'm breaking up this monolithic block of code into smaller
   ;;; Initialize EXWM if GUI Emacs
   (use-package exwm
     :if window-system
+    :ryo
+    (:mode 'exwm-mode)
+    ("s-SPC"
+     (("SPC" exwm-workspace-switch-to-buffer :name "switch buffer")
+      ("r" exwm-reset :name "reset")
+      ("q" exwm-restart :name "restart")
+      ("Q" kill-emacs :name "quit session")
+      ("w" exwm-workspace-switch :name "switch workspace")
+      ("W" exwm-workspace-swap :name "swap workspace")
+      ("o" exwm-workspace-move-window :name "move window to workspace")
+      ("f" exwm-floating-toggle-floating :name "toggle floating window")
+      ("F" exwm-layout-toggle-fullscreen :name "toggle fullscreen")
+      ("k" exwm-layout-toggle-keyboard :name "toggle keyboard state")
+      ("m" exwm-layout-toggle-mode-line :name "toggle mode line")
+      ("M" exwm-layout-toggle-minibuffer :name "toggle minibuffer")
+      ("s" split-window-below :name "split window horizontal")
+      ("S" split-window-right :name "split window vertical"))
+     :name "EXWM")
     :config
     <<exwm-startup>>
 
@@ -2161,6 +2118,8 @@ Like the Org section, I'm breaking up this monolithic block of code into smaller
           ([?\s-k] . windmove-down)
           ([?\s-J] . windmove-swap-states-left)
           ([?\s-j] . windmove-left)
+          ([?\s-s] . split-window-below)
+          ([?\s-S] . split-window-right)
           ([?\s-r] . exwm-reset)
           ([?\s-Q] . kill-emacs)
           ([?\s-q] . exwm-restart)
