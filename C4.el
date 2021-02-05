@@ -22,17 +22,9 @@
   :straight org-plus-contrib)
 
 ;; Generate C4.el from the source blocks in C4.org
-(defun C4/load ()
-  (org-babel-tangle-file
-   (concat user-emacs-directory "C4.org")
-   (concat user-emacs-directory "C4.el")))
-
-;; Always generate on load
-(C4/load)
-
-;; Setup a hook to re-tangle the config on modification.
-(add-hook 'org-mode-hook
-          (lambda () (add-hook 'after-save-hook #'C4/load)))
+(org-babel-tangle-file
+ (concat user-emacs-directory "C4.org")
+ (concat user-emacs-directory "C4.el"))
 
 ;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
@@ -639,128 +631,6 @@
   :config
   (global-diff-hl-mode 1))
 
-;;; A full on parser in Emacs with highlighting definitions
-(use-package tree-sitter
-  :config
-  (global-tree-sitter-mode 1))
-
-;; A collection of supported tree-sitter languages
-(use-package tree-sitter-langs
-  :after tree-sitter)
-
-;;; Set syntax highlighting faces
-
-;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
-
-;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
-
-;; set constants face
-(set-face-attribute 'font-lock-constant-face nil :font C4/font :weight 'black)
-
-;; set built-in face
-(set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
-
-;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil :font C4/font :weight 'black)
-
-;; set string face
-(set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
-
-;;; When I'm knee deep in parens
-(use-package rainbow-delimiters
-  :hook
-  (prog-mode . rainbow-delimiters-mode)
-  (prog-mode . prettify-symbols-mode))
-
-;;; Code linting package that flies
-(use-package flycheck
-    :hook (prog-mode . flycheck-mode))
-
-;;; Universal code formatting package
-(use-package apheleia
-  :straight
-  '(apheleia
-    :host github
-    :repo "raxod502/apheleia")
-  :hook (prog-mode . apheleia-mode))
-
-;;; Autopair delimiters
-(use-package smartparens
-  :hook
-  (prog-mode . smartparens-mode)
-  :config
-  (require 'smartparens-config))
-
-;;; Automatic indentation for my sanity
-(use-package aggressive-indent
-  :hook
-  (prog-mode . aggressive-indent-mode))
-
-;;; Code autocomplete with Company
-(use-package company
-  :hook (prog-mode . company-mode))
-
-;;; A nice Company interface
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-
-;;; Language Server Protocol package for rich IDE features
-(use-package lsp-mode
-  :init
-  (setq lsp-keymap-prefix "")
-  :hook
-  (prog-mode . lsp-deferred)
-  (lsp-mode . lsp-enable-which-key-integration)
-  :commands (lsp lsp-deferred))
-
-;; UI enhancements for lsp-mode
-(use-package lsp-ui
-  :after lsp-mode
-  :commands lsp-ui-mode)
-
-;;; The debugging complement to LSP
-(use-package dap-mode
-  :hook
-  (prog-mode . dap-mode)
-  (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
-
-(defun C4/create-one-liner ()
-  "Create a one line snippet to expand immediately."
-  (interactive)
-  (aya-create-one-line))
-
-(defun C4/expand-snippet ()
-  "Expand the last created snippet and fill it in."
-  (interactive)
-  (aya-expand))
-
-(defun C4/save-snippet ()
-  "Save the created snippet to database."
-  (interactive)
-  (aya-persist-snippet)
-  (yas/reload-all))
-
-;;; Snippet support
-
-;; Setup YASnippet
-(use-package yasnippet
-  :hook
-  (prog-mode . yas-minor-mode))
-
-;; Setup snippet collection
-(use-package yasnippet-snippets)
-
-;; Setup Auto-YASnippet
-(use-package auto-yasnippet
-  :ryo
-  (:mode 'prog-mode)
-  ("SPC s"
-   (("s" aya-create :name "create")
-    ("e" C4/expand-snippet :name "expand" :exit t)
-    ("w" C4/save-snippet :name "save")) :name "auto-YASnippet"))
-
 ;;; Variables for Org Mode configuration
 (setq C4/org-root-path "~/Documents/Org")
 (setq C4/org-agenda-files '("Tasks.org" "Projects.org"))
@@ -920,6 +790,264 @@
   :config
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
+;;; A full on parser in Emacs with highlighting definitions
+(use-package tree-sitter
+  :config
+  (global-tree-sitter-mode 1))
+
+;; A collection of supported tree-sitter languages
+(use-package tree-sitter-langs
+  :after tree-sitter)
+
+;;; Set syntax highlighting faces
+
+;; set comment face
+(set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
+
+;; set keyword face
+(set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
+
+;; set constants face
+(set-face-attribute 'font-lock-constant-face nil :font C4/font :weight 'black)
+
+;; set built-in face
+(set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
+
+;; set function name face
+(set-face-attribute 'font-lock-function-name-face nil :font C4/font :weight 'black)
+
+;; set string face
+(set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
+
+;;; When I'm knee deep in parens
+(use-package rainbow-delimiters
+  :hook
+  (prog-mode . rainbow-delimiters-mode)
+  (prog-mode . prettify-symbols-mode))
+
+;;; Code linting package that flies
+(use-package flycheck
+    :hook (prog-mode . flycheck-mode))
+
+;;; Universal code formatting package
+(use-package apheleia
+  :straight
+  '(apheleia
+    :host github
+    :repo "raxod502/apheleia")
+  :hook (prog-mode . apheleia-mode))
+
+;;; Autopair delimiters
+(use-package smartparens
+  :hook
+  (prog-mode . smartparens-mode)
+  :config
+  (require 'smartparens-config))
+
+;;; Automatic indentation for my sanity
+(use-package aggressive-indent
+  :hook
+  (prog-mode . aggressive-indent-mode))
+
+;;; Code autocomplete with Company
+(use-package company
+  :hook (prog-mode . company-mode))
+
+;;; A nice Company interface
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+;;; Language Server Protocol package for rich IDE features
+(use-package lsp-mode
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook
+  (lsp-mode . lsp-enable-which-key-integration)
+  :commands (lsp lsp-deferred))
+
+;; UI enhancements for lsp-mode
+(use-package lsp-ui
+  :after lsp-mode
+  :commands lsp-ui-mode)
+
+;;; The debugging complement to LSP
+(use-package dap-mode
+  :hook
+  (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
+
+(defun C4/create-one-liner ()
+  "Create a one line snippet to expand immediately."
+  (interactive)
+  (aya-create-one-line))
+
+(defun C4/expand-snippet ()
+  "Expand the last created snippet and fill it in."
+  (interactive)
+  (aya-expand))
+
+(defun C4/save-snippet ()
+  "Save the created snippet to database."
+  (interactive)
+  (aya-persist-snippet)
+  (yas/reload-all))
+
+;;; Snippet support
+
+;; Setup YASnippet
+(use-package yasnippet
+  :hook
+  (prog-mode . yas-minor-mode))
+
+;; Setup snippet collection
+(use-package yasnippet-snippets)
+
+;; Setup Auto-YASnippet
+(use-package auto-yasnippet
+  :ryo
+  (:mode 'prog-mode)
+  ("SPC s"
+   (("s" aya-create :name "create")
+    ("e" C4/expand-snippet :name "expand" :exit t)
+    ("w" C4/save-snippet :name "save")) :name "snippet"))
+
+;;; Lang: Emacs Lisp
+
+;; Inline Emacs Lisp evaluation results
+(use-package eros
+  :mode ("\\.el\\'" . emacs-lisp-mode)
+  :ryo
+  (:mode 'emacs-lisp-mode)
+  ("SPC l"
+   (("e"
+     (("e" eros-eval-last-sexp :name "expression")
+      ("d" eros-eval-defun :name "defun")) :name "eval")) :name "emacs-lisp")
+  :hook
+  (emacs-lisp-mode . eros-mode)
+  (lisp-interaction-mode . eros-mode))
+
+;;; Lang: Common Lisp
+
+;; Setup SLY
+(use-package sly
+  :mode ("\\.lisp\\'" . common-lisp-mode)
+  :interpreter ("sbcl" . common-lisp-mode)
+  :ryo
+  (:mode 'sly-mode)
+  ("SPC l"
+   ;; Connections
+   (("C"
+     (("c" sly :name "invoke")
+      ("l" sly-list-connections :name "list active")
+      (">" sly-next-connection :name "next")
+      ("<" sly-prev-connection :name "prev"))
+     :name "connections")
+
+    ;; Annotations
+    ("a"
+     (("a" sly-next-note :name "next")
+      ("A" sly-previous-note :name "prev")
+      ("C-a" sly-remove-notes :name "remove all")) :name "annotations")
+
+    ;; Docs
+    ("d"
+     (("d" sly-autodoc-mode :name "autodoc toggle")
+      ("m" sly-autodoc-manually :name "autodoc manually")
+      ("a" sly-arglist :name "arglist")
+      ("s" sly-info :name "SLY manual")) :name "docs")
+
+    ;; Compiling
+    ("c"
+     (("c" sly-compile-defun :name "defun")
+      ("r" sly-compile-region :name "region")
+      ("f" sly-compile-file :name "file")
+      ("F" sly-compile-and-load-file :name "and load")) :name "compile")
+    ("E" next-error :name "show errors")
+
+    ;; Evaluation
+    ("e"
+     (("e" sly-eval-last-expression :name "expression")
+      ("E" sly-pprint-eval-last-expression :name "to buffer")
+      ("i" sly-interactive-eval :name "interactive")
+      ("d" sly-eval-defun :name "defun")
+      ("r" sly-eval-region :name "region")
+      ("R" sly-pprint-eval-region :name "to buffer")
+      ("b" sly-eval-buffer :name "buffer")) :name "eval")
+
+    ;; Files
+    ("f" sly-load-file :name "load file")
+
+    ;; Macros
+    ("m"
+     (("m" sly-expand-1 :name "expand")
+      ("M" sly-macroexpand-all :name "all")
+      ("c" sly-compiler-macroexpand-1 :name "compiler expand")
+      ("C" sly-compiler-macroexpand :name "repeatedly")
+      ("f" sly-format-string-expand :name "format string")
+      ("r" sly-macroexpand-1-inplace :name "recursive expand")
+      ("R" sly-macroexpand-again :name "repeat last")
+      ("u" sly-macro-expand-undo :name "undo last")) :name "macro")
+
+    ;; Definitions
+    ("d"
+     (("d" sly-describe-symbol :name "symbol")
+      ("f" sly-describ-function :name "function")
+      ("a" sly-apropos :name "apropos")
+      ("A" sly-apropos-all :name "with globals")
+      ("C-a" sly-apropos-package :name "package")
+      ("h" sly-hyperspec-lookup :name "hyperspec lookup")
+      ("H" sly-hyperspec-lookup-format :name "format")
+      ("C-h" sly-hyperspec-lookup-reader-macro :name "reader macro"))
+     :name "definitions")
+
+    ;; Cross-reference
+    ("x"
+     (("x" sly-edit-uses :name "symbol")
+      ("c" sly-who-calls :name "callers")
+      ("C" sly-calls-who :name "callees")
+      ("g" sly-who-references :name "global")
+      ("G" sly-who-binds :name "global bindings")
+      ("C-g" sly-who-sets :name "global assignments")
+      ("m" sly-who-macroexpands :name "macroexpansions")
+      ("M" sly-who-specializes :name "methods")) :name "x-ref"))
+   :name "common-lisp")
+  :hook
+  (common-lisp-mode . sly-mode)
+  :config
+  (setq inferior-lisp-program "/usr/local/bin/sbcl")
+  (sly))
+
+;;; Lang: Racket
+
+;; Initialize racket-mode
+(use-package racket-mode
+  :mode ("\\.rkt\\'" . racket-mode)
+  :interpreter ("racket" . racket-mode)
+  :ryo
+  (:mode 'racket-mode)
+  ("SPC l"
+   ;; Run
+   (("r"
+     (("r" racket-run :name "run")
+      ("R" racket-run-and-switch-repl :name "and switch to REPL")
+      ("m" racket-run-module-at-point :name "module")) :name "program")
+
+    ;; Eval
+    ("e"
+     (("e" racket-send-last-sexp :name "exprssion")
+      ("d" racket-send-definition :name "definition")
+      ("r" racket-send-region :name "region")) :name "eval")
+
+    ;; Testing
+    ("t"
+     (("t" racket-test :name "run")
+      ("z" racket-fold-all-tests :name "fold")
+      ("Z" racket-unfold-all-tests :name "unfold")) :name "tests")) :name "racket")
+  :hook
+  (racket-mode . racket-xp-mode)
+  (racket-mode . racket-smart-open-bracket-mode)
+  (racket-mode . racket-unicode-input-method-enable)
+  (racket-repl-mode . racket-unicode-input-method-enable))
+
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
   :if window-system
@@ -938,6 +1066,8 @@
     ("k" exwm-layout-toggle-keyboard :name "toggle keyboard state")
     ("m" exwm-layout-toggle-mode-line :name "toggle mode line")
     ("M" exwm-layout-toggle-minibuffer :name "toggle minibuffer")
+    ("c" kill-this-buffer :name "kill application")
+    ("C" kill-some-buffers :name "kill multiple")
     ("s" split-window-below :name "split window horizontal")
     ("S" split-window-right :name "split window vertical"))
    :name "EXWM")
@@ -1019,7 +1149,7 @@
   )
 
 (defun C4/exwm-update-class ()
-  (exwm-workspace-rename-buffer (concat "X: " exwm-class-name)))
+  (exwm-workspace-rename-buffer (concat "X Window: " exwm-class-name)))
 
 ;; Application launcher
 (use-package app-launcher

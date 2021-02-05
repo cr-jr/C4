@@ -3,7 +3,6 @@
 #+AUTHOR: Chatman R. Jr
 :PROPERTIES:
 :header-args: :mkdirp yes
-:header-args:emacs-lisp: :tangle "./C4.el"
 :END:
 
 * Summary
@@ -21,6 +20,9 @@ If something doesn't add value to my workflow, it simply isn't here.
 Custom variables and procedures in this config are always prefixed with =C4=.
 
 * Initialization
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle "./C4.el"
+:END:
 ** Package Management
 
 C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https://github.com/jwiegley/use-package][use-package]], so that gets loaded in first.
@@ -49,8 +51,11 @@ C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https
 
 ** Building the Configuration
 
-After package setup, we need to load in [[https://orgmode.org][Org Mode]] to build the configuration as well as attach a hook
-to rebuild it on save.
+After package setup, we need to load in [[https://orgmode.org][Org Mode]] to build the configuration.
+
+#+BEGIN_QUOTE
+There used to be a hook to rebuild configuration on save, but the Org file eventually
+#+END_QUOTE
 
 #+BEGIN_SRC emacs-lisp
 
@@ -59,17 +64,9 @@ to rebuild it on save.
     :straight org-plus-contrib)
 
   ;; Generate C4.el from the source blocks in C4.org
-  (defun C4/load ()
-    (org-babel-tangle-file
-     (concat user-emacs-directory "C4.org")
-     (concat user-emacs-directory "C4.el")))
-
-  ;; Always generate on load
-  (C4/load)
-
-  ;; Setup a hook to re-tangle the config on modification.
-  (add-hook 'org-mode-hook
-            (lambda () (add-hook 'after-save-hook #'C4/load)))
+  (org-babel-tangle-file
+   (concat user-emacs-directory "C4.org")
+   (concat user-emacs-directory "C4.el"))
 
 #+END_SRC
 
@@ -135,7 +132,7 @@ One great thing about Emacs is that I can manage my ideas and work as they come.
 by telling Emacs to automatically create directories that don't exist for new files. This allows me
 to build the file structure for my projects on the fly.
 
-#+BEGIN_SRC emacs-lisp
+ #+BEGIN_SRC emacs-lisp
 
   ;; Create parent dirs when opening new files
    (add-to-list 'find-file-not-found-functions #'C4/create-parent)
@@ -670,6 +667,9 @@ over for more than just startup times.
 
 #+END_SRC
 * Utilities
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle "./C4.el"
+:END:
 ** crux
 
 This configuration includes the crux package. It's way too useful not to use. Especially since I
@@ -692,6 +692,9 @@ opted out of Vim emulation.
 Crux supplies the commands for insertion actions that open a new line.
 
 * Defaults
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle "./C4.el"
+:END:
 
 I start working out the look and feel of my workspace as well as establish some global settings.
 
@@ -1170,6 +1173,9 @@ syntax highlighting.
 #+END_SRC
 
 * Projects
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle "./C4.el"
+:END:
 ** User Settings
 
 Now, I need to set up Emacs for my preferred project flow. To make configuration a little easier,
@@ -1289,454 +1295,13 @@ modifications or deletions since the last commit.
 
 #+END_SRC
 
-* Programming Modes
-
-The richer programming experience offered by Emacs and the lovely ecosystem of community packages was a huge
-part of why I switched over from Vim after nearly a decade of use. It requires a bit of setup, but now I have a
-development workstation I can grow with and easily expand.
-
-I looked around for packages that set a solid base for programming in general before I started looking for
-language-specific support. That way each language I use gets a good starting point from which I can selectively
-improve the workflow as needed.
-
-** Parsing
-
-Somewhat unconventional from other configurations is my inclusion of the tree-sitter package for Emacs. I
-include it not just for the faster granular highlighting, but also because it allows me to /query/ syntax
-definitions in supported source code.
-
-While this would be a curiosity for most developers, it's a boon for developers thinking about creating new
-programming languages or external *DSLs*. This is a space I've started to explore in my work, so in it goes.
-
-As a bonus, some of the languages I use most come with support out of the box.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; A full on parser in Emacs with highlighting definitions
-  (use-package tree-sitter
-    :config
-    (global-tree-sitter-mode 1))
-
-  ;; A collection of supported tree-sitter languages
-  (use-package tree-sitter-langs
-    :after tree-sitter)
-
-#+END_SRC
-
-** Syntax Highlighting
-
-This section contains packages with the aim of providing a little more contextual highlighting to programming
-modes. Since I use a default theme that doesn't make a lot of assumptions about how I want my code
-highlighted, it means I can judiciously add syntax information that actually helps rather than creates noise.
-
-*** Faces
-
-I'm going to adjust some of the faces provided by tree-sitter now.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Set syntax highlighting faces
-
-  ;; set comment face
-  (set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
-
-  ;; set keyword face
-  (set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
-
-  ;; set constants face
-  (set-face-attribute 'font-lock-constant-face nil :font C4/font :weight 'black)
-
-  ;; set built-in face
-  (set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
-
-  ;; set function name face
-  (set-face-attribute 'font-lock-function-name-face nil :font C4/font :weight 'black)
-
-  ;; set string face
-  (set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
-
-#+END_SRC
-
-*** rainbow-delimiters
-
-This package is incredibly helpful in keeping track of how many levels deep I am in a complex LISP s-exp and it
-helps a little in other ways, too.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; When I'm knee deep in parens
-  (use-package rainbow-delimiters
-    :hook
-    (prog-mode . rainbow-delimiters-mode)
-    (prog-mode . prettify-symbols-mode))
-
-#+END_SRC
-
-** Linting
-
-C4 uses flycheck for code linting.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Code linting package that flies
-  (use-package flycheck
-      :hook (prog-mode . flycheck-mode))
-
-#+END_SRC
-
-** Formatting
-*** apheleia
-
-C4 uses Apheleia for code formating. It's a language-agnostic formatting package that allows the support of
-new formatters as well.
-
-#+BEGIN_SRC emacs-lisp
-
-    ;;; Universal code formatting package
-    (use-package apheleia
-      :straight
-      '(apheleia
-        :host github
-        :repo "raxod502/apheleia")
-      :hook (prog-mode . apheleia-mode))
-
-#+END_SRC
-
-*** smartparens
-
-This package autopairs delimiters for a variety of programming modes.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Autopair delimiters
-  (use-package smartparens
-    :hook
-    (prog-mode . smartparens-mode)
-    :config
-    (require 'smartparens-config))
-
-#+END_SRC
-
-*** aggressive-indent-mode
-
-Automatic indentation is another sanity check for overally programming.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Automatic indentation for my sanity
-  (use-package aggressive-indent
-    :hook
-    (prog-mode . aggressive-indent-mode))
-
-#+END_SRC
-
-** Autocompletion
-
-Autocompletion is included with Company with an interface provided by company-box.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Code autocomplete with Company
-  (use-package company
-    :hook (prog-mode . company-mode))
-
-  ;;; A nice Company interface
-  (use-package company-box
-    :hook (company-mode . company-box-mode))
-
-#+END_SRC
-
-** Language Server Protocol
-
-Language Server Protocol is /the/ killer feature of modern IDEs. The most significant contribution of VSCode
-can be used in Emacs without much issue.
-
-First, I'm setting it up for general use. Later, in the appropriate language's section, I add the enhancements.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Language Server Protocol package for rich IDE features
-  (use-package lsp-mode
-    :init
-    (setq lsp-keymap-prefix "")
-    :hook
-    (prog-mode . lsp-deferred)
-    (lsp-mode . lsp-enable-which-key-integration)
-    :commands (lsp lsp-deferred))
-
-  ;; UI enhancements for lsp-mode
-  (use-package lsp-ui
-    :after lsp-mode
-    :commands lsp-ui-mode)
-#+END_SRC
-
-** Debugging
-
-This configuration uses the Debug Adapter Protocol for supported languages while falling back to more
-specialized debgugging packages for unsupported languages in their relevant sections.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; The debugging complement to LSP
-  (use-package dap-mode
-    :hook
-    (prog-mode . dap-mode)
-    (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
-
-#+END_SRC
-
-** Snippets
-
-Snippets are valuable for my workflow. And YASnippet is the Emacs standard for using them. I also
-included a community-supported snippet package auto-yasnippet to create custom snippets as needed.
-
-#+BEGIN_SRC emacs-lisp
-
-  (defun C4/create-one-liner ()
-    "Create a one line snippet to expand immediately."
-    (interactive)
-    (aya-create-one-line))
-
-  (defun C4/expand-snippet ()
-    "Expand the last created snippet and fill it in."
-    (interactive)
-    (aya-expand))
-
-  (defun C4/save-snippet ()
-    "Save the created snippet to database."
-    (interactive)
-    (aya-persist-snippet)
-    (yas/reload-all))
-
-  ;;; Snippet support
-
-  ;; Setup YASnippet
-  (use-package yasnippet
-    :hook
-    (prog-mode . yas-minor-mode))
-
-  ;; Setup snippet collection
-  (use-package yasnippet-snippets)
-
-  ;; Setup Auto-YASnippet
-  (use-package auto-yasnippet
-    :ryo
-    (:mode 'prog-mode)
-    ("SPC s"
-     (("s" aya-create :name "create")
-      ("e" C4/expand-snippet :name "expand" :exit t)
-      ("w" C4/save-snippet :name "save")) :name "auto-YASnippet"))
-
-#+END_SRC
-
-** Language Support
+* Document Modes
 :PROPERTIES:
-:header-args:emacs-lisp: :tangle no
+:header-args:emacs-lisp: :tangle "./C4.el"
 :END:
 
-The groundwork is in place, so now I'm going to selectively enhance some programming modes. The
-language support of my configuration includes both languages I work with and those I'm interested in
-studying.
+This section includes all the settings and packages I use for everyday writing and publishing.
 
-If you don't need support for a language below, adding a =PROPERTIES= block under the heading for
-that language with =:header-args:emacs-lisp: :tangle no= will disable generation.
-
-*** TODO Lisp Family
-**** Emacs Lisp
-
-Having a good Emacs Lisp experience ensures I'll want to keep editing and improving this
-configuration. A few packages are available to enhance Emacs' own programming language.
-
-The main one is Eros.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Lang: Emacs Lisp
-
-  ;; Inline Emacs Lisp evaluation results
-  (use-package eros
-    :general
-    (C4/command-key-def
-      :keymaps 'eros-mode-map
-      "le" '(:ignore t :wk "eval")
-      "lee" '(eros-eval-last-sexp :wk "expression")
-      "led" '(eros-eval-defun :wk "defun"))
-    :hook
-    (emacs-lisp-mode . eros-mode)
-    (lisp-interaction-mode . eros-mode))
-
-#+END_SRC
-
-**** Common Lisp
-
-The premier package for editing Common Lisp is SLIME, and I'm using a newer, actively maintained
-fork called SLY in my configuration.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Lang: Common Lisp
-
-  ;; Setup SLY
-  (use-package sly
-    :general
-
-    ;; Connections
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "lC" '(:ignore t :wk "SLY: connections")
-      "lCc" '(sly :wk "invoke")
-      "lCl" '(sly-list-connections :wk "list active")
-      "lC>" '(sly-next-connection :wk "next")
-      "lC<" '(sly-prev-connection :wk "previous")
-      )
-
-    ;; Annotations
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "la" '(:ignore t :wk "SLY: annotations")
-      "lan" '(sly-next-note :wk "next note")
-      "laN" '(sly-previous-note :wk "prev note")
-      "laR" '(sly-remove-notes :wk "remove all"))
-
-    ;; Docs
-   (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "ld" '(:ignore t :wk "SLY: doc")
-      "ldd" '(sly-autodoc-mode :wk "autodoc toggle")
-      "ldm" '(sly-autodoc-manually :wk "autodoc manually")
-      "lda" '(sly-arglist :wk "defun arglist")
-      "lds" '(sly-info :wk "SLY manual"))
-
-    ;; Compiling
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "lc" '(:ignore t :wk "SLY: compile")
-      "lcc" '(sly-compile-defun :wk "defun")
-      "lE" '(next-error :wk "show errors")
-      "lcr" '(sly-compile-region :wk "region")
-      "lcf" '(sly-compile-file :wk "file")
-      "lcF" '(sly-compile-and-load-file :wk "and load"))
-
-    ;; Evaluation
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "le" '(:ignore t :wk "SLY: eval")
-      "lee" '(sly-eval-last-expression :wk "expression")
-      "leE" '(sly-pprint-eval-last-expression :wk "expression to buffer")
-      "lei" '(sly-interactive-eval :wk "interactive")
-      "led" '(sly-eval-defun :wk "defun")
-      "ler" '(sly-eval-region :wk "region")
-      "leR" '(sly-pprint-eval-region :wk "region to buffer")
-      "leb" '(sly-eval-buffer :wk "buffer"))
-
-    ;; Files
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "lf" '(sly-load-file :wk "load file"))
-
-    ;; Macros
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "lm" '(:ignore t :wk "macro")
-      "lmm" '(sly-expand-1 :wk "expand")
-      "lmM" '(sly-macroexpand-all :wk "expand all")
-      "lmc" '(sly-compiler-macroexpand-1 :wk "compiler expand")
-      "lmC" '(sly-compiler-macroexpand :wk "compiler expand repeatedly")
-      "lmf" '(sly-format-string-expand :wk "format string")
-      "lmr" '(sly-macroexpand-1-inplace :wk "expand repeatedly")
-      "lmR" '(sly-macroexpand-again :wk "repeat last expansion")
-      "lmu" '(sly-macroexpand-undo :wk "undo last expansion"))
-
-    ;; Source
-    (C4/command-key-def
-      :keymaps 'sly-mode-map
-      "lS" '(:ignore t :wk "SLY: source code")
-      "lSs" '(:ignore t :wk "SLY: definitions")
-      "lSss" '(sly-edit-definition :wk "edit")
-      "lSsS" '(sly-edit-definition-other-window :wk "edit (other window)")
-      "lSsp" '(sly-pop-find-definition-stack :wk "go back to invocation")
-      "lSd" '(:ignore t :wk "SLY: describe")
-      "lSdd" '(sly-describe-symbol :wk "symbol")
-      "lSdf" '(sly-describe-function :wk "function")
-      "lSda" '(sly-apropos :wk "apropos")
-      "lSdA" '(sly-apropos-all :wk "apropos all")
-      "lSd C-a" '(sly-apropos-package :wk "apropos package")
-      "lSdh" '(sly-hyperspec-lookup :wk "hyperspec lookup")
-      "lSdH" '(sly-hyperspec-lookup-format :wk "hyperspec lookup [format]")
-      "lSd C-h" '(sly-hyperspec-lookup-reader-macro :wk "hyperspec lookup [reader macro]")
-      "lSx" '(:ignore t :wk "SLY: cross-reference")
-      "lSxr" '(sly-edit-uses :wk "find symbol")
-      "lSxc" '(sly-who-calls :wk "find callers")
-      "lSxC" '(sly-calls-who :wk "find callees")
-      "lSxg" '(sly-who-references :wk "find global")
-      "lSxG" '(sly-who-binds :wk "find global bindings")
-      "lSx C-g" '(sly-who-sets :wk "find global assignments")
-      "lSxm" '(sly-who-macroexpands :wk "show macroexpansions")
-      "lSxM" '(sly-who-specializes :wk "show methods")
-      "lSe" '(sly-edit-value "edit value")
-      "lSu" '(sly-undefine-function "undefine function"))
-    :hook
-    (common-lisp-mode . sly-mode))
-
-#+END_SRC
-
-I set keybindings for common SLY operations under the =lang= mnemonic. So when =common-lisp= is the
-major mode of a buffer, these keybindings activate.
-
-**** Racket
-
-For editing Racket source, racket-mode is the way to go.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Lang: Racket
-
-  ;; Initialize racket-mode
-  (use-package racket-mode
-    :general
-    ;; Run
-    (C4/command-key-def
-      :keymaps '(modalka-mode-map racket-mode-map)
-      "lr" '(:ignore t :wk "program")
-      "lrr" '(racket-run :wk "run")
-      "lrR" '(racket-run-and-switch-to-repl :wk "and switch to REPL")
-      "lrm" '(racket-run-module-at-point :wk "run module"))
-
-    ;; Eval
-    (C4/command-key-def
-      "le" '(:ignore t :wk "eval")
-      "lee" '(racket-send-last-sexp :wk "expression")
-      "led" '(racket-send-definition :wk "definition")
-      "ler" '(racket-send-region :wk "region"))
-
-    ;; Testing
-    (C4/command-key-def
-      "lt" '(:ignore t :wk "tests")
-      "ltt" '(racket-test :wk "run")
-      "ltf" '(racket-fold-all-tests :wk "fold")
-      "ltF" '(racket-unfold-all-tests :wk "unfold"))
-    :hook
-    (racket-mode . racket-xp-mode)
-    (racket-mode . racket-smart-open-bracket-mode)
-    (racket-mode . racket-unicode-input-method-enable)
-    (racket-repl-mode . racket-unicode-input-method-enable))
-
-#+END_SRC
-
-*** TODO C
-*** TODO Elixir
-*** TODO Elm
-*** TODO Factor
-*** TODO Go
-*** TODO Haskell
-*** TODO JavaScript/TypeScript
-*** TODO Julia
-*** TODO Nim
-*** TODO Prolog
-*** TODO R
-*** TODO Rust
-*** TODO Web Dev
-* Document Modes
 ** Spelling
 ** Grammar
 ** Dictionary & Thesaurus
@@ -1973,7 +1538,444 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
 
 *** Markdown
 *** LaTeX
+* Programming Modes
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle "./C4.el"
+:END:
+
+The richer programming experience offered by Emacs and the lovely ecosystem of community packages was a huge
+part of why I switched over from Vim after nearly a decade of use. It requires a bit of setup, but now I have a
+development workstation I can grow with and easily expand.
+
+I looked around for packages that set a solid base for programming in general before I started looking for
+language-specific support. That way each language I use gets a good starting point from which I can selectively
+improve the workflow as needed.
+
+Each programming major mode I use wraps its frequently-used commands under =SPC l=.
+
+** Parsing
+
+Somewhat unconventional from other configurations is my inclusion of the tree-sitter package for Emacs. I
+include it not just for the faster granular highlighting, but also because it allows me to /query/ syntax
+definitions in supported source code.
+
+While this would be a curiosity for most developers, it's a boon for developers thinking about creating new
+programming languages or external *DSLs*. This is a space I've started to explore in my work, so in it goes.
+
+As a bonus, some of the languages I use most come with support out of the box.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; A full on parser in Emacs with highlighting definitions
+  (use-package tree-sitter
+    :config
+    (global-tree-sitter-mode 1))
+
+  ;; A collection of supported tree-sitter languages
+  (use-package tree-sitter-langs
+    :after tree-sitter)
+
+#+END_SRC
+
+** Syntax Highlighting
+
+This section contains packages with the aim of providing a little more contextual highlighting to programming
+modes. Since I use a default theme that doesn't make a lot of assumptions about how I want my code
+highlighted, it means I can judiciously add syntax information that actually helps rather than creates noise.
+
+*** Faces
+
+I'm going to adjust some of the faces provided by tree-sitter now.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Set syntax highlighting faces
+
+  ;; set comment face
+  (set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
+
+  ;; set keyword face
+  (set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
+
+  ;; set constants face
+  (set-face-attribute 'font-lock-constant-face nil :font C4/font :weight 'black)
+
+  ;; set built-in face
+  (set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
+
+  ;; set function name face
+  (set-face-attribute 'font-lock-function-name-face nil :font C4/font :weight 'black)
+
+  ;; set string face
+  (set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
+
+#+END_SRC
+
+*** rainbow-delimiters
+
+This package is incredibly helpful in keeping track of how many levels deep I am in a complex LISP s-exp and it
+helps a little in other ways, too.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; When I'm knee deep in parens
+  (use-package rainbow-delimiters
+    :hook
+    (prog-mode . rainbow-delimiters-mode)
+    (prog-mode . prettify-symbols-mode))
+
+#+END_SRC
+
+** Linting
+
+C4 uses flycheck for code linting.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Code linting package that flies
+  (use-package flycheck
+      :hook (prog-mode . flycheck-mode))
+
+#+END_SRC
+
+** Formatting
+*** apheleia
+
+C4 uses Apheleia for code formating. It's a language-agnostic formatting package that allows the support of
+new formatters as well.
+
+#+BEGIN_SRC emacs-lisp
+
+    ;;; Universal code formatting package
+    (use-package apheleia
+      :straight
+      '(apheleia
+        :host github
+        :repo "raxod502/apheleia")
+      :hook (prog-mode . apheleia-mode))
+
+#+END_SRC
+
+*** smartparens
+
+This package autopairs delimiters for a variety of programming modes.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Autopair delimiters
+  (use-package smartparens
+    :hook
+    (prog-mode . smartparens-mode)
+    :config
+    (require 'smartparens-config))
+
+#+END_SRC
+
+*** aggressive-indent-mode
+
+Automatic indentation is another sanity check for overally programming.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Automatic indentation for my sanity
+  (use-package aggressive-indent
+    :hook
+    (prog-mode . aggressive-indent-mode))
+
+#+END_SRC
+
+** Autocompletion
+
+Autocompletion is included with Company with an interface provided by company-box.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Code autocomplete with Company
+  (use-package company
+    :hook (prog-mode . company-mode))
+
+  ;;; A nice Company interface
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+
+#+END_SRC
+
+** Language Server Protocol
+
+Language Server Protocol is /the/ killer feature of modern IDEs. The most significant contribution of VSCode
+can be used in Emacs without much issue.
+
+First, I'm setting it up for general use. Later, in the appropriate language's section, I add the enhancements.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Language Server Protocol package for rich IDE features
+  (use-package lsp-mode
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+    :hook
+    (lsp-mode . lsp-enable-which-key-integration)
+    :commands (lsp lsp-deferred))
+
+  ;; UI enhancements for lsp-mode
+  (use-package lsp-ui
+    :after lsp-mode
+    :commands lsp-ui-mode)
+#+END_SRC
+
+** Debugging
+
+This configuration uses the Debug Adapter Protocol for supported languages while falling back to more
+specialized debgugging packages for unsupported languages in their relevant sections.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; The debugging complement to LSP
+  (use-package dap-mode
+    :hook
+    (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
+
+#+END_SRC
+
+** Snippets
+
+Snippets are valuable for my workflow. And YASnippet is the Emacs standard for using them. I also
+included a community-supported snippet package and Auto-YASnippet to create custom snippets as
+needed.
+
+The commands for snippet creation are enabled across all programming modes under the =SPC s= prefix.
+
+#+BEGIN_SRC emacs-lisp
+
+  (defun C4/create-one-liner ()
+    "Create a one line snippet to expand immediately."
+    (interactive)
+    (aya-create-one-line))
+
+  (defun C4/expand-snippet ()
+    "Expand the last created snippet and fill it in."
+    (interactive)
+    (aya-expand))
+
+  (defun C4/save-snippet ()
+    "Save the created snippet to database."
+    (interactive)
+    (aya-persist-snippet)
+    (yas/reload-all))
+
+  ;;; Snippet support
+
+  ;; Setup YASnippet
+  (use-package yasnippet
+    :hook
+    (prog-mode . yas-minor-mode))
+
+  ;; Setup snippet collection
+  (use-package yasnippet-snippets)
+
+  ;; Setup Auto-YASnippet
+  (use-package auto-yasnippet
+    :ryo
+    (:mode 'prog-mode)
+    ("SPC s"
+     (("s" aya-create :name "create")
+      ("e" C4/expand-snippet :name "expand" :exit t)
+      ("w" C4/save-snippet :name "save")) :name "snippet"))
+
+#+END_SRC
+
+** Language Support
+
+The groundwork is in place, so now I'm going to selectively enhance some programming modes. The
+language support of my configuration includes both languages I use regularly and those I'm learning.
+
+If you don't need support for a language below, adding a =PROPERTIES= block under the heading for
+that language with =:header-args:emacs-lisp: :tangle no= will disable generation.
+
+*** TODO Lisp Family
+**** Emacs Lisp
+
+Having a good Emacs Lisp experience ensures I'll want to keep editing and improving this
+configuration. A few packages are available to enhance Emacs' own programming language.
+
+The main one is Eros.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: Emacs Lisp
+
+  ;; Inline Emacs Lisp evaluation results
+  (use-package eros
+    :mode ("\\.el\\'" . emacs-lisp-mode)
+    :ryo
+    (:mode 'emacs-lisp-mode)
+    ("SPC l"
+     (("e"
+       (("e" eros-eval-last-sexp :name "expression")
+        ("d" eros-eval-defun :name "defun")) :name "eval")) :name "emacs-lisp")
+    :hook
+    (emacs-lisp-mode . eros-mode)
+    (lisp-interaction-mode . eros-mode))
+
+#+END_SRC
+
+**** Common Lisp
+
+The premier package for editing Common Lisp is SLIME, and I'm using a newer, actively maintained
+fork called SLY in my configuration.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: Common Lisp
+
+  ;; Setup SLY
+  (use-package sly
+    :mode ("\\.lisp\\'" . common-lisp-mode)
+    :interpreter ("sbcl" . common-lisp-mode)
+    :ryo
+    (:mode 'sly-mode)
+    ("SPC l"
+     ;; Connections
+     (("C"
+       (("c" sly :name "invoke")
+        ("l" sly-list-connections :name "list active")
+        (">" sly-next-connection :name "next")
+        ("<" sly-prev-connection :name "prev"))
+       :name "connections")
+
+      ;; Annotations
+      ("a"
+       (("a" sly-next-note :name "next")
+        ("A" sly-previous-note :name "prev")
+        ("C-a" sly-remove-notes :name "remove all")) :name "annotations")
+
+      ;; Docs
+      ("d"
+       (("d" sly-autodoc-mode :name "autodoc toggle")
+        ("m" sly-autodoc-manually :name "autodoc manually")
+        ("a" sly-arglist :name "arglist")
+        ("s" sly-info :name "SLY manual")) :name "docs")
+
+      ;; Compiling
+      ("c"
+       (("c" sly-compile-defun :name "defun")
+        ("r" sly-compile-region :name "region")
+        ("f" sly-compile-file :name "file")
+        ("F" sly-compile-and-load-file :name "and load")) :name "compile")
+      ("E" next-error :name "show errors")
+
+      ;; Evaluation
+      ("e"
+       (("e" sly-eval-last-expression :name "expression")
+        ("E" sly-pprint-eval-last-expression :name "to buffer")
+        ("i" sly-interactive-eval :name "interactive")
+        ("d" sly-eval-defun :name "defun")
+        ("r" sly-eval-region :name "region")
+        ("R" sly-pprint-eval-region :name "to buffer")
+        ("b" sly-eval-buffer :name "buffer")) :name "eval")
+
+      ;; Files
+      ("f" sly-load-file :name "load file")
+
+      ;; Macros
+      ("m"
+       (("m" sly-expand-1 :name "expand")
+        ("M" sly-macroexpand-all :name "all")
+        ("c" sly-compiler-macroexpand-1 :name "compiler expand")
+        ("C" sly-compiler-macroexpand :name "repeatedly")
+        ("f" sly-format-string-expand :name "format string")
+        ("r" sly-macroexpand-1-inplace :name "recursive expand")
+        ("R" sly-macroexpand-again :name "repeat last")
+        ("u" sly-macro-expand-undo :name "undo last")) :name "macro")
+
+      ;; Definitions
+      ("d"
+       (("d" sly-describe-symbol :name "symbol")
+        ("f" sly-describ-function :name "function")
+        ("a" sly-apropos :name "apropos")
+        ("A" sly-apropos-all :name "with globals")
+        ("C-a" sly-apropos-package :name "package")
+        ("h" sly-hyperspec-lookup :name "hyperspec lookup")
+        ("H" sly-hyperspec-lookup-format :name "format")
+        ("C-h" sly-hyperspec-lookup-reader-macro :name "reader macro"))
+       :name "definitions")
+
+      ;; Cross-reference
+      ("x"
+       (("x" sly-edit-uses :name "symbol")
+        ("c" sly-who-calls :name "callers")
+        ("C" sly-calls-who :name "callees")
+        ("g" sly-who-references :name "global")
+        ("G" sly-who-binds :name "global bindings")
+        ("C-g" sly-who-sets :name "global assignments")
+        ("m" sly-who-macroexpands :name "macroexpansions")
+        ("M" sly-who-specializes :name "methods")) :name "x-ref"))
+     :name "common-lisp")
+    :hook
+    (common-lisp-mode . sly-mode)
+    :config
+    (setq inferior-lisp-program "/usr/local/bin/sbcl")
+    (sly))
+
+#+END_SRC
+
+**** Racket
+
+For editing Racket source, racket-mode is the way to go.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: Racket
+
+  ;; Initialize racket-mode
+  (use-package racket-mode
+    :mode ("\\.rkt\\'" . racket-mode)
+    :interpreter ("racket" . racket-mode)
+    :ryo
+    (:mode 'racket-mode)
+    ("SPC l"
+     ;; Run
+     (("r"
+       (("r" racket-run :name "run")
+        ("R" racket-run-and-switch-repl :name "and switch to REPL")
+        ("m" racket-run-module-at-point :name "module")) :name "program")
+
+      ;; Eval
+      ("e"
+       (("e" racket-send-last-sexp :name "exprssion")
+        ("d" racket-send-definition :name "definition")
+        ("r" racket-send-region :name "region")) :name "eval")
+
+      ;; Testing
+      ("t"
+       (("t" racket-test :name "run")
+        ("z" racket-fold-all-tests :name "fold")
+        ("Z" racket-unfold-all-tests :name "unfold")) :name "tests")) :name "racket")
+    :hook
+    (racket-mode . racket-xp-mode)
+    (racket-mode . racket-smart-open-bracket-mode)
+    (racket-mode . racket-unicode-input-method-enable)
+    (racket-repl-mode . racket-unicode-input-method-enable))
+
+#+END_SRC
+
+*** TODO C
+*** TODO Elixir
+*** TODO Elm
+*** TODO Factor
+*** TODO Go
+*** TODO Haskell
+*** TODO JavaScript/TypeScript
+*** TODO Julia
+*** TODO Nim
+*** TODO Prolog
+*** TODO R
+*** TODO Rust
+*** TODO Web Dev
 * Desktop Environment
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle "./C4.el"
+:END:
 
 Yes, Emacs is my window manager. And so far, I'm loving EXWM. If you don't love it, add a properties drawer to
 this heading similar to the one at the very top of this file. Then change =:tangle= to =no=. The configuration
@@ -2053,6 +2055,8 @@ Like the Org section, I'm breaking up this monolithic block of code into smaller
       ("k" exwm-layout-toggle-keyboard :name "toggle keyboard state")
       ("m" exwm-layout-toggle-mode-line :name "toggle mode line")
       ("M" exwm-layout-toggle-minibuffer :name "toggle minibuffer")
+      ("c" kill-this-buffer :name "kill application")
+      ("C" kill-some-buffers :name "kill multiple")
       ("s" split-window-below :name "split window horizontal")
       ("S" split-window-right :name "split window vertical"))
      :name "EXWM")
@@ -2075,7 +2079,7 @@ Like the Org section, I'm breaking up this monolithic block of code into smaller
     <<exwm-systemtray>>)
 
   (defun C4/exwm-update-class ()
-    (exwm-workspace-rename-buffer (concat "X: " exwm-class-name)))
+    (exwm-workspace-rename-buffer (concat "X Window: " exwm-class-name)))
 
 #+END_SRC
 
