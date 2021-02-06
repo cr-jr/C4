@@ -21,10 +21,13 @@
 (use-package org
   :straight org-plus-contrib)
 
-;; Generate C4.el from the source blocks in C4.org
-(org-babel-tangle-file
- (concat user-emacs-directory "C4.org")
- (concat user-emacs-directory "C4.el"))
+(setq
+ C4/config (concat user-emacs-directory "C4.org")
+ C4/generated-config (concat user-emacs-directory "C4.el"))
+
+;; Generate from the source blocks in C4.org ONLY if C4.el is missing
+(unless (file-exists-p C4/generated-config)
+  (org-babel-tangle-file C4/config C4/generated-config))
 
 ;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
@@ -162,6 +165,10 @@
   ("D"
    (("d" backward-delete-char :name "delete char before point")
     ("r" delete-region :name "delete-region"))))
+
+;;; Command modifiers
+(ryo-modal-keys
+ ("SPC u" universal-argument :name "command modifier"))
 
 ;;; Domain: buffers
 (ryo-modal-keys
@@ -333,16 +340,18 @@
               #'display-line-numbers-mode
             #'linum-mode))
 
-
 ;; Disable for document and terminal modes
 (dolist (mode '(
-    org-mode-hook
-    term-mode-hook
-    shell-mode-hook
-    treemacs-mode-hook
-    vterm-mode
-    eshell-mode-hook))
+                org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                vterm-mode
+                eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Give buffers unique names
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
 
 ;; Make some icons available
 (use-package all-the-icons)
@@ -398,7 +407,8 @@
 ;;; Better search utilities
 (use-package consult
   :ryo
-  ("C-v" consult-yank "paste from registry")
+  ("SPC ." consult-complex-command :name "query command history")
+  ("C-v" consult-yank :name "paste from registry")
   ("SPC b"
    (("b" consult-buffer :name "switch")
     ("B" consult-buffer-other-window :name "other window")))
@@ -851,7 +861,18 @@
 
 ;;; Code autocomplete with Company
 (use-package company
-  :hook (prog-mode . company-mode))
+  :config
+  (setq
+   company-idle-delay 0.25
+   company-minimum-prefix-length 1
+   company-selection-wrap-around t
+   company-show-numbers t
+   company-dabbrev-downcase nil
+   company-echo-delay 0
+   company-tooltip-limit 14
+   company-transformers '(company-sort-by-occurrence)
+   company-begin-commands '(self-insert-command))
+  (global-company-mode 1))
 
 ;;; A nice Company interface
 (use-package company-box
@@ -897,9 +918,6 @@
 (use-package yasnippet
   :hook
   (prog-mode . yas-minor-mode))
-
-;; Setup snippet collection
-(use-package yasnippet-snippets)
 
 ;; Setup Auto-YASnippet
 (use-package auto-yasnippet
@@ -1042,6 +1060,10 @@
      (("t" racket-test :name "run")
       ("z" racket-fold-all-tests :name "fold")
       ("Z" racket-unfold-all-tests :name "unfold")) :name "tests")) :name "racket")
+  :custom
+  (racket-program "~/.asdf/shims/racket")
+  :init
+  (setq tab-always-indent 'complete)
   :hook
   (racket-mode . racket-xp-mode)
   (racket-mode . racket-smart-open-bracket-mode)
