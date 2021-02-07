@@ -1113,6 +1113,55 @@
   (typescript-mode . tide-hl-identifier-mode)
   (before-save . tide-format-before-save))
 
+;;; Lang: HTML/CSS/Web
+
+;; Setup skewer-mode
+(use-package skewer-mode
+  :ryo
+  (:mode 'skewer-mode)
+  ("SPC l s"
+   (("s" skewer-load-buffer :name "load")
+    ("c" run-skewer :name "connect")
+    ("C" skewer-run-phantomjs :name "headless")
+    ("e" skewer-eval-last-expression :name "evaluate expression")
+    ("E" skewer-eval-defun :name "evaluate function")
+    ("r" skewer-repl :name "run")) :name "skewer")
+  (:mode 'skewer-html-mode)
+  ("SPC l"
+   (("l" skewer-html-eval-tag :name "eval")
+    ("e" skewer-html-fetch-selector-into-buffer :name "expand innerHTML"))
+   :name "HTML")
+  (:mode 'skewer-css-mode)
+  ("SPC l"
+   (("l" skewer-css-eval-current-declaration :name "declaration")
+    ("L" skewer-css-eval-current-rule :name "rule")
+    ("C-l" skewer-css-eval-buffer :name "buffer")
+    ("M-l" skewer-css-clear-all :name "clear all"))
+   :name "CSS")
+  :hook
+  (js-mode . skewer-mode)
+  (html-mode . skewer-html-mode)
+  (css-mode . skewer-css-mode))
+
+;; Setup emmet-mode
+(use-package emmet-mode
+  :bind
+  ("TAB" . emmet-expand-line)
+  :hook
+  (html-mode . emmet-mode)
+  (css-mode . emmet-mode))
+
+;; Setup impatient-mode
+(use-package impatient-mode
+  :ryo
+  (:mode 'impatient-mode)
+  ("SPC l"
+   (("c" httpd-start :name "connect")
+    ("C" httpd-stop :name "disconnect")
+    ("C-c" httpd-serve-directory :name "serve from dir")))
+  :hook
+  (html-mode . impatient-mode))
+
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
   :if window-system
