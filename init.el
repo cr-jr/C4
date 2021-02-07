@@ -10,7 +10,8 @@
 ;;; Code:
 
 ;;; Load in generated config
-(load-file (concat user-emacs-directory "C4.el"))
+(org-babel-load-file
+  (expand-file-name "C4.org" user-emacs-directory))
 
 (provide 'init)
 ;;; init.el ends here

@@ -48,30 +48,6 @@ C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https
 
 #+END_SRC
 
-*** Building the Configuration
-
-After package setup, we need to load in [[https://orgmode.org][Org Mode]] to build the configuration.
-
-#+BEGIN_QUOTE
-There used to be a hook to rebuild configuration on save, but then the config got /huge/.
-#+END_QUOTE
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; Need Org Mode to be first package installed because it builds the config.
-  (use-package org
-    :straight org-plus-contrib)
-
-  (setq
-   C4/config (concat user-emacs-directory "C4.org")
-   C4/generated-config (concat user-emacs-directory "C4.el"))
-
-  ;; Generate from the source blocks in C4.org ONLY if C4.el is missing
-  (unless (file-exists-p C4/generated-config)
-    (org-babel-tangle-file C4/config C4/generated-config))
-
-#+END_SRC
-
 *** Startup Performance
 **** Garbage collection
 
@@ -468,15 +444,18 @@ place as I try out new settings.
 
 #+BEGIN_SRC emacs-lisp
 
+  (defconst C4/config (expand-file-name "C4.org" user-emacs-directory)
+    "The central C4 config file.")
+
   (defun C4/open-config ()
     "Open C4 configuration Org file."
     (interactive)
-    (find-file (concat user-emacs-directory "C4.org")))
+    (find-file C4/config))
 
   (defun C4/reload-config ()
     "Reload C4 configuration."
     (interactive)
-    (load-file (concat user-emacs-directory "C4.el")))
+    (load-file user-init-file))
 
   ;;; Domain: config
   (ryo-modal-keys
@@ -917,14 +896,15 @@ operations. For example: showing the docstring for interactive commands or the c
 
   ;;; Adds annotations to minibuffer interfaces
   (use-package marginalia
-    :after consult
+    :after selectrum
     :init
-    (marginalia-mode)
     (advice-add #'marginalia-cycle :after
                 (lambda () (when (bound-and-true-p selectrum-mode)
-                             (selectrum-exhibit))))
+                        (selectrum-exhibit))))
     (setq marginalia-annotators
-          '(marginalia-annotators-heavy marginalia-annotators-light)))
+          '(marginalia-annotators-heavy marginalia-annotators-light))
+    :hook
+    (selectrum-mode . marginalia-mode))
 
 #+END_SRC
 
@@ -1099,7 +1079,15 @@ to get exactly the effect I want.
   ;;; Set default document font as Input Serif family at 13px
   (set-face-attribute 'variable-pitch nil :font C4/document-font)
 
+#+END_SRC
+
+***** Org
+
+#+NAME: org-typography
+#+BEGIN_SRC emacs-lisp :tangle no
+
   ;;; Some Org Mode adjustments
+
   (set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
   (set-face-attribute 'org-document-info nil :inherit 'org-document-title)
 
@@ -1120,9 +1108,9 @@ to get exactly the effect I want.
   (set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
   (set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
   (set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
+  (set-face-attribute 'org-ellipsis nil :foreground "Blue1" :underline nil)
 
 #+END_SRC
-
 **** UI
 
 I also make some adjustments to the UI faces. Mainly to clean it up.
@@ -1347,6 +1335,7 @@ flow becomes more personal.
 
   ;;; Org setup
   (use-package org
+    :straight org-plus-contrib
     :ryo
     ("SPC o" nil :name "org")
     (:mode 'org-mode)
@@ -1376,14 +1365,14 @@ flow becomes more personal.
     (org-mode . org-indent-mode)
     (org-mode . auto-fill-mode)
     :config
-    (setq org-ellipsis " ↴")
+    (setq org-ellipsis " ➕")
     (setq org-directory C4/org-root-path)
+    <<org-typography>>
     <<org-agenda>>
     <<org-templates>>
     <<org-literate>>
     (advice-add 'org-refile :after 'org-save-all-org-buffers)
     (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 3)))
-
 #+END_SRC
 
 ****** Agenda
@@ -1538,6 +1527,7 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
 
 #+END_SRC
 
+****** toc-org
 **** Markdown
 **** LaTeX
 ** Programming Modes
@@ -1795,10 +1785,7 @@ The commands for snippet creation are enabled across all programming modes under
 The groundwork is in place, so now I'm going to selectively enhance some programming modes. The
 language support of my configuration includes both languages I use regularly and those I'm learning.
 
-If you don't need support for a language below, adding a =PROPERTIES= block under the heading for
-that language with =:header-args:emacs-lisp: :tangle no= will disable generation.
-
-**** TODO Lisp Family
+**** Lisp Family
 ***** Emacs Lisp
 
 Having a good Emacs Lisp experience ensures I'll want to keep editing and improving this
@@ -1969,19 +1956,82 @@ For editing Racket source, racket-mode is the way to go.
 
 #+END_SRC
 
-**** TODO C
 **** TODO Elixir
 **** TODO Elm
 **** TODO Factor
 **** TODO Go
 **** TODO Haskell
-**** TODO JavaScript/TypeScript
+**** JavaScript/TypeScript
+***** JavaScript
+
+First, I'll add three packages that beef up the JS dev experience: js2-mode, js-comint, and
+json-mode.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: JavaScript
+
+  ;; Setup js2-mode
+  (use-package js2-mode
+    :mode ("\\.js\\'" . js-mode)
+    :interpreter ("node" . js-mode)
+    :hook
+    (js-mode . js2-minor-mode)
+    (js-mode . lsp-mode))
+
+  ;; Setup js-comint.el
+  (use-package js-comint
+    :ryo
+    (:mode 'js-mode)
+    ("SPC l"
+     (("e"
+       (("e" js-send-last-sexp :name "expression")
+        ("E" js-send-last-sexp-and-go :name "and switch to REPL")
+        ("r" js-send-region :name "region")
+        ("R" js-send-region-and-go :name "and switch to REPL")
+        ("b" js-send-buffer :name "buffer")
+        ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
+      ("r"
+       (("r" js-comint-start-or-switch-to-repl :name "run")
+        ("R" js-reset-repl :name "reset")) :name "program"))
+     :name "javascript")
+    :init
+    (setq inferior-js-program-command "~/.asdf/shims/node"))
+
+  ;; Setup json-mode
+  (use-package json-mode
+    :mode
+    ("\\.json\\'" . json-mode)
+    ("\\.jsonp\\'" . json-mode))
+
+#+END_SRC
+
+***** TypeScript
+
+For TypeScript development, I'm setting up Tide.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Lang: TypeScript
+
+  ;; Setup Tide
+  (use-package tide
+    :after
+    (typescript-mode company flycheck)
+    :hook
+    (typescript-mode . lsp-mode)
+    (typescript-mode . tide-setup)
+    (typescript-mode . tide-hl-identifier-mode)
+    (before-save . tide-format-before-save))
+
+#+END_SRC
+
 **** TODO Julia
 **** TODO Nim
 **** TODO Prolog
 **** TODO R
 **** TODO Rust
-**** TODO Web Dev
+**** NEXT Web Dev
 ** Desktop Environment
 
 Yes, Emacs is my window manager. And so far, I'm loving EXWM. If you don't love it, add a properties drawer to

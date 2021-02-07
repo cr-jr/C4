@@ -17,18 +17,6 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
-;;; Need Org Mode to be first package installed because it builds the config.
-(use-package org
-  :straight org-plus-contrib)
-
-(setq
- C4/config (concat user-emacs-directory "C4.org")
- C4/generated-config (concat user-emacs-directory "C4.el"))
-
-;; Generate from the source blocks in C4.org ONLY if C4.el is missing
-(unless (file-exists-p C4/generated-config)
-  (org-babel-tangle-file C4/config C4/generated-config))
-
 ;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
@@ -187,15 +175,18 @@
      ("p" narrow-to-page :name "to page")
      ("r" narrow-to-region :name "to region")) :name "narrow")) :name "buffer"))
 
+(defconst C4/config (expand-file-name "C4.org" user-emacs-directory)
+  "The central C4 config file.")
+
 (defun C4/open-config ()
   "Open C4 configuration Org file."
   (interactive)
-  (find-file (concat user-emacs-directory "C4.org")))
+  (find-file C4/config))
 
 (defun C4/reload-config ()
   "Reload C4 configuration."
   (interactive)
-  (load-file (concat user-emacs-directory "C4.el")))
+  (load-file user-init-file))
 
 ;;; Domain: config
 (ryo-modal-keys
@@ -434,14 +425,15 @@
 
 ;;; Adds annotations to minibuffer interfaces
 (use-package marginalia
-  :after consult
+  :after selectrum
   :init
-  (marginalia-mode)
   (advice-add #'marginalia-cycle :after
               (lambda () (when (bound-and-true-p selectrum-mode)
-                           (selectrum-exhibit))))
+                      (selectrum-exhibit))))
   (setq marginalia-annotators
-        '(marginalia-annotators-heavy marginalia-annotators-light)))
+        '(marginalia-annotators-heavy marginalia-annotators-light))
+  :hook
+  (selectrum-mode . marginalia-mode))
 
 ;;; Incremental search interface similar to web browsers
 (use-package ctrlf
@@ -510,28 +502,6 @@
 
 ;;; Set default document font as Input Serif family at 13px
 (set-face-attribute 'variable-pitch nil :font C4/document-font)
-
-;;; Some Org Mode adjustments
-(set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
-(set-face-attribute 'org-document-info nil :inherit 'org-document-title)
-
-(set-face-attribute 'org-level-1 nil :height 1.8 :weight 'bold :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-2 nil :height 1.6 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-4 nil :height 1.2 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-5 nil :height 1.0 :inherit 'fixed-pitch)
-(set-face-attribute 'org-level-6 nil :height 0.8 :inherit 'fixed-pitch)
-
-(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-block nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-block-begin-line nil :weight 'normal :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-block-end-line nil :weight 'normal :inherit '(shadow fixed-pitch))
-(set-face-attribute 'org-property-value nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-(set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
-(set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
-(set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
 
 ;;; Disable the fringe background
 (set-face-attribute 'fringe nil
@@ -657,6 +627,7 @@
 
 ;;; Org setup
 (use-package org
+  :straight org-plus-contrib
   :ryo
   ("SPC o" nil :name "org")
   (:mode 'org-mode)
@@ -686,8 +657,33 @@
   (org-mode . org-indent-mode)
   (org-mode . auto-fill-mode)
   :config
-  (setq org-ellipsis " ↴")
+  (setq org-ellipsis " ➕")
   (setq org-directory C4/org-root-path)
+  
+  ;;; Some Org Mode adjustments
+  
+  (set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
+  (set-face-attribute 'org-document-info nil :inherit 'org-document-title)
+  
+  (set-face-attribute 'org-level-1 nil :height 1.8 :weight 'bold :inherit 'fixed-pitch)
+  (set-face-attribute 'org-level-2 nil :height 1.6 :inherit 'fixed-pitch)
+  (set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'fixed-pitch)
+  (set-face-attribute 'org-level-4 nil :height 1.2 :inherit 'fixed-pitch)
+  (set-face-attribute 'org-level-5 nil :height 1.0 :inherit 'fixed-pitch)
+  (set-face-attribute 'org-level-6 nil :height 0.8 :inherit 'fixed-pitch)
+  
+  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-begin-line nil :weight 'normal :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-block-end-line nil :weight 'normal :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-property-value nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
+  (set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
+  (set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
+  (set-face-attribute 'org-ellipsis nil :foreground "Blue1" :underline nil)
+  
   
   ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
@@ -1069,6 +1065,53 @@
   (racket-mode . racket-smart-open-bracket-mode)
   (racket-mode . racket-unicode-input-method-enable)
   (racket-repl-mode . racket-unicode-input-method-enable))
+
+;;; Lang: JavaScript
+
+;; Setup js2-mode
+(use-package js2-mode
+  :mode ("\\.js\\'" . js-mode)
+  :interpreter ("node" . js-mode)
+  :hook
+  (js-mode . js2-minor-mode)
+  (js-mode . lsp-mode))
+
+;; Setup js-comint.el
+(use-package js-comint
+  :ryo
+  (:mode 'js-mode)
+  ("SPC l"
+   (("e"
+     (("e" js-send-last-sexp :name "expression")
+      ("E" js-send-last-sexp-and-go :name "and switch to REPL")
+      ("r" js-send-region :name "region")
+      ("R" js-send-region-and-go :name "and switch to REPL")
+      ("b" js-send-buffer :name "buffer")
+      ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
+    ("r"
+     (("r" js-comint-start-or-switch-to-repl :name "run")
+      ("R" js-reset-repl :name "reset")) :name "program"))
+   :name "javascript")
+  :init
+  (setq inferior-js-program-command "~/.asdf/shims/node"))
+
+;; Setup json-mode
+(use-package json-mode
+  :mode
+  ("\\.json\\'" . json-mode)
+  ("\\.jsonp\\'" . json-mode))
+
+;;; Lang: TypeScript
+
+;; Setup Tide
+(use-package tide
+  :after
+  (typescript-mode company flycheck)
+  :hook
+  (typescript-mode . lsp-mode)
+  (typescript-mode . tide-setup)
+  (typescript-mode . tide-hl-identifier-mode)
+  (before-save . tide-format-before-save))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
