@@ -804,7 +804,7 @@ I start working out the look and feel of my workspace as well as establish some 
 
 (setq inhibit-startup-message t) ; inhibit startup message
 (setq initial-scratch-message "") ; no scratch message
-(setq initial-major-mode 'text-mode)
+(setq initial-major-mode 'text-mode) ; set scratch to generic text mode
 (setq visible-bell t)             ; enable visual bell
 (global-auto-revert-mode t) ; autosave buffer on file change
 (delete-selection-mode 1) ; Selected text will be overwritten on typing
@@ -1377,6 +1377,8 @@ flow becomes more personal.
   ("V" org-previous-visible-heading "jump to prev heading")
   ("RET" nil "exit state: org-trek" :exit t))
 
+<<org-breadcrumbs>>
+
 ;;; Org setup
 (use-package org
   :straight org-plus-contrib
@@ -1391,6 +1393,7 @@ flow becomes more personal.
    (("b" org-insert-link :name "link")
     ("c" org-capture :name "capture")
     ("r" org-refile :name "refile")
+    ("R" org-refile-copy :name "as a copy")
     ("n"
      (("n" org-toggle-narrow-to-subtree :name "subtree")
       ("b" org-narrow-to-block :name "block")
@@ -1411,6 +1414,7 @@ flow becomes more personal.
   (org-mode . org-indent-mode)
   (org-mode . visual-line-mode)
   (org-mode . auto-fill-mode)
+  (org-mode . ndk/set-header-line-format)
   :custom-face
   (org-meta-line ((t (:extend t))))
   (org-block-begin-line ((t (:extend t))))
@@ -1420,12 +1424,46 @@ flow becomes more personal.
   (setq org-ellipsis " ➕")
   (setq org-directory C4/org-root-path)
   (setq line-spacing 0.25)
-  (setq header-line-format " ")
+  (setq org-refile-use-outline-path t)
+  (setq org-refile-allow-creating-parent-nodes t)
   <<org-agenda>>
   <<org-templates>>
   <<org-literate>>
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 3)))
+  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 4)))
+
+#+END_SRC
+
+****** Breadcrumbs
+
+I'm including an Org breadcrumb setup so I don't lose track of what heading I'm actually in.
+
+The code is lifted directly from [[https://emacs.stackexchange.com/a/61107][this Stack Overflow answer]].
+
+#+NAME: org-breadcrumbs
+#+BEGIN_SRC emacs-lisp :tangle no
+
+(defun ndk/heading-title ()
+  "Get the heading title."
+  (save-excursion
+    (if (not (org-at-heading-p))
+  (org-previous-visible-heading 1))
+    (org-element-property :title (org-element-at-point))))
+
+(defun ndk/org-breadcrumbs ()
+  "Get the chain of headings from the top level down
+    to the current heading."
+  (let ((breadcrumbs (org-format-outline-path
+                      (org-get-outline-path)
+                      (1- (frame-width))
+                      nil " ⟼ "))
+        (title (ndk/heading-title)))
+    (if (string-empty-p breadcrumbs)
+        title
+      (format "%s ⟼ %s" breadcrumbs title))))
+
+(defun ndk/set-header-line-format()
+  (setq header-line-format '(:eval (ndk/org-breadcrumbs))))
 
 #+END_SRC
 
@@ -1548,7 +1586,7 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
 
 #+END_SRC
 
-***** Addons
+***** Interface Addons
 ****** org-superstar
 
 Org Superstar is a package that makes Org Mode bullets (even lists) much prettier.
@@ -1567,7 +1605,6 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
         '("§" "☙" "❡" "჻" "•" "⁃")))
 
 #+END_SRC
-
 ****** visual-fill-column
 
 This package provides a more pleasant writing experience with Org Mode. I used darkroom for a while,
@@ -1586,7 +1623,6 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
 #+END_SRC
-
 ****** toc-org
 
 This package enables me to add a table of contents to Org files.
@@ -1600,8 +1636,7 @@ This package enables me to add a table of contents to Org files.
   (org-mode . toc-org-mode))
 
 #+END_SRC
-
-****** org-journal
+***** Journaling
 
 I include Org Journal, because I want to commit to keeping better notes and cultivate a habit of
 note-taking in an environment I know I won't abandon easily.
@@ -1613,10 +1648,10 @@ note-taking in an environment I know I won't abandon easily.
   "Custom function to create a journal header."
   (concat
    (pcase org-journal-file-type
-     (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything")
-     (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
-     (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
-     (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
+     (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n")
+     (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded\n")
+     (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded\n")
+     (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded\n"))))
 
 ;;; Add journaling support to Org Mode
 (use-package org-journal
@@ -1630,8 +1665,8 @@ note-taking in an environment I know I won't abandon easily.
     ("c" calendar :name "calendar")) :name "journal")
   :custom
   ;; Files
-  (org-journal-dir "~/Documents/Org/Notes/Fleeting/")
-  (org-journal-file-format "%V|%F")
+  (org-journal-dir "~/Documents/Org/Notes/Journal/")
+  (org-journal-file-format "%V|%F.org")
 
   ;; Entries
   (org-journal-file-header 'C4/org-journal-file-header)
@@ -1641,11 +1676,51 @@ note-taking in an environment I know I won't abandon easily.
 
 #+END_SRC
 
+***** Notes
 ****** org-roam
 
 Another vital component of my note-taking workflow: org-roam.
 
 #+BEGIN_SRC emacs-lisp
+
+;;; Setup org-roam for starting a knowledge base
+(use-package org-roam
+  :after org
+  :ryo
+  (:mode 'org-roam-mode)
+  ("SPC o n"
+   (("n" org-roam-buffer-toggle-display :name "toggle")
+    ("b" org-roam-switch-to-buffer :name "switch")
+    ("f" org-roam-find-file :name "find file")
+    ("g" org-roam-graph :name "graph")
+    ("l" org-roam-insert :name "link")
+    ("L" org-roam-insert-immediate :name "and create note")) :name "roam")
+  :hook
+  (after-init . org-roam-mode)
+  :custom
+  (org-roam-directory "~/Documents/Org/Notes/Roam/"))
+
+#+END_SRC
+
+****** deft
+
+The final piece of the puzzle is deft. This package allows me to perform fast text searches across
+all of my Org notes. The main advantage: I get an overview of topics and thoughts I fixate on by how
+many times they recur, for better or worse.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Deft for quick pattern-based note searching
+(use-package deft
+  :ryo
+  ("SPC o q" deft :name "query")
+  :commands (deft)
+  :custom
+  (deft-extensions '("org"))
+  (deft-directory "~/Documents/Org/Notes/")
+  (deft-use-filename-as-title t)
+  (deft-recursive t))
+
 #+END_SRC
 
 **** Markdown
@@ -1706,17 +1781,17 @@ I'm going to adjust some of the faces provided by tree-sitter now.
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed-13" :weight 'bold)
 
-;; set constants face
-(set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-keyword-face)
-
-;; set built-in face
-(set-face-attribute 'font-lock-builtin-face nil :inherit 'font-lock-keyword-face)
-
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil :font "Input Sans" :weight 'black)
 
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil :font "Input Serif Compressed" :weight 'normal)
+
+;; set constants face
+(set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
+
+;; set built-in face
+(set-face-attribute 'font-lock-builtin-face nil :inherit 'font-lock-keyword-face)
 
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)

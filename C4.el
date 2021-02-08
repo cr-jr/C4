@@ -320,7 +320,7 @@
 
 (setq inhibit-startup-message t) ; inhibit startup message
 (setq initial-scratch-message "") ; no scratch message
-(setq initial-major-mode 'text-mode)
+(setq initial-major-mode 'text-mode) ; set scratch to generic text mode
 (setq visible-bell t)             ; enable visual bell
 (global-auto-revert-mode t) ; autosave buffer on file change
 (delete-selection-mode 1) ; Selected text will be overwritten on typing
@@ -595,6 +595,30 @@
   ("V" org-previous-visible-heading "jump to prev heading")
   ("RET" nil "exit state: org-trek" :exit t))
 
+
+(defun ndk/heading-title ()
+  "Get the heading title."
+  (save-excursion
+    (if (not (org-at-heading-p))
+  (org-previous-visible-heading 1))
+    (org-element-property :title (org-element-at-point))))
+
+(defun ndk/org-breadcrumbs ()
+  "Get the chain of headings from the top level down
+    to the current heading."
+  (let ((breadcrumbs (org-format-outline-path
+                      (org-get-outline-path)
+                      (1- (frame-width))
+                      nil " ⟼ "))
+        (title (ndk/heading-title)))
+    (if (string-empty-p breadcrumbs)
+        title
+      (format "%s ⟼ %s" breadcrumbs title))))
+
+(defun ndk/set-header-line-format()
+  (setq header-line-format '(:eval (ndk/org-breadcrumbs))))
+
+
 ;;; Org setup
 (use-package org
   :straight org-plus-contrib
@@ -609,6 +633,7 @@
    (("b" org-insert-link :name "link")
     ("c" org-capture :name "capture")
     ("r" org-refile :name "refile")
+    ("R" org-refile-copy :name "as a copy")
     ("n"
      (("n" org-toggle-narrow-to-subtree :name "subtree")
       ("b" org-narrow-to-block :name "block")
@@ -629,6 +654,7 @@
   (org-mode . org-indent-mode)
   (org-mode . visual-line-mode)
   (org-mode . auto-fill-mode)
+  (org-mode . ndk/set-header-line-format)
   :custom-face
   (org-meta-line ((t (:extend t))))
   (org-block-begin-line ((t (:extend t))))
@@ -638,7 +664,8 @@
   (setq org-ellipsis " ➕")
   (setq org-directory C4/org-root-path)
   (setq line-spacing 0.25)
-  (setq header-line-format " ")
+  (setq org-refile-use-outline-path t)
+  (setq org-refile-allow-creating-parent-nodes t)
   
   ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
@@ -734,7 +761,7 @@
      (js . t)))
   
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 3)))
+  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 4)))
 
 ;;; Org Superstar makes your bullets bang louder
 (use-package org-superstar
@@ -768,10 +795,10 @@
   "Custom function to create a journal header."
   (concat
    (pcase org-journal-file-type
-     (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything")
-     (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
-     (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
-     (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
+     (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything\n")
+     (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded\n")
+     (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded\n")
+     (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded\n"))))
 
 ;;; Add journaling support to Org Mode
 (use-package org-journal
@@ -785,8 +812,8 @@
     ("c" calendar :name "calendar")) :name "journal")
   :custom
   ;; Files
-  (org-journal-dir "~/Documents/Org/Notes/Fleeting/")
-  (org-journal-file-format "%V|%F")
+  (org-journal-dir "~/Documents/Org/Notes/Journal/")
+  (org-journal-file-format "%V|%F.org")
 
   ;; Entries
   (org-journal-file-header 'C4/org-journal-file-header)
@@ -794,7 +821,33 @@
   ;; Org agenda integration
   (org-journal-enable-agenda-integration t))
 
+;;; Setup org-roam for starting a knowledge base
+(use-package org-roam
+  :after org
+  :ryo
+  (:mode 'org-roam-mode)
+  ("SPC o n"
+   (("n" org-roam-buffer-toggle-display :name "toggle")
+    ("b" org-roam-switch-to-buffer :name "switch")
+    ("f" org-roam-find-file :name "find file")
+    ("g" org-roam-graph :name "graph")
+    ("l" org-roam-insert :name "link")
+    ("L" org-roam-insert-immediate :name "and create note")) :name "roam")
+  :hook
+  (after-init . org-roam-mode)
+  :custom
+  (org-roam-directory "~/Documents/Org/Notes/Roam/"))
 
+;;; Deft for quick pattern-based note searching
+(use-package deft
+  :ryo
+  ("SPC o q" deft :name "query")
+  :commands (deft)
+  :custom
+  (deft-extensions '("org"))
+  (deft-directory "~/Documents/Org/Notes/")
+  (deft-use-filename-as-title t)
+  (deft-recursive t))
 
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
@@ -813,17 +866,17 @@
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed-13" :weight 'bold)
 
-;; set constants face
-(set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-keyword-face)
-
-;; set built-in face
-(set-face-attribute 'font-lock-builtin-face nil :inherit 'font-lock-keyword-face)
-
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil :font "Input Sans" :weight 'black)
 
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil :font "Input Serif Compressed" :weight 'normal)
+
+;; set constants face
+(set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
+
+;; set built-in face
+(set-face-attribute 'font-lock-builtin-face nil :inherit 'font-lock-keyword-face)
 
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
