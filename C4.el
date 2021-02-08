@@ -17,27 +17,27 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
-;; Raise the garbage collection threshold high as emacs starts
+;;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 
-;; Drop it down once loaded
+;;; Drop it down once loaded
 (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
 
-;; Lockfiles do more harm than good
+;;; Lockfiles do more harm than good
 (setq create-lockfiles nil)
 
-;; Custom files just add clutter
+;;; Custom files just add clutter
 (setq custom-file null-device)
 
-;; Put temporary and data files in proper locations
+;;; Put temporary and data files in proper locations
 (use-package no-littering
   :custom
   (auto-save-file-name-transforms
    `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
-;; Create parent dirs when opening new files
- (add-to-list 'find-file-not-found-functions #'C4/create-parent)
+;;; Create parent dirs when opening new files
+(add-to-list 'find-file-not-found-functions #'C4/create-parent)
 
 (defun C4/create-parent ()
   "Ensures that the parent dirs are created for a nonexistent file."
@@ -137,22 +137,22 @@
 
 ;;; Actions: killing/cutting text
 (ryo-modal-keys
-  ("x" kill-region :wk "cut selection")
-  ("X" clipboard-kill-region :wk "cut selection (system)"))
+ ("x" kill-region :wk "cut selection")
+ ("X" clipboard-kill-region :wk "cut selection (system)"))
 
 ;;; Actions: copy/paste
 (ryo-modal-keys
-  ("c" kill-ring-save :name "copy selection")
-  ("C" clipboard-kill-ring-save :name "copy selection (system)")
-  ("v" yank :name "paste")
-  ("V" clipboard-yank :name "paste (system)"))
+ ("c" kill-ring-save :name "copy selection")
+ ("C" clipboard-kill-ring-save :name "copy selection (system)")
+ ("v" yank :name "paste")
+ ("V" clipboard-yank :name "paste (system)"))
 
 ;;; Actions: deleting text
 (ryo-modal-keys
-  ("d" delete-char :wk "delete char after point")
-  ("D"
-   (("d" backward-delete-char :name "delete char before point")
-    ("r" delete-region :name "delete-region"))))
+ ("d" delete-char :wk "delete char after point")
+ ("D"
+  (("d" backward-delete-char :name "delete char before point")
+   ("r" delete-region :name "delete-region"))))
 
 ;;; Command modifiers
 (ryo-modal-keys
@@ -294,6 +294,7 @@
   :config
   (explain-pause-mode))
 
+;;; Utilities for useful Emacs functions
 (use-package crux
   :ryo
   ("<return>" crux-smart-open-line :name "insert new line" :exit t)
@@ -429,7 +430,7 @@
   :init
   (advice-add #'marginalia-cycle :after
               (lambda () (when (bound-and-true-p selectrum-mode)
-                      (selectrum-exhibit))))
+                           (selectrum-exhibit))))
   (setq marginalia-annotators
         '(marginalia-annotators-heavy marginalia-annotators-light))
   :config
@@ -450,9 +451,10 @@
   (prog-mode . ctrlf-mode)
   (org-mode . ctrlf-mode))
 
+;;; Lightweight mode line goodness
 (use-package smart-mode-line
   :init
-  (setq sml/theme 'light)
+  (setq sml/theme 'respectful)
   (setq sml/no-confirm-load-theme t)
   (setq sml/name-width '(16 . 32))
   (setq sml/mode-width 'full)
@@ -496,9 +498,9 @@
 (set-face-attribute 'default nil :font C4/font)
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :inherit 'default)
+(set-face-attribute 'fixed-pitch nil :font C4/font)
 
-;; Set default document font as Lora family at 16px
+;; Set default document font as Merriweather family at 16px
 (set-face-attribute 'variable-pitch nil :font C4/document-font)
 
 ;;; Disable the fringe background
@@ -508,7 +510,11 @@
 ;;; Setup poet-themes
 (use-package poet-theme)
 
+;; Light monochrome by default
 (load-theme 'poet-monochrome t)
+
+;; Load in dark monochrome for quick toggling
+(load-theme 'poet-dark-monochrome t t)
 
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root '("~/Code"))
@@ -566,14 +572,14 @@
                 :username C4/gh-user
                 :auth 'forge))
 
-;;; Show how files have changed between commits
-(use-package diff-hl
-  :after magit
-  :hook
-  (magit-pre-refresh . diff-hl-magit-pre-refresh)
-  (magit-post-refresh . diff-hl-magit-post-refresh)
-  :config
-  (global-diff-hl-mode 1))
+  ;;; Show how files have changed between commits
+  (use-package diff-hl
+    :after magit
+    :hook
+    (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    (magit-post-refresh . diff-hl-magit-post-refresh)
+    :config
+    (global-diff-hl-mode 1))
 
 ;;; Variables for Org Mode configuration
 (setq C4/org-root-path "~/Documents/Org")
@@ -615,14 +621,24 @@
    (("s" org-edit-special :name "edit")
     ("e" org-babel-execute-src-block :name "execute")
     ("t" org-babel-tangle :name "tangle")) :name "special")
+  (:mode 'org-src-mode)
+  ("SPC o o" org-edit-src-exit :name "exit")
+  ("SPC o O" org-edit-src-abort :name "without saving")
   :hook
   (org-mode . variable-pitch-mode)
-  (org-mode . visual-line-mode)
   (org-mode . org-indent-mode)
+  (org-mode . visual-line-mode)
   (org-mode . auto-fill-mode)
+  :custom-face
+  (org-meta-line ((t (:extend t))))
+  (org-block-begin-line ((t (:extend t))))
+  (org-block ((t (:extend t))))
+  (org-block-end-line ((t (:extend t))))
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory C4/org-root-path)
+  (setq line-spacing 0.25)
+  (setq header-line-format " ")
   
   ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
@@ -658,53 +674,55 @@
   
   (setq org-agenda-custom-commands
         '(("d" "Dashboard"
-       ((agenda "" ((org-deadline-warning-days 7)))
-         (todo "NEXT"
-                ((org-agenda-overriding-header "Next Tasks")))))
+     ((agenda "" ((org-deadline-warning-days 7)))
+            (todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))))
   
-      ("P" "Products" tags-todo "@product")
-        ("E" "Experiments" tags-todo "@experiment")
-        ("R" "Resources" tags-todo "@resource")
-        ("L" "Learning" tags-todo "@learning")
-        ("T" "Teaching" tags-todo "@teaching")
+    ("P" "Products" tags-todo "@product")
+          ("E" "Experiments" tags-todo "@experiment")
+          ("R" "Resources" tags-todo "@resource")
+          ("L" "Learning" tags-todo "@learning")
+          ("T" "Teaching" tags-todo "@teaching")
   
-        ("s" "Workflow Status"
-         ((todo "WAIT"
-                 ((org-agenda-overriding-header "Waiting on External")
-             (org-agenda-files org-agenda-files)))
-           (todo "REVIEW"
-                ((org-agenda-overriding-header "Under Review")
-             (org-agenda-files org-agenda-files)))
-          (todo "PLAN"
-                ((org-agenda-overriding-header "Planning")
-             (org-agenda-files org-agenda-files)))
-          (todo "BACKLOG"
-                ((org-agenda-overriding-header "Project Backlog")
-             (org-agenda-files org-agenda-files)))
-          (todo "READY"
-                ((org-agenda-overriding-header "Ready for Work")
-             (org-agenda-files org-agenda-files)))
-          (todo "ACTIVE"
-                ((org-agenda-overriding-header "Active Projects")
-             (org-agenda-files org-agenda-files)))
-          (todo "COMPLETED"
-                ((org-agenda-overriding-header "Completed Projects")
-             (org-agenda-files org-agenda-files)))
-          (todo "CANC"
-                ((org-agenda-overriding-header "Cancelled Projects")
-             (org-agenda-files org-agenda-files)))))))
+          ("s" "Workflow Status"
+           ((todo "WAIT"
+                  ((org-agenda-overriding-header "Waiting on External")
+       (org-agenda-files org-agenda-files)))
+            (todo "REVIEW"
+                  ((org-agenda-overriding-header "Under Review")
+       (org-agenda-files org-agenda-files)))
+            (todo "PLAN"
+                  ((org-agenda-overriding-header "Planning")
+       (org-agenda-files org-agenda-files)))
+            (todo "BACKLOG"
+                  ((org-agenda-overriding-header "Project Backlog")
+       (org-agenda-files org-agenda-files)))
+            (todo "READY"
+                  ((org-agenda-overriding-header "Ready for Work")
+       (org-agenda-files org-agenda-files)))
+            (todo "ACTIVE"
+                  ((org-agenda-overriding-header "Active Projects")
+       (org-agenda-files org-agenda-files)))
+            (todo "COMPLETED"
+                  ((org-agenda-overriding-header "Completed Projects")
+       (org-agenda-files org-agenda-files)))
+            (todo "CANC"
+                  ((org-agenda-overriding-header "Cancelled Projects")
+       (org-agenda-files org-agenda-files)))))))
   
   
   ;;; Org template definitions
   (setq org-capture-templates
-      `(("t" "Tasks / Projects")
+        `(("t" "Tasks / Projects")
           ("tt" "Task" entry (file+olp "Tasks.org" "Inbox")
-            "* TODO %?\n %U\n %a\n %i" :empty-lines 1)))
+           "* TODO %?\n %U\n %a\n %i" :empty-lines 1)))
   
   
   ;;; Org-babel setup
   (setq org-src-fontify-natively t)
   (setq org-confirm-babel-evaluate nil)
+  (setq org-src-tab-acts-natively t)
+  (setq org-src-preserve-indentation t)
   (setq org-babel-lisp-eval-fn "sly-eval")
   
   ;;; Supported languages
@@ -727,10 +745,9 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("⚀" "⚁" "⚂" "⚃" "⚄" "⚅")))
+        '(" " " " " " " " " " " " " " " ")))
 
-;;; visual-fill-column does just enough UI adjustment
-;;; for Org Mode
+;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
   :custom
   (visual-fill-column-width 120)
@@ -791,10 +808,10 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow:italic" :weight 'extra-light)
+(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow-13:italic" :weight 'extra-light)
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed" :weight 'bold)
+(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed-13" :weight 'bold)
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-keyword-face)
@@ -811,7 +828,7 @@
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
 
-;;; When I'm knee deep in parens
+  ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
   (prog-mode . rainbow-delimiters-mode)
@@ -819,7 +836,7 @@
 
 ;;; Code linting package that flies
 (use-package flycheck
-    :hook (prog-mode . flycheck-mode))
+  :hook (prog-mode . flycheck-mode))
 
 ;;; Universal code formatting package
 (use-package apheleia
@@ -1213,7 +1230,7 @@
           ?\M-:
           ?\s-\ ))
   
-  ;;; Global keys for getting around in EXWM
+    ;;; Global keys for getting around in EXWM
   (setq exwm-input-global-keys
         `(([?\s-I] . windmove-swap-states-up)
           ([?\s-i] . windmove-up)
@@ -1248,7 +1265,7 @@
   (add-hook 'exwm-update-class-hook #'C4/exwm-update-class)
 
   
-   ;;; Multi monitor workspaces
+  ;;; Multi monitor workspaces
   (require 'exwm-randr)
   (setq exwm-randr-workspace-monitor-plist
         '(0 "LVDS" 1 "LVDS" 2 "HDMI-0" 3 "HDMI-0"))
