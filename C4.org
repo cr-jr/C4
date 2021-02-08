@@ -582,7 +582,8 @@ This prefix wraps all commands that affect the filesystem. It includes finding a
 (ryo-modal-keys
  ("SPC f"
   (("f" find-file :name "find")
-   ("F" find-file-other-window :name "other window")) :name "file"))
+   ("F" find-file-other-window :name "other window")
+   ("d" dired :name "directory")) :name "file"))
 
 #+END_SRC
 
@@ -1377,7 +1378,7 @@ flow becomes more personal.
   ("RET" nil "exit state: org-trek" :exit t))
 
 <<org-breadcrumbs>>
-
+<<org-refiling>>
 ;;; Org setup
 (use-package org
   :straight org-plus-contrib
@@ -1391,8 +1392,8 @@ flow becomes more personal.
   ("SPC o b"
    (("b" org-insert-link :name "link")
     ("c" org-capture :name "capture")
-    ("r" org-refile :name "refile")
-    ("R" org-refile-copy :name "as a copy")
+    ("r" my/org-refile-in-file :name "refile")
+    ("R" org-refile :name "to agenda")
     ("n"
      (("n" org-toggle-narrow-to-subtree :name "subtree")
       ("b" org-narrow-to-block :name "block")
@@ -1423,14 +1424,9 @@ flow becomes more personal.
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
   (setq line-spacing 0.25)
-  (setq org-refile-use-outline-path 'file)
-  (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-allow-creating-parent-nodes 'confirm)
   <<org-agenda>>
   <<org-templates>>
-  <<org-literate>>
-  (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 6)))
+  <<org-literate>>)
 
 #+END_SRC
 
@@ -1543,6 +1539,31 @@ Now, I set up Org for task management.
 
 #+END_SRC
 
+***** Refiling
+
+Refiling is a feature that can help me for more than moving things across files. It can also help me
+restructure current files, so I'm setting it up for that. This is taken from Sacha Chua's dotemacs.
+
+#+NAME: org-refiling
+#+BEGIN_SRC emacs-lisp
+
+;;; Refiling setup
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
+(setq org-refile-allow-creating-parent-nodes 'confirm)
+
+;; Refile from current file
+(defun my/org-refile-in-file (&optional prefix)
+  "Refile to a target within the current file."
+  (interactive)
+  (let ((org-refile-targets `(((,(buffer-file-name)) :maxlevel . 6))))
+    (call-interactively 'org-refile)))
+
+;; Save all buffers after a refile
+(advice-add 'org-refile :after 'org-save-all-org-buffers)
+
+#+END_SRC
+
 ***** Capture Templates
 
 In this section, I'm defining my Org-capture templates. It's just the one right now, but more will be added as
@@ -1602,6 +1623,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
         '("§" "☙" "❡" "჻" "•" "⁃")))
 
 #+END_SRC
+
 ****** visual-fill-column
 
 This package provides a more pleasant writing experience with Org Mode. I used darkroom for a while,
@@ -1620,6 +1642,7 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
 #+END_SRC
+
 ****** toc-org
 
 This package enables me to add a table of contents to Org files.

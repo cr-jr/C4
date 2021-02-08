@@ -205,7 +205,8 @@
 (ryo-modal-keys
  ("SPC f"
   (("f" find-file :name "find")
-   ("F" find-file-other-window :name "other window")) :name "file"))
+   ("F" find-file-other-window :name "other window")
+   ("d" dired :name "directory")) :name "file"))
 
 ;;; Domain: help
 (ryo-modal-keys
@@ -618,6 +619,21 @@
   (setq header-line-format '(:eval (ndk/org-breadcrumbs))))
 
 
+;;; Refiling setup
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
+(setq org-refile-allow-creating-parent-nodes 'confirm)
+
+;; Refile from current file
+(defun my/org-refile-in-file (&optional prefix)
+  "Refile to a target within the current file."
+  (interactive)
+  (let ((org-refile-targets `(((,(buffer-file-name)) :maxlevel . 6))))
+    (call-interactively 'org-refile)))
+
+;; Save all buffers after a refile
+(advice-add 'org-refile :after 'org-save-all-org-buffers)
+
 ;;; Org setup
 (use-package org
   :straight org-plus-contrib
@@ -631,8 +647,8 @@
   ("SPC o b"
    (("b" org-insert-link :name "link")
     ("c" org-capture :name "capture")
-    ("r" org-refile :name "refile")
-    ("R" org-refile-copy :name "as a copy")
+    ("r" my/org-refile-in-file :name "refile")
+    ("R" org-refile :name "to agenda")
     ("n"
      (("n" org-toggle-narrow-to-subtree :name "subtree")
       ("b" org-narrow-to-block :name "block")
@@ -663,9 +679,6 @@
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
   (setq line-spacing 0.25)
-  (setq org-refile-use-outline-path 'file)
-  (setq org-outline-path-complete-in-steps nil)
-  (setq org-refile-allow-creating-parent-nodes 'confirm)
   
   ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
@@ -756,9 +769,22 @@
      (lisp . t)
      (C . t)
      (js . t)))
-  
-  (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 6)))
+  )
+
+;;; Refiling setup
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
+(setq org-refile-allow-creating-parent-nodes 'confirm)
+
+;; Refile from current file
+(defun my/org-refile-in-file (&optional prefix)
+  "Refile to a target within the current file."
+  (interactive)
+  (let ((org-refile-targets `(((,(buffer-file-name)) :maxlevel . 6))))
+    (call-interactively 'org-refile)))
+
+;; Save all buffers after a refile
+(advice-add 'org-refile :after 'org-save-all-org-buffers)
 
 ;;; Org Superstar makes your bullets bang louder
 (use-package org-superstar
