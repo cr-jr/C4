@@ -406,11 +406,7 @@ use modifiers to change the scope of the action. So I can use the same four keys
 
 #+END_SRC
 
-****** Text manipulation
-
-Next, I'm defining some actions for text manipulation.
-
-******* Marking/selecting
+****** Marking/selecting
 
 These actions are mapped to marking regions and text selection.
 
@@ -433,7 +429,7 @@ These actions are mapped to marking regions and text selection.
 
 #+END_SRC
 
-******* Killing/cutting
+****** Killing/cutting
 
 Now, some actions for killing and cutting text.
 
@@ -446,7 +442,7 @@ Now, some actions for killing and cutting text.
 
 #+END_SRC
 
-******* Copy/paste
+****** Copy/paste
 
 Some actions for copying and pasting text.
 
@@ -461,7 +457,7 @@ Some actions for copying and pasting text.
 
 #+END_SRC
 
-******* Deletion
+****** Deletion
 
 Finally, some actions for deleting text. This is the final manipulation. Deleted text will
 /not/ be saved to the kill ring or anywhere else. It's gone.
@@ -1620,7 +1616,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("§" "☙" "❡" "჻" "•" "⁃")))
+        '("§" "☙" "჻")))
 
 #+END_SRC
 
@@ -1656,6 +1652,7 @@ This package enables me to add a table of contents to Org files.
   (org-mode . toc-org-mode))
 
 #+END_SRC
+
 ***** Journaling
 
 I include Org Journal, because I want to commit to keeping better notes and cultivate a habit of
