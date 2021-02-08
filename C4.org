@@ -16,6 +16,106 @@ If something doesn't add value to my workflow, it simply isn't here.
 
 Custom variables and procedures in this config are always prefixed with =C4=.
 
+* Table of Contents :TOC@4:
+- [[#summary][Summary]]
+- [[#configuration][Configuration]]
+  - [[#initialization][Initialization]]
+    - [[#package-management][Package Management]]
+    - [[#startup-performance][Startup Performance]]
+      - [[#garbage-collection][Garbage collection]]
+    - [[#housekeeping][Housekeeping]]
+      - [[#inhibit-lockfiles-and-custom-files][Inhibit lockfiles and custom files]]
+      - [[#no-littering][no-littering]]
+      - [[#create-parent-directories-automatically][Create parent directories automatically]]
+      - [[#whitespace-cleanup-mode][whitespace-cleanup-mode]]
+    - [[#keybindings][Keybindings]]
+      - [[#why][Why?]]
+      - [[#setup][Setup]]
+      - [[#structure][Structure]]
+    - [[#debugging-the-configuration][Debugging the Configuration]]
+      - [[#esup][esup]]
+      - [[#elisp-bug-hunter][elisp-bug-hunter]]
+      - [[#explain-pause-mode][explain-pause-mode]]
+  - [[#utilities][Utilities]]
+    - [[#crux][crux]]
+  - [[#defaults][Defaults]]
+    - [[#user-identity][User Identity]]
+    - [[#undoredo][Undo/Redo]]
+      - [[#undo-fu][undo-fu]]
+    - [[#text-manipulation][Text Manipulation]]
+      - [[#expand-region][expand-region]]
+    - [[#search-and-lookup][Search and Lookup]]
+      - [[#selectrum][selectrum]]
+      - [[#prescient][prescient]]
+      - [[#orderless][orderless]]
+      - [[#consult][consult]]
+      - [[#embark][embark]]
+      - [[#marginalia][marginalia]]
+      - [[#ctrlf][ctrlf]]
+    - [[#enhancements][Enhancements]]
+      - [[#smart-mode-line][smart-mode-line]]
+      - [[#helpful][helpful]]
+      - [[#editorconfig][editorconfig]]
+      - [[#vterm][vterm]]
+    - [[#faces][Faces]]
+      - [[#typography][Typography]]
+      - [[#ui][UI]]
+    - [[#theme][Theme]]
+  - [[#projects][Projects]]
+    - [[#user-settings][User Settings]]
+    - [[#management][Management]]
+    - [[#version-control][Version Control]]
+      - [[#magit][magit]]
+      - [[#forge][forge]]
+      - [[#diff-hl][diff-hl]]
+  - [[#document-modes][Document Modes]]
+    - [[#spelling][Spelling]]
+    - [[#grammar][Grammar]]
+    - [[#dictionary--thesaurus][Dictionary & Thesaurus]]
+    - [[#format-support][Format Support]]
+      - [[#org][Org]]
+      - [[#markdown][Markdown]]
+      - [[#latex][LaTeX]]
+  - [[#programming-modes][Programming Modes]]
+    - [[#parsing][Parsing]]
+    - [[#syntax-highlighting][Syntax Highlighting]]
+      - [[#faces-1][Faces]]
+      - [[#rainbow-delimiters][rainbow-delimiters]]
+    - [[#linting][Linting]]
+    - [[#formatting][Formatting]]
+      - [[#apheleia][apheleia]]
+      - [[#smartparens][smartparens]]
+      - [[#aggressive-indent-mode][aggressive-indent-mode]]
+    - [[#autocompletion][Autocompletion]]
+    - [[#language-server-protocol][Language Server Protocol]]
+    - [[#snippets][Snippets]]
+    - [[#language-support][Language Support]]
+      - [[#lisp-family][Lisp Family]]
+      - [[#elixir][Elixir]]
+      - [[#elm][Elm]]
+      - [[#factor][Factor]]
+      - [[#go][Go]]
+      - [[#haskell][Haskell]]
+      - [[#javascripttypescript][JavaScript/TypeScript]]
+      - [[#julia][Julia]]
+      - [[#nim][Nim]]
+      - [[#prolog][Prolog]]
+      - [[#r][R]]
+      - [[#rust][Rust]]
+      - [[#web-dev][Web Dev]]
+  - [[#desktop-environment][Desktop Environment]]
+    - [[#setup-1][Setup]]
+      - [[#xinitrc][.xinitrc]]
+      - [[#multi-monitor][multi-monitor]]
+    - [[#configuration-1][Configuration]]
+      - [[#startup][startup]]
+      - [[#keybindings-1][keybindings]]
+      - [[#randr][randr]]
+      - [[#systemtray][systemtray]]
+    - [[#addons][Addons]]
+      - [[#application-launcher][application-launcher]]
+      - [[#desktop-environment-1][desktop-environment]]
+
 * Configuration
 :PROPERTIES:
 :header-args: :mkdirp yes
@@ -903,8 +1003,8 @@ operations. For example: showing the docstring for interactive commands or the c
                         (selectrum-exhibit))))
     (setq marginalia-annotators
           '(marginalia-annotators-heavy marginalia-annotators-light))
-    :hook
-    (selectrum-mode . marginalia-mode))
+    :config
+    (marginalia-mode 1))
 
 #+END_SRC
 
@@ -1397,6 +1497,7 @@ Now, I set up Org for task management.
 
   (setq org-refile-targets
         '(("Archive.org" :maxlevel . 1)
+          ("Projects.org" :maxlevel . 1)
           ("Tasks.org" :maxlevel . 1)))
 
   (setq org-tag-alist
@@ -1532,6 +1633,59 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
 #+END_SRC
 
 ****** toc-org
+
+This package enables me to add a table of contents to Org files.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Add support for a table of contents
+  (use-package toc-org
+    :after org
+    :hook
+    (org-mode . toc-org-mode))
+
+#+END_SRC
+
+****** org-journal
+
+I include Org Journal, because I want to commit to keeping better notes and cultivate a habit of
+note-taking in an environment I know I won't abandon easily.
+
+#+BEGIN_SRC emacs-lisp
+
+  ;;; Journal file header
+  (defun C4/org-journal-file-header (time)
+    "Custom function to create a journal header."
+    (concat
+     (pcase org-journal-file-type
+       (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything")
+       (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
+       (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
+       (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
+
+  ;;; Add journaling support to Org Mode
+  (use-package org-journal
+    :ryo
+    ("SPC o j"
+     (("j" org-journal-new-entry :name "new")
+      ("J" org-journal-read-entry :name "read")
+      ("n" org-journal-next-entry :name "next")
+      ("p" org-journal-previous-entry :name "prev")
+      ("s" org-journal-search :name "search")
+      ("c" calendar :name "calendar")) :name "journal")
+    :custom
+    ;; Files
+    (org-journal-dir "~/Documents/Org/Notes/Fleeting/")
+    (org-journal-file-format "%V|%F")
+
+    ;; Entries
+    (org-journal-file-header 'C4/org-journal-file-header)
+
+    ;; Org agenda integration
+    (org-journal-enable-agenda-integration t))
+
+#+END_SRC
+
 **** Markdown
 **** LaTeX
 ** Programming Modes

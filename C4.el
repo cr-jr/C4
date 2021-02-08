@@ -432,8 +432,8 @@
                       (selectrum-exhibit))))
   (setq marginalia-annotators
         '(marginalia-annotators-heavy marginalia-annotators-light))
-  :hook
-  (selectrum-mode . marginalia-mode))
+  :config
+  (marginalia-mode 1))
 
 ;;; Incremental search interface similar to web browsers
 (use-package ctrlf
@@ -700,6 +700,7 @@
   
   (setq org-refile-targets
         '(("Archive.org" :maxlevel . 1)
+          ("Projects.org" :maxlevel . 1)
           ("Tasks.org" :maxlevel . 1)))
   
   (setq org-tag-alist
@@ -799,6 +800,43 @@
   (visual-line-mode . visual-fill-column-mode)
   :config
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
+
+;;; Add support for a table of contents
+(use-package toc-org
+  :after org
+  :hook
+  (org-mode . toc-org-mode))
+
+;;; Journal file header
+(defun C4/org-journal-file-header (time)
+  "Custom function to create a journal header."
+  (concat
+   (pcase org-journal-file-type
+     (`daily "#+TITLE: Daily Journal\n#+STARTUP: showeverything")
+     (`weekly "#+TITLE: Weekly Journal\n#+STARTUP: folded")
+     (`monthly "#+TITLE: Monthly Journal\n#+STARTUP: folded")
+     (`yearly "#+TITLE: Yearly Journal\n#+STARTUP: folded"))))
+
+;;; Add journaling support to Org Mode
+(use-package org-journal
+  :ryo
+  ("SPC o j"
+   (("j" org-journal-new-entry :name "new")
+    ("J" org-journal-read-entry :name "read")
+    ("n" org-journal-next-entry :name "next")
+    ("p" org-journal-previous-entry :name "prev")
+    ("s" org-journal-search :name "search")
+    ("c" calendar :name "calendar")) :name "journal")
+  :custom
+  ;; Files
+  (org-journal-dir "~/Documents/Org/Notes/Fleeting/")
+  (org-journal-file-format "%V|%F")
+
+  ;; Entries
+  (org-journal-file-header 'C4/org-journal-file-header)
+
+  ;; Org agenda integration
+  (org-journal-enable-agenda-integration t))
 
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
