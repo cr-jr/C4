@@ -1477,13 +1477,17 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
 #+BEGIN_SRC emacs-lisp :tangle no
 
   ;;; Org-babel setup
+  (setq org-src-fontify-natively t)
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-babel-lisp-eval-fn "sly-eval")
+
+  ;;; Supported languages
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
+     (lisp . t)
+     (C . t)
      (js . t)))
-
-  (setq org-src-fontify-natively t)
-  (setq org-confirm-babel-evaluate nil)
 
 #+END_SRC
 
@@ -1783,7 +1787,7 @@ The commands for snippet creation are enabled across all programming modes under
 *** Language Support
 
 The groundwork is in place, so now I'm going to selectively enhance some programming modes. The
-language support of my configuration includes both languages I use regularly and those I'm learning.
+language support of my configuration includes languages I use regularly and those I want to study.
 
 **** Lisp Family
 ***** Emacs Lisp
@@ -1823,8 +1827,8 @@ fork called SLY in my configuration.
 
   ;; Setup SLY
   (use-package sly
-    :mode ("\\.lisp\\'" . common-lisp-mode)
-    :interpreter ("sbcl" . common-lisp-mode)
+    :mode ("\\.lisp\\'" . lisp-mode)
+    :interpreter ("sbcl" . lisp-mode)
     :ryo
     (:mode 'sly-mode)
     ("SPC l"
@@ -1905,9 +1909,10 @@ fork called SLY in my configuration.
         ("M" sly-who-specializes :name "methods")) :name "x-ref"))
      :name "common-lisp")
     :hook
-    (common-lisp-mode . sly-mode)
+    (lisp-mode . sly-mode)
     :config
     (setq inferior-lisp-program "/usr/local/bin/sbcl")
+
     (sly))
 
 #+END_SRC
@@ -1953,6 +1958,13 @@ For editing Racket source, racket-mode is the way to go.
     (racket-mode . racket-smart-open-bracket-mode)
     (racket-mode . racket-unicode-input-method-enable)
     (racket-repl-mode . racket-unicode-input-method-enable))
+
+  ;; Racket Org mode support
+  (use-package ob-racket
+    :straight (ob-racket :host github :repo "DEADB17/ob-racket")
+    :after org
+    :config
+    (append '((racket . t) (scribble . t)) org-babel-load-languages))
 
 #+END_SRC
 
@@ -2024,6 +2036,12 @@ For TypeScript development, I'm setting up Tide.
     (typescript-mode . tide-hl-identifier-mode)
     (before-save . tide-format-before-save))
 
+  ;; Org babel support
+  (use-package ob-typescript
+    :after org
+    :config
+    (append '((typescript . t)) org-babel-load-languages))
+
 #+END_SRC
 
 **** TODO Julia
@@ -2089,7 +2107,6 @@ Web mode is popular, but conflicts with skewer and I don't often use specialized
     (html-mode . impatient-mode))
 
 #+END_SRC
-
 ** Desktop Environment
 
 Yes, Emacs is my window manager. And so far, I'm loving EXWM. If you don't love it, add a properties drawer to

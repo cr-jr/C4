@@ -763,13 +763,17 @@
   
   
   ;;; Org-babel setup
+  (setq org-src-fontify-natively t)
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-babel-lisp-eval-fn "sly-eval")
+  
+  ;;; Supported languages
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
+     (lisp . t)
+     (C . t)
      (js . t)))
-  
-  (setq org-src-fontify-natively t)
-  (setq org-confirm-babel-evaluate nil)
   
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
   (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 3)))
@@ -943,8 +947,8 @@
 
 ;; Setup SLY
 (use-package sly
-  :mode ("\\.lisp\\'" . common-lisp-mode)
-  :interpreter ("sbcl" . common-lisp-mode)
+  :mode ("\\.lisp\\'" . lisp-mode)
+  :interpreter ("sbcl" . lisp-mode)
   :ryo
   (:mode 'sly-mode)
   ("SPC l"
@@ -1025,9 +1029,10 @@
       ("M" sly-who-specializes :name "methods")) :name "x-ref"))
    :name "common-lisp")
   :hook
-  (common-lisp-mode . sly-mode)
+  (lisp-mode . sly-mode)
   :config
   (setq inferior-lisp-program "/usr/local/bin/sbcl")
+
   (sly))
 
 ;;; Lang: Racket
@@ -1065,6 +1070,13 @@
   (racket-mode . racket-smart-open-bracket-mode)
   (racket-mode . racket-unicode-input-method-enable)
   (racket-repl-mode . racket-unicode-input-method-enable))
+
+;; Racket Org mode support
+(use-package ob-racket
+  :straight (ob-racket :host github :repo "DEADB17/ob-racket")
+  :after org
+  :config
+  (append '((racket . t) (scribble . t)) org-babel-load-languages))
 
 ;;; Lang: JavaScript
 
@@ -1112,6 +1124,12 @@
   (typescript-mode . tide-setup)
   (typescript-mode . tide-hl-identifier-mode)
   (before-save . tide-format-before-save))
+
+;; Org babel support
+(use-package ob-typescript
+  :after org
+  :config
+  (append '((typescript . t)) org-babel-load-languages))
 
 ;;; Lang: HTML/CSS/Web
 
