@@ -582,8 +582,7 @@
     (global-diff-hl-mode 1))
 
 ;;; Variables for Org Mode configuration
-(setq C4/org-root-path "~/Documents/Org")
-(setq C4/org-agenda-files '("Tasks.org" "Projects.org"))
+(setq C4/org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
 
 (defhydra org-trek (:timeout 30)
   "A transient mode to logically browse an Org file"
@@ -662,17 +661,18 @@
   (org-block-end-line ((t (:extend t))))
   :config
   (setq org-ellipsis " ➕")
-  (setq org-directory C4/org-root-path)
+  (setq org-directory "~/Documents/Org/")
   (setq line-spacing 0.25)
-  (setq org-refile-use-outline-path t)
-  (setq org-refile-allow-creating-parent-nodes t)
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
   
   ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   
-  (setq org-agenda-files C4/org-agenda-files)
+  (setq org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
   
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
@@ -680,10 +680,7 @@
            "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
            "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
   
-  (setq org-refile-targets
-        '(("Archive.org" :maxlevel . 1)
-          ("Projects.org" :maxlevel . 1)
-          ("Tasks.org" :maxlevel . 1)))
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
   
   (setq org-tag-alist
         '((:startgroup)
@@ -761,7 +758,7 @@
      (js . t)))
   
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 4)))
+  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 6)))
 
 ;;; Org Superstar makes your bullets bang louder
 (use-package org-superstar
@@ -1210,8 +1207,6 @@
 
 ;; Setup emmet-mode
 (use-package emmet-mode
-  :bind
-  ("TAB" . emmet-expand-line)
   :hook
   (html-mode . emmet-mode)
   (css-mode . emmet-mode))

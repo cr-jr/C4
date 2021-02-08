@@ -1352,12 +1352,11 @@ First, I define some variables to make adjustments easier.
 #+BEGIN_SRC emacs-lisp
 
 ;;; Variables for Org Mode configuration
-(setq C4/org-root-path "~/Documents/Org")
-(setq C4/org-agenda-files '("Tasks.org" "Projects.org"))
+(setq C4/org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
 
 #+END_SRC
 
-***** Configuration
+***** Setup
 
 To keep things clean in this section, I use the =noweb= property of Org-babel so I can define more complex
 settings in their own section.
@@ -1422,19 +1421,20 @@ flow becomes more personal.
   (org-block-end-line ((t (:extend t))))
   :config
   (setq org-ellipsis " ➕")
-  (setq org-directory C4/org-root-path)
+  (setq org-directory "~/Documents/Org/")
   (setq line-spacing 0.25)
-  (setq org-refile-use-outline-path t)
-  (setq org-refile-allow-creating-parent-nodes t)
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
   <<org-agenda>>
   <<org-templates>>
   <<org-literate>>
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 4)))
+  (add-to-list 'org-refile-targets '("C4.org" :maxlevel . 6)))
 
 #+END_SRC
 
-****** Breadcrumbs
+***** Breadcrumbs
 
 I'm including an Org breadcrumb setup so I don't lose track of what heading I'm actually in.
 
@@ -1467,7 +1467,7 @@ The code is lifted directly from [[https://emacs.stackexchange.com/a/61107][this
 
 #+END_SRC
 
-****** Agenda
+***** Agenda
 
 Now, I set up Org for task management.
 
@@ -1479,7 +1479,7 @@ Now, I set up Org for task management.
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
 
-(setq org-agenda-files C4/org-agenda-files)
+(setq org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
@@ -1487,10 +1487,7 @@ Now, I set up Org for task management.
          "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)"
          "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
-(setq org-refile-targets
-      '(("Archive.org" :maxlevel . 1)
-        ("Projects.org" :maxlevel . 1)
-        ("Tasks.org" :maxlevel . 1)))
+(setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
 
 (setq org-tag-alist
       '((:startgroup)
@@ -1546,7 +1543,7 @@ Now, I set up Org for task management.
 
 #+END_SRC
 
-****** Capture Templates
+***** Capture Templates
 
 In this section, I'm defining my Org-capture templates. It's just the one right now, but more will be added as
 I need them.
@@ -1562,7 +1559,7 @@ I need them.
 
 #+END_SRC
 
-****** Literate Programming
+***** Literate Programming
 
 Finally, I set my configuration up for Org-babel so I can do literate programming in any language I want.
 
@@ -2269,8 +2266,6 @@ Web mode is popular, but conflicts with skewer and I don't often use specialized
 
 ;; Setup emmet-mode
 (use-package emmet-mode
-  :bind
-  ("TAB" . emmet-expand-line)
   :hook
   (html-mode . emmet-mode)
   (css-mode . emmet-mode))
