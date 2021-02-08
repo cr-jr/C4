@@ -486,65 +486,29 @@
   ("SPC '" vterm :name "vterm: open terminal from current dir"))
 
 ;;; Set some variables for my settings and styles
-(setq C4/font "Input Sans-13")
-(setq C4/font-bold "Input Sans Condensed-13:normal")
-(setq C4/font-italic "Input Serif Condensed-13:light:italic")
-(setq C4/document-font "Input Serif-13")
+(defconst C4/font "Input Sans-13"
+  "The default UI and fixed-width font for my config.")
 
-;;; By default, use Input Sans family at 13px
+(defconst C4/document-font "Merriweather-16"
+  "The default variable pitch font for my config.")
+
+;; By default, use Input Sans family at 13px
 (set-face-attribute 'default nil :font C4/font)
-(set-face-attribute 'bold nil :font C4/font-bold)
-(set-face-attribute 'italic nil :font C4/font-italic)
-(set-face-attribute 'bold-italic nil :inherit 'bold)
 
-;;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font C4/font)
+;; Code font is the same as UI font
+(set-face-attribute 'fixed-pitch nil :inherit 'default)
 
-;;; Set default document font as Input Serif family at 13px
+;; Set default document font as Lora family at 16px
 (set-face-attribute 'variable-pitch nil :font C4/document-font)
 
 ;;; Disable the fringe background
 (set-face-attribute 'fringe nil
                     :background nil)
 
-(defun C4/light ()
-  "Clap on!"
-  (interactive)
-  (load-theme 'minimal-light t)
-  (set-face-attribute 'org-hide nil :foreground "white")
-  (sml/apply-theme 'light))
+;;; Setup poet-themes
+(use-package poet-theme)
 
-(defun C4/dark ()
-  "Dimmer switch!"
-  (interactive)
-  (load-theme 'minimal t)
-  (set-face-attribute 'org-hide nil :foreground "gray10")
-  (sml/apply-theme 'dark))
-
-(defun C4/black ()
-  "Clap off!"
-  (interactive)
-  (load-theme 'minimal-black t)
-  (set-face-attribute 'org-hide nil :foreground "black")
-  (sml/apply-theme 'dark))
-
-;;; Include and load minimal-theme collection
-(use-package minimal-theme
-  :ryo
-  ("SPC t t" :hydra
-   '(theme-switcher ()
-                    "Select a variant from main C4 themes"
-                    ("d" C4/light "day variant")
-                    ("n" C4/dark "night variant")
-                    ("f" C4/black "focus variant")
-                    ("RET" nil "exit" :exit t)) :name "theme variant"))
-
-;; Light theme loaded and enabled by default
-(load-theme 'minimal-light t)
-
-;; Dark variants load but wait for toggling
-(load-theme 'minimal t t)
-(load-theme 'minimal-black t t)
+(load-theme 'poet-monochrome t)
 
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root '("~/Code"))
@@ -659,31 +623,6 @@
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory C4/org-root-path)
-  
-  ;;; Some Org Mode adjustments
-  
-  (set-face-attribute 'org-document-title nil :weight 'bold :inherit 'fixed-pitch)
-  (set-face-attribute 'org-document-info nil :inherit 'org-document-title)
-  
-  (set-face-attribute 'org-level-1 nil :height 1.8 :weight 'bold :inherit 'fixed-pitch)
-  (set-face-attribute 'org-level-2 nil :height 1.6 :inherit 'fixed-pitch)
-  (set-face-attribute 'org-level-3 nil :height 1.4 :inherit 'fixed-pitch)
-  (set-face-attribute 'org-level-4 nil :height 1.2 :inherit 'fixed-pitch)
-  (set-face-attribute 'org-level-5 nil :height 1.0 :inherit 'fixed-pitch)
-  (set-face-attribute 'org-level-6 nil :height 0.8 :inherit 'fixed-pitch)
-  
-  (set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-block-begin-line nil :weight 'normal :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-block-end-line nil :weight 'normal :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-property-value nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-document-info-keyword nil :weight 'bold :inherit '(fixed-pitch font-lock-keyword-face))
-  (set-face-attribute 'org-drawer nil :inherit 'org-document-info-keyword)
-  (set-face-attribute 'org-special-keyword nil :inherit 'org-document-info-keyword)
-  (set-face-attribute 'org-ellipsis nil :foreground "Blue1" :underline nil)
-  
   
   ;;; Org agenda flow
   (setq org-agenda-start-with-log-mode t)
@@ -838,6 +777,8 @@
   ;; Org agenda integration
   (org-journal-enable-agenda-integration t))
 
+
+
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
   :config
@@ -850,22 +791,25 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :weight 'bold :inherit 'italic)
+(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow:italic" :weight 'extra-light)
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :inherit 'bold)
+(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed" :weight 'bold)
 
 ;; set constants face
-(set-face-attribute 'font-lock-constant-face nil :font C4/font :weight 'black)
+(set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-keyword-face)
 
 ;; set built-in face
-(set-face-attribute 'font-lock-builtin-face nil :inherit 'bold)
+(set-face-attribute 'font-lock-builtin-face nil :inherit 'font-lock-keyword-face)
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil :font C4/font :weight 'black)
+(set-face-attribute 'font-lock-function-name-face nil :font "Input Sans" :weight 'black)
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :weight 'normal :slant 'normal :inherit 'italic)
+(set-face-attribute 'font-lock-string-face nil :font "Input Serif Compressed" :weight 'normal)
+
+;; set variable name face
+(set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
 
 ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
