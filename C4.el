@@ -745,7 +745,7 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '(" " " " " " " " " " " " " " " ")))
+        '("§" "☙" "❡" "჻" "•" "⁃")))
 
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
