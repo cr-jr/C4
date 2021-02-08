@@ -1727,20 +1727,6 @@ First, I'm setting it up for general use. Later, in the appropriate language's s
     :commands lsp-ui-mode)
 #+END_SRC
 
-*** Debugging
-
-This configuration uses the Debug Adapter Protocol for supported languages while falling back to more
-specialized debgugging packages for unsupported languages in their relevant sections.
-
-#+BEGIN_SRC emacs-lisp
-
-  ;;; The debugging complement to LSP
-  (use-package dap-mode
-    :hook
-    (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
-
-#+END_SRC
-
 *** Snippets
 
 Snippets are valuable for my workflow. And YASnippet is the Emacs standard for using them. I also

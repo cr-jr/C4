@@ -891,11 +891,6 @@
   :after lsp-mode
   :commands lsp-ui-mode)
 
-;;; The debugging complement to LSP
-(use-package dap-mode
-  :hook
-  (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
-
 (defun C4/create-one-liner ()
   "Create a one line snippet to expand immediately."
   (interactive)
