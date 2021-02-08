@@ -1180,6 +1180,12 @@
   :hook
   (html-mode . impatient-mode))
 
+;; Add support for Org babel
+(use-package ob-browser
+  :after org
+  :config
+  (append '((browser . t)) org-babel-load-languages))
+
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
   :if window-system
