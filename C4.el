@@ -957,7 +957,23 @@
   :hook (company-mode . company-box-mode))
 
 ;;; Language Server Protocol package for rich IDE features
-(use-package eglot)
+
+;; Setup eglot: a lightweight LSP client
+(use-package eglot
+  :ryo
+  (:mode 'eglot--managed-mode)
+  ("SPC l l"
+   (("c" eglot :name "connect")
+    ("C" eglot-reconnect :name "restart")
+    ("C-c" eglot-shutdown :name "shutdown")
+    ("e"
+     (("e" eglot-events-buffer :name "show events")
+      ("E" eglot-stderr-buffer :name "show errors")
+      ("c" eglot-signal-didChangeConfiguration :name "reload workspace config")) :name "client actions")
+    ("a" eglot-code-actions :name "code actions")
+    ("r" eglot-rename :name "rename symbol")
+    ("f" eglot-format :name "format")
+    ("d" eldoc :name "documentation")) :name "LSP"))
 
 (defun C4/create-one-liner ()
   "Create a one line snippet to expand immediately."
@@ -1196,22 +1212,26 @@
 
 ;;; Lang: JavaScript
 
-;; Setup js2-mode
+;; Setup js2-mode and use it to augment the built-in mode
 (use-package js2-mode
   :mode ("\\.js\\'" . js-mode)
-  :interpreter ("node" . js-mode)
+  :interpreter ("deno" . js-mode)
+  :ryo
+  (:mode 'js-mode)
+  ("SPC l" nil :name "javascript")
   :hook
   (js-mode . js2-minor-mode)
   (js-mode . eglot-ensure)
+  (before-save . eglot-format)
   :config
   ;; Setup deno built-in LSP for eglot
   (defclass eglot-deno (eglot-lsp-server) ()
     :documentation "A custom class for handling Deno's built-in LSP server")
 
   ;; Deno requires the :enable keyword to connect, but I also want to include
-  ;; the linting functionality
+  ;; the built-in linting and begin with good habits since I'm new to the space.
   (cl-defmethod eglot-initialization-options ((server eglot-deno))
-    "Passes through required deno initialization options"
+    "Passes through required deno initialization options."
     (let* ((root (car (project-roots (eglot--project server))))
      (cache (expand-file-name ".deno/lsp/cache/" root)))
       (list :enable t :lint t)))
@@ -1219,32 +1239,39 @@
   (add-to-list
    'eglot-server-programs '(js-mode . (eglot-deno "deno" "lsp"))))
 
-;; Setup js-comint.el
-(use-package js-comint
+;; Setup typescript-mode
+(use-package typescript-mode
+  :after js2-mode
+  :mode ("\\.ts\\'" . typescript-mode)
+  :interpreter ("deno" . typescript-mode)
   :ryo
-  (:mode 'js-mode)
-  ("SPC l"
-   (("e"
-     (("e" js-send-last-sexp :name "expression")
-      ("E" js-send-last-sexp-and-go :name "and switch to REPL")
-      ("r" js-send-region :name "region")
-      ("R" js-send-region-and-go :name "and switch to REPL")
-      ("b" js-send-buffer :name "buffer")
-      ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
-    ("r"
-     (("r" js-comint-start-or-switch-to-repl :name "run")
-      ("R" js-reset-repl :name "reset")
-      ("c" js-clear :name "clear")) :name "program"))
-   :name "javascript")
+  (:mode 'typescript-mode)
+  ("SPC l" nil :name "typescript")
+  :hook
+  (typescript-mode . eglot-ensure)
+  (before-save . eglot-format)
   :config
-  (setq js-comint-program-command "node")
-  (setq js-comint-program-arguments '("--interactive")))
+  (add-to-list
+   'eglot-server-programs '(typescript-mode . (eglot-deno "deno" "lsp"))))
+
+;; Setup ob-deno
+(use-package ob-deno)
 
 ;; Setup json-mode
 (use-package json-mode
   :mode
   ("\\.json\\'" . json-mode)
   ("\\.jsonp\\'" . json-mode))
+
+;;; No comint mode for Deno in the community, so I gotta roll my own.
+
+;; But not from scratch
+(use-package maple-run
+  :straight (maple-run
+       :host github :repo "honmaple/emacs-maple-run")
+  :commands (maple-run)
+  :config
+  (add-to-list  'maple-run:alist '((js-mode typescript-mode) :command "deno run %F")))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
