@@ -91,18 +91,8 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#snippets][Snippets]]
     - [[#language-support][Language Support]]
       - [[#lisp-family][Lisp Family]]
-      - [[#elixir][Elixir]]
-      - [[#elm][Elm]]
-      - [[#factor][Factor]]
-      - [[#go][Go]]
-      - [[#haskell][Haskell]]
-      - [[#javascripttypescript][JavaScript/TypeScript]]
-      - [[#julia][Julia]]
-      - [[#nim][Nim]]
-      - [[#prolog][Prolog]]
-      - [[#r][R]]
-      - [[#rust][Rust]]
       - [[#web-dev][Web Dev]]
+      - [[#javascript][JavaScript]]
   - [[#desktop-environment][Desktop Environment]]
     - [[#setup-1][Setup]]
       - [[#xinitrc][.xinitrc]]
@@ -145,6 +135,9 @@ C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https
 ;; use-package integration
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
+
+;; Call in project.el
+(straight-use-package 'project)
 
 #+END_SRC
 
@@ -1925,17 +1918,8 @@ First, I'm setting it up for general use. Later, in the appropriate language's s
 #+BEGIN_SRC emacs-lisp
 
 ;;; Language Server Protocol package for rich IDE features
-(use-package lsp-mode
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  :hook
-  (lsp-mode . lsp-enable-which-key-integration)
-  :commands (lsp lsp-deferred))
+(use-package eglot)
 
-;; UI enhancements for lsp-mode
-(use-package lsp-ui
-  :after lsp-mode
-  :commands lsp-ui-mode)
 #+END_SRC
 
 *** Snippets
@@ -2165,87 +2149,6 @@ For editing Racket source, racket-mode is the way to go.
 
 #+END_SRC
 
-**** TODO Elixir
-**** TODO Elm
-**** TODO Factor
-**** TODO Go
-**** TODO Haskell
-**** JavaScript/TypeScript
-***** JavaScript
-
-First, I'll add three packages that beef up the JS dev experience: js2-mode, js-comint, and
-json-mode.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Lang: JavaScript
-
-;; Setup js2-mode
-(use-package js2-mode
-  :mode ("\\.js\\'" . js-mode)
-  :interpreter ("node" . js-mode)
-  :hook
-  (js-mode . js2-minor-mode)
-  (js-mode . lsp-mode))
-
-;; Setup js-comint.el
-(use-package js-comint
-  :ryo
-  (:mode 'js-mode)
-  ("SPC l"
-   (("e"
-     (("e" js-send-last-sexp :name "expression")
-      ("E" js-send-last-sexp-and-go :name "and switch to REPL")
-      ("r" js-send-region :name "region")
-      ("R" js-send-region-and-go :name "and switch to REPL")
-      ("b" js-send-buffer :name "buffer")
-      ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
-    ("r"
-     (("r" js-comint-start-or-switch-to-repl :name "run")
-      ("R" js-reset-repl :name "reset")) :name "program"))
-   :name "javascript")
-  :init
-  (setq inferior-js-program-command "~/.asdf/shims/node"))
-
-;; Setup json-mode
-(use-package json-mode
-  :mode
-  ("\\.json\\'" . json-mode)
-  ("\\.jsonp\\'" . json-mode))
-
-#+END_SRC
-
-***** TypeScript
-
-For TypeScript development, I'm setting up Tide.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Lang: TypeScript
-
-;; Setup Tide
-(use-package tide
-  :after
-  (typescript-mode company flycheck)
-  :hook
-  (typescript-mode . lsp-mode)
-  (typescript-mode . tide-setup)
-  (typescript-mode . tide-hl-identifier-mode)
-  (before-save . tide-format-before-save))
-
-;; Org babel support
-(use-package ob-typescript
-  :after org
-  :config
-  (append '((typescript . t)) org-babel-load-languages))
-
-#+END_SRC
-
-**** TODO Julia
-**** TODO Nim
-**** TODO Prolog
-**** TODO R
-**** TODO Rust
 **** Web Dev
 
 For web development, essential packages include: emmet-mode, skewer-mode, and impatient-mode.
@@ -2306,6 +2209,67 @@ Web mode is popular, but conflicts with skewer and I don't often use specialized
   :after org
   :config
   (append '((browser . t)) org-babel-load-languages))
+
+#+END_SRC
+
+**** JavaScript
+
+I'll add three packages that beef up the JS dev experienoce: js2-mode, js-comint, and
+json-mode. Also need to tell Eglot and JS-comint about =deno=.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Lang: JavaScript
+
+;; Setup js2-mode
+(use-package js2-mode
+  :mode ("\\.js\\'" . js-mode)
+  :interpreter ("node" . js-mode)
+  :hook
+  (js-mode . js2-minor-mode)
+  (js-mode . eglot-ensure)
+  :config
+  ;; Setup deno built-in LSP for eglot
+  (defclass eglot-deno (eglot-lsp-server) ()
+    :documentation "A custom class for handling Deno's built-in LSP server")
+
+  ;; Deno requires the :enable keyword to connect, but I also want to include
+  ;; the linting functionality
+  (cl-defmethod eglot-initialization-options ((server eglot-deno))
+    "Passes through required deno initialization options"
+    (let* ((root (car (project-roots (eglot--project server))))
+     (cache (expand-file-name ".deno/lsp/cache/" root)))
+      (list :enable t :lint t)))
+
+  (add-to-list
+   'eglot-server-programs '(js-mode . (eglot-deno "deno" "lsp"))))
+
+;; Setup js-comint.el
+(use-package js-comint
+  :ryo
+  (:mode 'js-mode)
+  ("SPC l"
+   (("e"
+     (("e" js-send-last-sexp :name "expression")
+      ("E" js-send-last-sexp-and-go :name "and switch to REPL")
+      ("r" js-send-region :name "region")
+      ("R" js-send-region-and-go :name "and switch to REPL")
+      ("b" js-send-buffer :name "buffer")
+      ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
+    ("r"
+     (("r" js-comint-start-or-switch-to-repl :name "run")
+      ("R" js-reset-repl :name "reset")
+      ("c" js-clear :name "clear")) :name "program"))
+   :name "javascript")
+  :config
+  (setq js-comint-program-command "node")
+  (setq js-comint-program-arguments '("--interactive")))
+
+;; Setup json-mode
+(use-package json-mode
+  :mode
+  ("\\.json\\'" . json-mode)
+  ("\\.jsonp\\'" . json-mode))
 
 #+END_SRC
 

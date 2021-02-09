@@ -17,6 +17,9 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+;; Call in project.el
+(straight-use-package 'project)
+
 ;;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
@@ -954,17 +957,7 @@
   :hook (company-mode . company-box-mode))
 
 ;;; Language Server Protocol package for rich IDE features
-(use-package lsp-mode
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  :hook
-  (lsp-mode . lsp-enable-which-key-integration)
-  :commands (lsp lsp-deferred))
-
-;; UI enhancements for lsp-mode
-(use-package lsp-ui
-  :after lsp-mode
-  :commands lsp-ui-mode)
+(use-package eglot)
 
 (defun C4/create-one-liner ()
   "Create a one line snippet to expand immediately."
@@ -1148,59 +1141,6 @@
   :config
   (append '((racket . t) (scribble . t)) org-babel-load-languages))
 
-;;; Lang: JavaScript
-
-;; Setup js2-mode
-(use-package js2-mode
-  :mode ("\\.js\\'" . js-mode)
-  :interpreter ("node" . js-mode)
-  :hook
-  (js-mode . js2-minor-mode)
-  (js-mode . lsp-mode))
-
-;; Setup js-comint.el
-(use-package js-comint
-  :ryo
-  (:mode 'js-mode)
-  ("SPC l"
-   (("e"
-     (("e" js-send-last-sexp :name "expression")
-      ("E" js-send-last-sexp-and-go :name "and switch to REPL")
-      ("r" js-send-region :name "region")
-      ("R" js-send-region-and-go :name "and switch to REPL")
-      ("b" js-send-buffer :name "buffer")
-      ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
-    ("r"
-     (("r" js-comint-start-or-switch-to-repl :name "run")
-      ("R" js-reset-repl :name "reset")) :name "program"))
-   :name "javascript")
-  :init
-  (setq inferior-js-program-command "~/.asdf/shims/node"))
-
-;; Setup json-mode
-(use-package json-mode
-  :mode
-  ("\\.json\\'" . json-mode)
-  ("\\.jsonp\\'" . json-mode))
-
-;;; Lang: TypeScript
-
-;; Setup Tide
-(use-package tide
-  :after
-  (typescript-mode company flycheck)
-  :hook
-  (typescript-mode . lsp-mode)
-  (typescript-mode . tide-setup)
-  (typescript-mode . tide-hl-identifier-mode)
-  (before-save . tide-format-before-save))
-
-;; Org babel support
-(use-package ob-typescript
-  :after org
-  :config
-  (append '((typescript . t)) org-babel-load-languages))
-
 ;;; Lang: HTML/CSS/Web
 
 ;; Setup skewer-mode
@@ -1253,6 +1193,58 @@
   :after org
   :config
   (append '((browser . t)) org-babel-load-languages))
+
+;;; Lang: JavaScript
+
+;; Setup js2-mode
+(use-package js2-mode
+  :mode ("\\.js\\'" . js-mode)
+  :interpreter ("node" . js-mode)
+  :hook
+  (js-mode . js2-minor-mode)
+  (js-mode . eglot-ensure)
+  :config
+  ;; Setup deno built-in LSP for eglot
+  (defclass eglot-deno (eglot-lsp-server) ()
+    :documentation "A custom class for handling Deno's built-in LSP server")
+
+  ;; Deno requires the :enable keyword to connect, but I also want to include
+  ;; the linting functionality
+  (cl-defmethod eglot-initialization-options ((server eglot-deno))
+    "Passes through required deno initialization options"
+    (let* ((root (car (project-roots (eglot--project server))))
+     (cache (expand-file-name ".deno/lsp/cache/" root)))
+      (list :enable t :lint t)))
+
+  (add-to-list
+   'eglot-server-programs '(js-mode . (eglot-deno "deno" "lsp"))))
+
+;; Setup js-comint.el
+(use-package js-comint
+  :ryo
+  (:mode 'js-mode)
+  ("SPC l"
+   (("e"
+     (("e" js-send-last-sexp :name "expression")
+      ("E" js-send-last-sexp-and-go :name "and switch to REPL")
+      ("r" js-send-region :name "region")
+      ("R" js-send-region-and-go :name "and switch to REPL")
+      ("b" js-send-buffer :name "buffer")
+      ("B" js-send-buffer-and-go :name "and switch to REPL")) :name "eval")
+    ("r"
+     (("r" js-comint-start-or-switch-to-repl :name "run")
+      ("R" js-reset-repl :name "reset")
+      ("c" js-clear :name "clear")) :name "program"))
+   :name "javascript")
+  :config
+  (setq js-comint-program-command "node")
+  (setq js-comint-program-arguments '("--interactive")))
+
+;; Setup json-mode
+(use-package json-mode
+  :mode
+  ("\\.json\\'" . json-mode)
+  ("\\.jsonp\\'" . json-mode))
 
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
