@@ -1,3 +1,4 @@
+;; [[file:~/.config/emacs/C4.org::*Package Management][Package Management:1]]
 ;;; Setup straight.el with use-package
 (setq straight-repository-branch "develop")
 (defvar bootstrap-version)
@@ -19,26 +20,34 @@
 
 ;; Call in project.el
 (straight-use-package 'project)
+;; Package Management:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Garbage collection][Garbage collection:1]]
 ;;; Raise the garbage collection threshold high as emacs starts
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 
 ;;; Drop it down once loaded
 (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
+;; Garbage collection:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Inhibit lockfiles and custom files][Inhibit lockfiles and custom files:1]]
 ;;; Lockfiles do more harm than good
 (setq create-lockfiles nil)
 
 ;;; Custom files just add clutter
 (setq custom-file null-device)
+;; Inhibit lockfiles and custom files:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*no-littering][no-littering:1]]
 ;;; Put temporary and data files in proper locations
 (use-package no-littering
   :custom
   (auto-save-file-name-transforms
    `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+;; no-littering:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Create parent directories automatically][Create parent directories automatically:1]]
 ;;; Create parent dirs when opening new files
 (add-to-list 'find-file-not-found-functions #'C4/create-parent)
 
@@ -50,12 +59,16 @@
                           "Directory `%s' does not exist! Create it?"
                           parent-directory)))
       (make-directory parent-directory t))))
+;; Create parent directories automatically:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*whitespace-cleanup-mode][whitespace-cleanup-mode:1]]
 ;;; Clean up whitespace in all major modes on save
 (use-package whitespace-cleanup-mode
   :config
   (global-whitespace-cleanup-mode t))
+;; whitespace-cleanup-mode:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*which-key][which-key:1]]
 ;;; Setup which-key for keybinding discoverability
 (use-package which-key
   :custom
@@ -64,7 +77,9 @@
   (which-key-sort-order 'which-key-prefix-then-key-order)
   :config
   (which-key-mode))
+;; which-key:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*ryo-modal][ryo-modal:1]]
 ;;; Command mode initialization
 (use-package ryo-modal
   :commands ryo-modal-mode
@@ -80,15 +95,21 @@
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
   ;; C-i needs to be its own keybinding
   (keyboard-translate ?\C-i ?\M-i))
+;; ryo-modal:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*hydra][hydra:1]]
 ;;; Setup transient mode-ish interfaces
 (use-package hydra)
+;; hydra:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Exiting Command Mode][Exiting Command Mode:1]]
 ;;; Actions: insertion
 (ryo-modal-keys
  ("q" ryo-modal-mode :name "insert at point")
  ("SPC SPC" ryo-modal-mode :name "insert at point"))
+;; Exiting Command Mode:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Modifiers][Modifiers:1]]
 ;;; Action modifiers
 (ryo-modal-keys
  ;; procedural modifier
@@ -105,7 +126,9 @@
  ("7" "M-7" :norepeat t)
  ("8" "M-8" :norepeat t)
  ("9" "M-9" :norepeat t))
+;; Modifiers:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Movement][Movement:1]]
 ;;; Actions: movement
 (ryo-modal-keys
  ("i" previous-logical-line :name "previous line")
@@ -122,7 +145,9 @@
  ("L" forward-word :name "jump point to next word")
  ("C-l" end-of-line :name "jump point to end of line")
  ("M-l" end-of-line :name "jump point to end of line"))
+;; Movement:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Marking/selecting][Marking/selecting:1]]
 (defun C4/mark-line ()
   "Mark the entire line"
   (interactive)
@@ -137,30 +162,40 @@
   (("w" mark-word :name "mark word")
    ("l" C4/mark-line :name "mark current line")
    ("p" mark-paragraph :name "mark paragraph")) :name "semantic mark"))
+;; Marking/selecting:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Killing/cutting][Killing/cutting:1]]
 ;;; Actions: killing/cutting text
 (ryo-modal-keys
  ("x" kill-region :wk "cut selection")
  ("X" clipboard-kill-region :wk "cut selection (system)"))
+;; Killing/cutting:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Copy/paste][Copy/paste:1]]
 ;;; Actions: copy/paste
 (ryo-modal-keys
  ("c" kill-ring-save :name "copy selection")
  ("C" clipboard-kill-ring-save :name "copy selection (system)")
  ("v" yank :name "paste")
  ("V" clipboard-yank :name "paste (system)"))
+;; Copy/paste:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Deletion][Deletion:1]]
 ;;; Actions: deleting text
 (ryo-modal-keys
  ("d" delete-char :wk "delete char after point")
  ("D"
   (("d" backward-delete-char :name "delete char before point")
    ("r" delete-region :name "delete-region"))))
+;; Deletion:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Modifiers][Modifiers:1]]
 ;;; Command modifiers
 (ryo-modal-keys
  ("SPC u" universal-argument :name "command modifier"))
+;; Modifiers:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Buffer (=b=)][Buffer (=b=):1]]
 ;;; Domain: buffers
 (ryo-modal-keys
  ;; state
@@ -177,7 +212,9 @@
      ("d" narrow-to-defun :name "to defun")
      ("p" narrow-to-page :name "to page")
      ("r" narrow-to-region :name "to region")) :name "narrow")) :name "buffer"))
+;; Buffer (=b=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Config (=c=)][Config (=c=):1]]
 (defconst C4/config (expand-file-name "C4.org" user-emacs-directory)
   "The central C4 config file.")
 
@@ -203,26 +240,34 @@
      ("d" eval-defun :name "defun")
      ("r" eval-region :name "region")
      ("b" eval-buffer :name "buffer")) :name "eval")) :name "C4 config"))
+;; Config (=c=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*File (=f=)][File (=f=):1]]
 ;;; Domain: file
 (ryo-modal-keys
  ("SPC f"
   (("f" find-file :name "find")
    ("F" find-file-other-window :name "other window")
    ("d" dired :name "directory")) :name "file"))
+;; File (=f=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Help (=h=)][Help (=h=):1]]
 ;;; Domain: help
 (ryo-modal-keys
  ("SPC h"
   (("F" describe-face :name "face")
    ("m" info-emacs-manual :name "Emacs manual")) :name "help"))
+;; Help (=h=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Session (=q=)][Session (=q=):1]]
 ;;; Domain: session
 (ryo-modal-keys
  ("SPC q"
   (("q" save-buffers-kill-emacs :name "quit")
    ("Q" kill-emacs :name "really quit")) :name "session"))
+;; Session (=q=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Toggle (=t=)][Toggle (=t=):1]]
 (defhydra C4/text-scale (:timeout 15)
   "Interactively scale text"
   ("+" text-scale-increase "inc")
@@ -233,7 +278,9 @@
 (ryo-modal-keys
  ("SPC t"
   (("s" C4/text-scale/body :name "text scaling")) :name "toggle"))
+;; Toggle (=t=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Window (=w=)][Window (=w=):1]]
 (defhydra C4/window-commander (:timeout 45)
   "Interactive window navigation"
   ("SPC" other-window "cycle")
@@ -277,19 +324,25 @@
     (("s" split-window-below :name "horizontal")
      ("S" split-window-right :name "vertical")) :name "split"))
   :name "window"))
+;; Window (=w=):1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*esup][esup:1]]
 ;;; Benchmark Emacs startup to debug performance
 (use-package esup
   :ryo
   ("SPC c d"
    (("d" esup :name "startup")) :name "debug"))
+;; esup:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*elisp-bug-hunter][elisp-bug-hunter:1]]
 ;;; Debug init file errors
 (use-package bug-hunter
   :ryo
   ("SPC c d"
    (("e" bug-hunter-init-file :name "errors"))))
+;; elisp-bug-hunter:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*explain-pause-mode][explain-pause-mode:1]]
 ;;; Check running processes in Emacs for slowdowns
 (use-package explain-pause-mode
   :ryo
@@ -297,7 +350,9 @@
    (("p" explain-pause-top :name "processes")))
   :config
   (explain-pause-mode))
+;; explain-pause-mode:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*crux][crux:1]]
 ;;; Utilities for useful Emacs functions
 (use-package crux
   :ryo
@@ -308,7 +363,9 @@
     ("r" crux-rename-file-and-buffer :name "rename")))
   :hook
   (find-file . crux-reopen-as-root-mode))
+;; crux:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Defaults][Defaults:1]]
 (setq-default cursor-type 'bar) ; default cursor as bar
 (setq-default frame-title-format '("%b")) ; window title is the buffer name
 
@@ -351,11 +408,15 @@
 
 ;; Make some icons available
 (use-package all-the-icons)
+;; Defaults:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*User Identity][User Identity:1]]
 ;;; Set full name and email address
 (setq user-full-name "Chatman R. Jr")
 (setq user-mail-address "crjr.code@protonmail.com")
+;; User Identity:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*undo-fu][undo-fu:1]]
 ;;; Better undo/redo
 (use-package undo-fu
   :ryo
@@ -369,7 +430,9 @@
   (prog-mode . undo-fu-session-mode)
   (text-mode . undo-fu-session-mode)
   (org-mode . undo-fu-session-mode))
+;; undo-fu:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*expand-region][expand-region:1]]
 ;;; Expand region selections by semantic units
 (use-package expand-region
   :ryo
@@ -380,26 +443,34 @@
     ("{" er/mark-outside-pairs :name "mark around delimiters")
     ("'" er/mark-inside-quotes :name "mark inside quotes")
     ("\"" er/mark-outside-quotes :name "mark around quotes"))))
+;; expand-region:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*selectrum][selectrum:1]]
 ;;; Better minibuffer completion
 (use-package selectrum
   :config
   (selectrum-mode 1))
+;; selectrum:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*prescient][prescient:1]]
 ;;; Remember frequently used commands and queries
 (use-package selectrum-prescient
   :after selectrum
   :config
   (selectrum-prescient-mode 1)
   (prescient-persist-mode 1))
+;; prescient:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*orderless][orderless:1]]
 ;;; Partial completion queries support
 (use-package orderless
   :init
   (icomplete-mode)
   :custom
   (completion-styles '(orderless)))
+;; orderless:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*consult][consult:1]]
 ;;; Better search utilities
 (use-package consult
   :ryo
@@ -420,14 +491,18 @@
   (register-preview-delay 0)
   (register-preview-function #'consult-register-window)
   (consult-narrow-key "<"))
+;; consult:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*embark][embark:1]]
 ;;; An interface for minibuffer actions
 (use-package embark-consult
   :after (embark consult)
   :demand t
   :hook
   (embark-collect-mode . embark-consult-preview-minor-mode))
+;; embark:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*marginalia][marginalia:1]]
 ;;; Adds annotations to minibuffer interfaces
 (use-package marginalia
   :after selectrum
@@ -439,7 +514,9 @@
         '(marginalia-annotators-heavy marginalia-annotators-light))
   :config
   (marginalia-mode 1))
+;; marginalia:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*ctrlf][ctrlf:1]]
 ;;; Incremental search interface similar to web browsers
 (use-package ctrlf
   :ryo
@@ -454,7 +531,9 @@
   (text-mode . ctrlf-mode)
   (prog-mode . ctrlf-mode)
   (org-mode . ctrlf-mode))
+;; ctrlf:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*smart-mode-line][smart-mode-line:1]]
 ;;; Lightweight mode line goodness
 (use-package smart-mode-line
   :init
@@ -469,7 +548,9 @@
   (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
   (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
   (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
+;; smart-mode-line:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*helpful][helpful:1]]
 ;;; Help documentation enhancements
 (use-package helpful
   :ryo
@@ -480,17 +561,23 @@
     ("C" helpful-callable :name "callable")
     ("v" helpful-variable :name "variable")
     ("k" helpful-key :name "keybinding"))))
+;; helpful:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*editorconfig][editorconfig:1]]
 ;;; Universal editor settings
 (use-package editorconfig
   :config
   (editorconfig-mode 1))
+;; editorconfig:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*vterm][vterm:1]]
 ;;; Rich terminal experience
 (use-package vterm
   :ryo
-  ("SPC '" vterm :name "vterm: open terminal from current dir"))
+  ("SPC '" vterm-other-window :name "vterm: open terminal from current dir"))
+;; vterm:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Typography][Typography:1]]
 ;;; Set some variables for my settings and styles
 (defconst C4/font "Input Sans-13"
   "The default UI and fixed-width font for my config.")
@@ -506,11 +593,15 @@
 
 ;; Set default document font as Merriweather family at 16px
 (set-face-attribute 'variable-pitch nil :font C4/document-font)
+;; Typography:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*UI][UI:1]]
 ;;; Disable the fringe background
 (set-face-attribute 'fringe nil
                     :background nil)
+;; UI:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Theme][Theme:1]]
 ;;; Setup poet-themes
 (use-package poet-theme)
 
@@ -519,11 +610,15 @@
 
 ;; Load in dark monochrome for quick toggling
 (load-theme 'poet-dark-monochrome t t)
+;; Theme:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*User Settings][User Settings:1]]
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root '("~/Code"))
 (setq C4/gh-user "cr-jr")
+;; User Settings:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Management][Management:1]]
 ;;; Project management
 (use-package projectile
   :ryo
@@ -539,7 +634,9 @@
   (projectile-switch-project-action #'projectile-dired)
   :bind-keymap
   ("C-c p" . projectile-command-map))
+;; Management:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*magit][magit:1]]
 ;;; Magical Git management
 (use-package magit
   :ryo
@@ -557,7 +654,9 @@
   :custom
   (magit-completing-read-function #'selectrum-completing-read)
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+;; magit:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*forge][forge:1]]
 ;;; A Magit extension to manage Git forges (GitHub, GitLab) from Magit
 (use-package forge
   :after magit
@@ -575,19 +674,25 @@
                 :host "api.github.com"
                 :username C4/gh-user
                 :auth 'forge))
+;; forge:1 ends here
 
-  ;;; Show how files have changed between commits
-  (use-package diff-hl
-    :after magit
-    :hook
-    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-    (magit-post-refresh . diff-hl-magit-post-refresh)
-    :config
-    (global-diff-hl-mode 1))
+;; [[file:~/.config/emacs/C4.org::*diff-hl][diff-hl:1]]
+;;; Show how files have changed between commits
+(use-package diff-hl
+  :after magit
+  :hook
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  (global-diff-hl-mode 1))
+;; diff-hl:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*User Settings][User Settings:1]]
 ;;; Variables for Org Mode configuration
 (setq C4/org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
+;; User Settings:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Setup][Setup:1]]
 (defhydra org-trek (:timeout 30)
   "A transient mode to logically browse an Org file"
   ("h" org-forward-heading-same-level "jump to next heading (same level)")
@@ -637,12 +742,14 @@
 ;; Save all buffers after a refile
 (advice-add 'org-refile :after 'org-save-all-org-buffers)
 
+
 ;;; Org setup
 (use-package org
   :straight org-plus-contrib
   :ryo
   ("SPC o" nil :name "org")
   (:mode 'org-mode)
+  ("M b" org-babel-mark-block :name "block")
   ("SPC o a"
    (("a" org-agenda-list :name "weekly")
     ("f" org-agenda :name "full")
@@ -771,9 +878,12 @@
    '((emacs-lisp . t)
      (lisp . t)
      (C . t)
+     (shell . t)
      (js . t)))
   )
+;; Setup:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::org-refiling][org-refiling]]
 ;;; Refiling setup
 (setq org-refile-use-outline-path 'file)
 (setq org-outline-path-complete-in-steps nil)
@@ -788,7 +898,9 @@
 
 ;; Save all buffers after a refile
 (advice-add 'org-refile :after 'org-save-all-org-buffers)
+;; org-refiling ends here
 
+;; [[file:~/.config/emacs/C4.org::*org-superstar][org-superstar:1]]
 ;;; Org Superstar makes your bullets bang louder
 (use-package org-superstar
   :after org
@@ -799,7 +911,9 @@
   :init
   (setq org-superstar-headline-bullets-list
         '("§" "☙" "჻")))
+;; org-superstar:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*visual-fill-column][visual-fill-column:1]]
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
   :custom
@@ -809,13 +923,17 @@
   (visual-line-mode . visual-fill-column-mode)
   :config
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
+;; visual-fill-column:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*toc-org][toc-org:1]]
 ;;; Add support for a table of contents
 (use-package toc-org
   :after org
   :hook
   (org-mode . toc-org-mode))
+;; toc-org:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Journaling][Journaling:1]]
 ;;; Journal file header
 (defun C4/org-journal-file-header (time)
   "Custom function to create a journal header."
@@ -846,7 +964,9 @@
 
   ;; Org agenda integration
   (org-journal-enable-agenda-integration t))
+;; Journaling:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*org-roam][org-roam:1]]
 ;;; Setup org-roam for starting a knowledge base
 (use-package org-roam
   :after org
@@ -863,7 +983,9 @@
   (after-init . org-roam-mode)
   :custom
   (org-roam-directory "~/Documents/Org/Notes/Roam/"))
+;; org-roam:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*deft][deft:1]]
 ;;; Deft for quick pattern-based note searching
 (use-package deft
   :ryo
@@ -874,7 +996,9 @@
   (deft-directory "~/Documents/Org/Notes/")
   (deft-use-filename-as-title t)
   (deft-recursive t))
+;; deft:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Parsing][Parsing:1]]
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
   :config
@@ -883,7 +1007,9 @@
 ;; A collection of supported tree-sitter languages
 (use-package tree-sitter-langs
   :after tree-sitter)
+;; Parsing:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Faces][Faces:1]]
 ;;; Set syntax highlighting faces
 
 ;; set comment face
@@ -906,17 +1032,23 @@
 
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
+;; Faces:1 ends here
 
-  ;;; When I'm knee deep in parens
+;; [[file:~/.config/emacs/C4.org::*rainbow-delimiters][rainbow-delimiters:1]]
+;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
   (prog-mode . rainbow-delimiters-mode)
   (prog-mode . prettify-symbols-mode))
+;; rainbow-delimiters:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Linting][Linting:1]]
 ;;; Code linting package that flies
 (use-package flycheck
   :hook (prog-mode . flycheck-mode))
+;; Linting:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*apheleia][apheleia:1]]
 ;;; Universal code formatting package
 (use-package apheleia
   :straight
@@ -924,19 +1056,25 @@
     :host github
     :repo "raxod502/apheleia")
   :hook (prog-mode . apheleia-mode))
+;; apheleia:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*smartparens][smartparens:1]]
 ;;; Autopair delimiters
 (use-package smartparens
   :hook
   (prog-mode . smartparens-mode)
   :config
   (require 'smartparens-config))
+;; smartparens:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*aggressive-indent-mode][aggressive-indent-mode:1]]
 ;;; Automatic indentation for my sanity
 (use-package aggressive-indent
   :hook
   (prog-mode . aggressive-indent-mode))
+;; aggressive-indent-mode:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Autocompletion][Autocompletion:1]]
 ;;; Code autocomplete with Company
 (use-package company
   :config
@@ -955,7 +1093,9 @@
 ;;; A nice Company interface
 (use-package company-box
   :hook (company-mode . company-box-mode))
+;; Autocompletion:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Language Server Protocol][Language Server Protocol:1]]
 ;;; Language Server Protocol package for rich IDE features
 
 ;; Setup eglot: a lightweight LSP client
@@ -974,7 +1114,9 @@
     ("r" eglot-rename :name "rename symbol")
     ("f" eglot-format :name "format")
     ("d" eldoc :name "documentation")) :name "LSP"))
+;; Language Server Protocol:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Snippets][Snippets:1]]
 (defun C4/create-one-liner ()
   "Create a one line snippet to expand immediately."
   (interactive)
@@ -1006,7 +1148,9 @@
    (("s" aya-create :name "create")
     ("e" C4/expand-snippet :name "expand" :exit t)
     ("w" C4/save-snippet :name "save")) :name "snippet"))
+;; Snippets:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Emacs Lisp][Emacs Lisp:1]]
 ;;; Lang: Emacs Lisp
 
 ;; Inline Emacs Lisp evaluation results
@@ -1021,7 +1165,9 @@
   :hook
   (emacs-lisp-mode . eros-mode)
   (lisp-interaction-mode . eros-mode))
+;; Emacs Lisp:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Common Lisp][Common Lisp:1]]
 ;;; Lang: Common Lisp
 
 ;; Setup SLY
@@ -1113,7 +1259,9 @@
   (setq inferior-lisp-program "/usr/local/bin/sbcl")
 
   (sly))
+;; Common Lisp:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Racket][Racket:1]]
 ;;; Lang: Racket
 
 ;; Initialize racket-mode
@@ -1155,8 +1303,11 @@
   :straight (ob-racket :host github :repo "DEADB17/ob-racket")
   :after org
   :config
-  (append '((racket . t) (scribble . t)) org-babel-load-languages))
+  (add-to-list 'org-babel-load-languages '(racket . t))
+  (add-to-list 'org-babel-load-languages '(scribble . t)))
+;; Racket:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Web Dev][Web Dev:1]]
 ;;; Lang: HTML/CSS/Web
 
 ;; Setup skewer-mode
@@ -1209,7 +1360,9 @@
   :after org
   :config
   (append '((browser . t)) org-babel-load-languages))
+;; Web Dev:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*Setup][Setup:1]]
 ;;; Lang: JavaScript
 
 ;; Setup js2-mode and use it to augment the built-in mode
@@ -1222,7 +1375,6 @@
   :hook
   (js-mode . js2-minor-mode)
   (js-mode . eglot-ensure)
-  (before-save . eglot-format)
   :config
   ;; Setup deno built-in LSP for eglot
   (defclass eglot-deno (eglot-lsp-server) ()
@@ -1237,7 +1389,10 @@
       (list :enable t :lint t)))
 
   (add-to-list
-   'eglot-server-programs '(js-mode . (eglot-deno "deno" "lsp"))))
+   'eglot-server-programs '(js-mode . (eglot-deno "deno" "lsp")))
+
+  (add-hook
+   'js-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer))))
 
 ;; Setup typescript-mode
 (use-package typescript-mode
@@ -1249,30 +1404,35 @@
   ("SPC l" nil :name "typescript")
   :hook
   (typescript-mode . eglot-ensure)
-  (before-save . eglot-format)
   :config
   (add-to-list
-   'eglot-server-programs '(typescript-mode . (eglot-deno "deno" "lsp"))))
+   'eglot-server-programs '(typescript-mode . (eglot-deno "deno" "lsp")))
 
-;; Setup ob-deno
-(use-package ob-deno)
+  (add-hook
+   'typescript-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer))))
+
+;; Support literate programming with TypeScript
+(use-package ob-typescript
+  :after org
+  :config
+  (add-to-list 'org-babel-load-languages '(typescript . t)))
+
+;; Literate programming with the deno runtime
+(use-package ob-deno
+  :after org
+  :config
+  (add-to-list 'org-babel-load-languages '(deno . t))
+  (add-to-list 'org-src-lang-modes '("deno" . js))
+  (add-to-list 'org-src-lang-modes '("deno" . typescript)))
 
 ;; Setup json-mode
 (use-package json-mode
   :mode
   ("\\.json\\'" . json-mode)
   ("\\.jsonp\\'" . json-mode))
+;; Setup:1 ends here
 
-;;; No comint mode for Deno in the community, so I gotta roll my own.
-
-;; But not from scratch
-(use-package maple-run
-  :straight (maple-run
-       :host github :repo "honmaple/emacs-maple-run")
-  :commands (maple-run)
-  :config
-  (add-to-list  'maple-run:alist '((js-mode typescript-mode) :command "deno run %F")))
-
+;; [[file:~/.config/emacs/C4.org::*Configuration][Configuration:1]]
 ;;; Initialize EXWM if GUI Emacs
 (use-package exwm
   :if window-system
@@ -1375,11 +1535,15 @@
 
 (defun C4/exwm-update-class ()
   (exwm-workspace-rename-buffer (concat "X Window: " exwm-class-name)))
+;; Configuration:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*application-launcher][application-launcher:1]]
 ;; Application launcher
 (use-package app-launcher
   :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
+;; application-launcher:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*desktop-environment][desktop-environment:1]]
 ;; EXWM: Desktop Environment
 (use-package desktop-environment
   :after exwm
@@ -1388,3 +1552,4 @@
   ("s-l" . windmove-right)
   :config
   (desktop-environment-mode))
+;; desktop-environment:1 ends here
