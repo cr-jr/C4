@@ -1359,6 +1359,7 @@ flow becomes more personal.
   ("SPC o" nil :name "org")
   (:mode 'org-mode)
   ("M b" org-babel-mark-block :name "block")
+  ("M e" org-mark-element :name "element")
   ("SPC o a"
    (("a" org-agenda-list :name "weekly")
     ("f" org-agenda :name "full")
@@ -2253,7 +2254,7 @@ I wire up eglot to trigger on every JS/TS buffer in the current project. As well
 =deno lsp= and what settings it expects to work.
 
 taiju of GitHub already wrote =ob-deno= for [[https://github.com/taiju/ob-deno][literate JS programming powered by the Deno runtime]], so I don't
-have to.
+have to. Though, I did fork it so I could make my own adjustments.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -2314,6 +2315,7 @@ have to.
 ;; Literate programming with the deno runtime
 (use-package ob-deno
   :after org
+  :straight '(ob-deno :host github :repo "cr-jr/ob-deno")
   :config
   (add-to-list 'org-babel-load-languages '(deno . t))
   (add-to-list 'org-src-lang-modes '("deno" . js))

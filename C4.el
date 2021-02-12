@@ -727,6 +727,7 @@
   ("SPC o" nil :name "org")
   (:mode 'org-mode)
   ("M b" org-babel-mark-block :name "block")
+  ("M e" org-mark-element :name "element")
   ("SPC o a"
    (("a" org-agenda-list :name "weekly")
     ("f" org-agenda :name "full")
@@ -1402,6 +1403,7 @@
 ;; Literate programming with the deno runtime
 (use-package ob-deno
   :after org
+  :straight '(ob-deno :host github :repo "cr-jr/ob-deno")
   :config
   (add-to-list 'org-babel-load-languages '(deno . t))
   (add-to-list 'org-src-lang-modes '("deno" . js))
