@@ -212,6 +212,7 @@ the threshold back to its approximate initial state.
 (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
 
 #+END_SRC
+
 * Housekeeping
 
 Now I want to do some decluttering. Emacs has a way of operating with files that can leave a lot of
@@ -287,6 +288,7 @@ Some modes can be set to disable this behavior as exceptions.
   (global-whitespace-cleanup-mode t))
 
 #+END_SRC
+
 * Keybindings
 
 This configuration sets up keybindings with a non-evil modal setup bound either to a global modal
@@ -687,20 +689,6 @@ This marks one of the biggest differences between Vim and Emacs: windows are /vi
 Emacs are detached from windows and are not killed when a window closes. They persist in the
 background until called into another window.
 
-Their state is preserved.
-
-#+BEGIN_QUOTE
-C4 is built to center Emacs as the driver of my entire desktop computing experience. At this point,
-Emacs largely /is/ my workstation.
-
-So this domain includes bindings for manipulating X windows served by EXWM.
-
-If you use this configuration and find you don't want or need Emacs to be your window manager, you
-can remove the desktop bindings and the environment configuration.
-
-Everything will still work in standalone Emacs instances. If it doesn't, please submit an issue.
-#+END_QUOTE
-
 #+BEGIN_SRC emacs-lisp
 
 (defhydra C4/window-commander (:timeout 45)
@@ -748,6 +736,7 @@ Everything will still work in standalone Emacs instances. If it doesn't, please 
   :name "window"))
 
 #+END_SRC
+
 * Utilities
 ** crux
 

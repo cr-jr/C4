@@ -1,29 +1,28 @@
-;; [[file:~/.config/emacs/C4.org::*Package Management][Package Management:1]]
-;;; Setup straight.el with use-package
-(setq straight-repository-branch "develop")
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;; [[file:~/.config/emacs/C4.org::*esup][esup:1]]
+;;; Benchmark Emacs startup to debug performance
+(use-package esup
+  :ryo
+  ("SPC c d"
+   (("d" esup :name "startup")) :name "debug"))
+;; esup:1 ends here
 
-;; use-package integration
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
+;; [[file:~/.config/emacs/C4.org::*elisp-bug-hunter][elisp-bug-hunter:1]]
+;;; Debug init file errors
+(use-package bug-hunter
+  :ryo
+  ("SPC c d"
+   (("e" bug-hunter-init-file :name "errors"))))
+;; elisp-bug-hunter:1 ends here
 
-;; Call in project.el
-(straight-use-package 'project)
-
-;; Call in Org
-(straight-use-package 'org-plus-contrib)
-;; Package Management:1 ends here
+;; [[file:~/.config/emacs/C4.org::*explain-pause-mode][explain-pause-mode:1]]
+;;; Check running processes in Emacs for slowdowns
+(use-package explain-pause-mode
+  :ryo
+  ("SPC c d"
+   (("p" explain-pause-top :name "processes")))
+  :config
+  (explain-pause-mode))
+;; explain-pause-mode:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*Garbage collection][Garbage collection:1]]
 ;;; Raise the garbage collection threshold high as emacs starts
@@ -328,32 +327,6 @@
      ("S" split-window-right :name "vertical")) :name "split"))
   :name "window"))
 ;; Window (=w=):1 ends here
-
-;; [[file:~/.config/emacs/C4.org::*esup][esup:1]]
-;;; Benchmark Emacs startup to debug performance
-(use-package esup
-  :ryo
-  ("SPC c d"
-   (("d" esup :name "startup")) :name "debug"))
-;; esup:1 ends here
-
-;; [[file:~/.config/emacs/C4.org::*elisp-bug-hunter][elisp-bug-hunter:1]]
-;;; Debug init file errors
-(use-package bug-hunter
-  :ryo
-  ("SPC c d"
-   (("e" bug-hunter-init-file :name "errors"))))
-;; elisp-bug-hunter:1 ends here
-
-;; [[file:~/.config/emacs/C4.org::*explain-pause-mode][explain-pause-mode:1]]
-;;; Check running processes in Emacs for slowdowns
-(use-package explain-pause-mode
-  :ryo
-  ("SPC c d"
-   (("p" explain-pause-top :name "processes")))
-  :config
-  (explain-pause-mode))
-;; explain-pause-mode:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*crux][crux:1]]
 ;;; Utilities for useful Emacs functions
@@ -750,7 +723,6 @@
 
 ;;; Org setup
 (use-package org
-  :straight org-plus-contrib
   :ryo
   ("SPC o" nil :name "org")
   (:mode 'org-mode)
