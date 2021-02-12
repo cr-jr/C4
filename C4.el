@@ -20,6 +20,9 @@
 
 ;; Call in project.el
 (straight-use-package 'project)
+
+;; Call in Org
+(straight-use-package 'org-plus-contrib)
 ;; Package Management:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*Garbage collection][Garbage collection:1]]
@@ -585,6 +588,9 @@
 (defconst C4/document-font "Merriweather-16"
   "The default variable pitch font for my config.")
 
+(defconst C4/linum-font "Input Mono-13"
+  "linum-mode requires a monospaced font.")
+
 ;; By default, use Input Sans family at 13px
 (set-face-attribute 'default nil :font C4/font)
 
@@ -593,6 +599,10 @@
 
 ;; Set default document font as Merriweather family at 16px
 (set-face-attribute 'variable-pitch nil :font C4/document-font)
+
+;; Set monospace font to correctly render linum and bold to track position
+(set-face-attribute 'line-number nil :font C4/linum-font)
+(set-face-attribute 'line-number-current-line nil :weight 'black :font C4/linum-font)
 ;; Typography:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*UI][UI:1]]
@@ -677,20 +687,15 @@
 ;; forge:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*diff-hl][diff-hl:1]]
-;;; Show how files have changed between commits
-(use-package diff-hl
-  :after magit
-  :hook
-  (magit-pre-refresh . diff-hl-magit-pre-refresh)
-  (magit-post-refresh . diff-hl-magit-post-refresh)
-  :config
-  (global-diff-hl-mode 1))
+  ;;; Show how files have changed between commits
+  (use-package diff-hl
+    :after magit
+    :hook
+    (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    (magit-post-refresh . diff-hl-magit-post-refresh)
+    :config
+    (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
-
-;; [[file:~/.config/emacs/C4.org::*User Settings][User Settings:1]]
-;;; Variables for Org Mode configuration
-(setq C4/org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
-;; User Settings:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*Setup][Setup:1]]
 (defhydra org-trek (:timeout 30)
@@ -998,6 +1003,11 @@
   (deft-recursive t))
 ;; deft:1 ends here
 
+;; [[file:~/.config/emacs/C4.org::*weblorg][weblorg:1]]
+;;; An Org Mode static site generator
+(use-package weblorg)
+;; weblorg:1 ends here
+
 ;; [[file:~/.config/emacs/C4.org::*Parsing][Parsing:1]]
 ;;; A full on parser in Emacs with highlighting definitions
 (use-package tree-sitter
@@ -1035,7 +1045,7 @@
 ;; Faces:1 ends here
 
 ;; [[file:~/.config/emacs/C4.org::*rainbow-delimiters][rainbow-delimiters:1]]
-;;; When I'm knee deep in parens
+  ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
   (prog-mode . rainbow-delimiters-mode)

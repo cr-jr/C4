@@ -18,31 +18,44 @@ If something doesn't add value to my workflow, it simply isn't here.
 
 Custom variables and procedures in this config are always prefixed with =C4=.
 
-* Table of Contents :TOC@4:
+* Table of Contents                                                   :TOC@4:
 - [[#summary][Summary]]
-- [[#initialization][Initialization]]
-  - [[#package-management][Package Management]]
-  - [[#startup-performance][Startup Performance]]
-    - [[#garbage-collection][Garbage collection]]
-  - [[#housekeeping][Housekeeping]]
-    - [[#inhibit-lockfiles-and-custom-files][Inhibit lockfiles and custom files]]
-    - [[#no-littering][no-littering]]
-    - [[#create-parent-directories-automatically][Create parent directories automatically]]
-    - [[#whitespace-cleanup-mode][whitespace-cleanup-mode]]
-  - [[#keybindings][Keybindings]]
-    - [[#why][Why?]]
-    - [[#setup][Setup]]
-      - [[#which-key][which-key]]
-      - [[#ryo-modal][ryo-modal]]
-      - [[#hydra][hydra]]
-    - [[#structure][Structure]]
-      - [[#command-mode][Command Mode]]
-      - [[#actions][Actions]]
-      - [[#commands][Commands]]
-  - [[#debugging-the-configuration][Debugging the Configuration]]
-    - [[#esup][esup]]
-    - [[#elisp-bug-hunter][elisp-bug-hunter]]
-    - [[#explain-pause-mode][explain-pause-mode]]
+- [[#debugging-the-configuration][Debugging the Configuration]]
+  - [[#esup][esup]]
+  - [[#elisp-bug-hunter][elisp-bug-hunter]]
+  - [[#explain-pause-mode][explain-pause-mode]]
+- [[#startup-performance][Startup Performance]]
+  - [[#garbage-collection][Garbage collection]]
+- [[#housekeeping][Housekeeping]]
+  - [[#inhibit-lockfiles-and-custom-files][Inhibit lockfiles and custom files]]
+  - [[#no-littering][no-littering]]
+  - [[#create-parent-directories-automatically][Create parent directories automatically]]
+  - [[#whitespace-cleanup-mode][whitespace-cleanup-mode]]
+- [[#keybindings][Keybindings]]
+  - [[#why][Why?]]
+  - [[#setup][Setup]]
+    - [[#which-key][which-key]]
+    - [[#ryo-modal][ryo-modal]]
+    - [[#hydra][hydra]]
+  - [[#structure][Structure]]
+    - [[#command-mode][Command Mode]]
+    - [[#actions][Actions]]
+      - [[#exiting-command-mode][Exiting Command Mode]]
+      - [[#modifiers][Modifiers]]
+      - [[#movement][Movement]]
+      - [[#markingselecting][Marking/selecting]]
+      - [[#killingcutting][Killing/cutting]]
+      - [[#copypaste][Copy/paste]]
+      - [[#deletion][Deletion]]
+    - [[#commands][Commands]]
+      - [[#modifiers-1][Modifiers]]
+      - [[#buffer-b][Buffer (=b=)]]
+      - [[#config-c][Config (=c=)]]
+      - [[#file-f][File (=f=)]]
+      - [[#help-h][Help (=h=)]]
+      - [[#session-q][Session (=q=)]]
+      - [[#toggle-t][Toggle (=t=)]]
+      - [[#window-w][Window (=w=)]]
 - [[#utilities][Utilities]]
   - [[#crux][crux]]
 - [[#defaults][Defaults]]
@@ -79,20 +92,23 @@ Custom variables and procedures in this config are always prefixed with =C4=.
   - [[#spelling][Spelling]]
   - [[#grammar][Grammar]]
   - [[#dictionary--thesaurus][Dictionary & Thesaurus]]
-  - [[#format-support][Format Support]]
-    - [[#org][Org]]
-      - [[#user-settings-1][User Settings]]
-      - [[#setup-1][Setup]]
-      - [[#breadcrumbs][Breadcrumbs]]
-      - [[#agenda][Agenda]]
-      - [[#refiling][Refiling]]
-      - [[#capture-templates][Capture Templates]]
-      - [[#literate-programming][Literate Programming]]
-      - [[#interface-addons][Interface Addons]]
-      - [[#journaling][Journaling]]
-      - [[#notes][Notes]]
-    - [[#markdown][Markdown]]
-    - [[#latex][LaTeX]]
+  - [[#org][Org]]
+    - [[#setup-1][Setup]]
+    - [[#breadcrumbs][Breadcrumbs]]
+    - [[#agenda][Agenda]]
+    - [[#refiling][Refiling]]
+    - [[#capture-templates][Capture Templates]]
+    - [[#literate-programming][Literate Programming]]
+    - [[#interface-addons][Interface Addons]]
+      - [[#org-superstar][org-superstar]]
+      - [[#visual-fill-column][visual-fill-column]]
+      - [[#toc-org][toc-org]]
+    - [[#journaling][Journaling]]
+    - [[#notes][Notes]]
+      - [[#org-roam][org-roam]]
+      - [[#deft][deft]]
+    - [[#publishing][Publishing]]
+      - [[#weblorg][weblorg]]
 - [[#programming-modes][Programming Modes]]
   - [[#parsing][Parsing]]
   - [[#syntax-highlighting][Syntax Highlighting]]
@@ -127,38 +143,60 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#application-launcher][application-launcher]]
     - [[#desktop-environment-1][desktop-environment]]
 
-* Initialization
-** Package Management
+* Debugging the Configuration
 
-C4 requires [[https://github.com/raxod502/straight.el][straight.el]] and [[https://github.com/jwiegley/use-package][use-package]], so that gets loaded in first.
+When things break, I need ways of figuring out the problem. And without measurements, I can't make
+improvements.
+
+** esup
+
+ESUP (Emacs Start Up Profiler) is an invaluable package for benchmarking how quickly Emacs loads. My
+aim: make C4 feature complete for my needs while also loading fast enough for my slightly older laptop.
 
 #+BEGIN_SRC emacs-lisp
-;;; Setup straight.el with use-package
-(setq straight-repository-branch "develop")
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
 
-;; use-package integration
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
-
-;; Call in project.el
-(straight-use-package 'project)
+;;; Benchmark Emacs startup to debug performance
+(use-package esup
+  :ryo
+  ("SPC c d"
+   (("d" esup :name "startup")) :name "debug"))
 
 #+END_SRC
 
-** Startup Performance
-*** Garbage collection
+** elisp-bug-hunter
+
+elisp-bug-hunter is a package that allows me to track down and eliminate bugs in C4 that might be
+hiding in the tall grass.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Debug init file errors
+(use-package bug-hunter
+  :ryo
+  ("SPC c d"
+   (("e" bug-hunter-init-file :name "errors"))))
+
+#+END_SRC
+
+** explain-pause-mode
+
+explain-pause-mode is like =top= (more accurately =htop=) for Emacs. It allows you see all recently
+run operations and discover which ones are making Emacs lag. This ensures tight performance carries
+over for more than just startup times.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Check running processes in Emacs for slowdowns
+(use-package explain-pause-mode
+  :ryo
+  ("SPC c d"
+   (("p" explain-pause-top :name "processes")))
+  :config
+  (explain-pause-mode))
+
+#+END_SRC
+* Startup Performance
+** Garbage collection
 
 The first optimization involves increasing the Emacs garbage collection threshold to =100MB= on
 startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
@@ -174,14 +212,13 @@ the threshold back to its approximate initial state.
 (add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
 
 #+END_SRC
-
-** Housekeeping
+* Housekeeping
 
 Now I want to do some decluttering. Emacs has a way of operating with files that can leave a lot of
 crap behind in my filesystem, so I needed to do a little cleanup and ordering of where and if it
 generates temporary files and directories.
 
-*** Inhibit lockfiles and custom files
+** Inhibit lockfiles and custom files
 
 My experience with lockfiles is that they add a lot of noise to my directories and projects, so I'm
 just going to disable them entirely. The same goes for custom files, because I prefer to do all of
@@ -197,7 +234,7 @@ my customizations with Emacs Lisp.
 
 #+END_SRC
 
-*** no-littering
+** no-littering
 
 no-littering is a great package that ensures files and directories generated by Emacs or its
 packages are allocated to their proper places. The killer feature is how it allows you to set a
@@ -213,7 +250,7 @@ central directory for all autosaved files.
 
 #+END_SRC
 
-*** Create parent directories automatically
+** Create parent directories automatically
 
 One great thing about Emacs is that I can manage my ideas and work as they come. I streamline this
 by telling Emacs to automatically create directories that don't exist for new files. This allows me
@@ -235,7 +272,7 @@ to build the file structure for my projects on the fly.
 
 #+END_SRC
 
-*** whitespace-cleanup-mode
+** whitespace-cleanup-mode
 
 whitespace-cleanup-mode is a package that intelligently checks files for errant whitespace and
 cleans it up before saving. By default, C4 enables this behavior globally.
@@ -250,13 +287,12 @@ Some modes can be set to disable this behavior as exceptions.
   (global-whitespace-cleanup-mode t))
 
 #+END_SRC
-
-** Keybindings
+* Keybindings
 
 This configuration sets up keybindings with a non-evil modal setup bound either to a global modal
 state or major/minor modes.
 
-*** Why?
+** Why?
 
 Emacs is slowly pushing me to think less like a Vimmer, and because of this, evil-mode feels limiting.
 
@@ -267,8 +303,8 @@ than by toggling arbitrary states.
 That said, I do like the modal editing workflow. It's better for my health than many of the default
 Emacs keybinding contortions.
 
-*** Setup
-**** which-key
+** Setup
+*** which-key
 
 which-key provides an interface for discovering keybindings in Emacs. Both built-in and user
 defined. It's absolutely essential since I'm building an evolving custom modal setup and can't keep
@@ -287,7 +323,7 @@ it all in my head.
 
 #+END_SRC
 
-**** ryo-modal
+*** ryo-modal
 
 RYO modal allows me to create modal keybindings of my own design.
 
@@ -311,7 +347,7 @@ RYO modal allows me to create modal keybindings of my own design.
 
 #+END_SRC
 
-**** hydra
+*** hydra
 
 This package allows me to create keybinding sandboxes for more complex operations. Kind of like a
 mode within a mode.
@@ -323,8 +359,8 @@ mode within a mode.
 
 #+END_SRC
 
-*** Structure
-**** Command Mode
+** Structure
+*** Command Mode
 
 Command Mode is defined by RYO and is the global "normal" state from where I can issue actions
 or mnemonic commands. With C4, Emacs loads in this state.
@@ -334,12 +370,12 @@ When Command mode is disabled, Emacs works as usual.
 Built-in commands are bound in the following sections, while package-supplied commands are bound
 alongside the installation and configuration of those packages.
 
-**** Actions
+*** Actions
 
 Actions are low level commands. These include moving around the buffer, toggling command mode,
 undo/redo motions and more.
 
-***** Exiting Command Mode
+**** Exiting Command Mode
 
 Command Mode has a few simple escape hatches for when I'm ready to enter some text:
 
@@ -356,7 +392,7 @@ Command Mode has a few simple escape hatches for when I'm ready to enter some te
 
 #+END_SRC
 
-***** Modifiers
+**** Modifiers
 
 I set two kinds of action modifiers: numeric and procedural.
 
@@ -389,7 +425,7 @@ numeric modifier. This is the expected Emacs behavior for =digit-argument=.
 
 #+END_SRC
 
-***** Movement
+**** Movement
 
 These actions help me get around the buffer quickly. They're somewhat modeled after Xah Fly Keys but
 use modifiers to change the scope of the action. So I can use the same four keys to hop around.
@@ -415,7 +451,7 @@ use modifiers to change the scope of the action. So I can use the same four keys
 
 #+END_SRC
 
-***** Marking/selecting
+**** Marking/selecting
 
 These actions are mapped to marking regions and text selection.
 
@@ -438,7 +474,7 @@ These actions are mapped to marking regions and text selection.
 
 #+END_SRC
 
-***** Killing/cutting
+**** Killing/cutting
 
 Now, some actions for killing and cutting text.
 
@@ -451,7 +487,7 @@ Now, some actions for killing and cutting text.
 
 #+END_SRC
 
-***** Copy/paste
+**** Copy/paste
 
 Some actions for copying and pasting text.
 
@@ -466,7 +502,7 @@ Some actions for copying and pasting text.
 
 #+END_SRC
 
-***** Deletion
+**** Deletion
 
 Finally, some actions for deleting text. This is the final manipulation. Deleted text will
 /not/ be saved to the kill ring or anywhere else. It's gone.
@@ -485,7 +521,7 @@ for deletion. In this case, it begins deletion chords.
 
 #+END_SRC
 
-**** Commands
+*** Commands
 
 The C4 command keybindings all share =SPC= as a prefix and =s-SPC= to issue these keybindings in X
 windows launched by EXWM.
@@ -501,7 +537,7 @@ those of a major programming mode, define their own major prefixes.
 
 C4 uses command prefixes to group bindings to their area of influence.
 
-***** Modifiers
+**** Modifiers
 
 Similar to actions, each command optionally takes modifiers.
 
@@ -513,7 +549,7 @@ Similar to actions, each command optionally takes modifiers.
 
 #+END_SRC
 
-***** Buffer (=b=)
+**** Buffer (=b=)
 
 This prefix wraps all commands that affect buffers Lowercase bindings affect only the current
 buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local command.
@@ -539,7 +575,7 @@ buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local 
 
 #+END_SRC
 
-***** Config (=c=)
+**** Config (=c=)
 
 This prefix wraps all commands that make it easier to work with my configuration itself. This
 includes quickly opening and reloading my config.
@@ -577,7 +613,7 @@ place as I try out new settings.
 
 #+END_SRC
 
-***** File (=f=)
+**** File (=f=)
 
 This prefix wraps all commands that affect the filesystem. It includes finding and renaming files.
 
@@ -592,7 +628,7 @@ This prefix wraps all commands that affect the filesystem. It includes finding a
 
 #+END_SRC
 
-***** Help (=h=)
+**** Help (=h=)
 
 This domain wraps all commands that query Emacs for help about its functionality. It also allows me
 to quickly bring up the Emacs manual for browsing.
@@ -607,7 +643,7 @@ to quickly bring up the Emacs manual for browsing.
 
 #+END_SRC
 
-***** Session (=q=)
+**** Session (=q=)
 
 This domain wraps commands that affect Emacs sessions
 
@@ -621,7 +657,7 @@ This domain wraps commands that affect Emacs sessions
 
 #+END_SRC
 
-***** Toggle (=t=)
+**** Toggle (=t=)
 
 This domain wraps commands that can be toggled. It allows me to switch variants of the main theme on
 the fly and scale text. It also triggers writeroom-mode in document major modes.
@@ -641,7 +677,7 @@ the fly and scale text. It also triggers writeroom-mode in document major modes.
 
 #+END_SRC
 
-***** Window (=w=)
+**** Window (=w=)
 
 This domain wraps all commands that affect windows.
 
@@ -712,60 +748,6 @@ Everything will still work in standalone Emacs instances. If it doesn't, please 
   :name "window"))
 
 #+END_SRC
-
-** Debugging the Configuration
-
-When things break, I need ways of figuring out the problem. And without measurements, I can't make
-improvements.
-
-*** esup
-
-ESUP (Emacs Start Up Profiler) is an invaluable package for benchmarking how quickly Emacs loads. My
-aim: make C4 feature complete for my needs while also loading fast enough for my slightly older laptop.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Benchmark Emacs startup to debug performance
-(use-package esup
-  :ryo
-  ("SPC c d"
-   (("d" esup :name "startup")) :name "debug"))
-
-#+END_SRC
-
-*** elisp-bug-hunter
-
-elisp-bug-hunter is a package that allows me to track down and eliminate bugs in C4 that might be
-hiding in the tall grass.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Debug init file errors
-(use-package bug-hunter
-  :ryo
-  ("SPC c d"
-   (("e" bug-hunter-init-file :name "errors"))))
-
-#+END_SRC
-
-*** explain-pause-mode
-
-explain-pause-mode is like =top= (more accurately =htop=) for Emacs. It allows you see all recently
-run operations and discover which ones are making Emacs lag. This ensures tight performance carries
-over for more than just startup times.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Check running processes in Emacs for slowdowns
-(use-package explain-pause-mode
-  :ryo
-  ("SPC c d"
-   (("p" explain-pause-top :name "processes")))
-  :config
-  (explain-pause-mode))
-
-#+END_SRC
-
 * Utilities
 ** crux
 
@@ -1354,24 +1336,12 @@ This section includes all the settings and packages I use for everyday writing a
 ** Spelling
 ** Grammar
 ** Dictionary & Thesaurus
-** Format Support
-*** Org
+** Org
 
 My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured and includes
 quite a few addons.
 
-**** User Settings
-
-First, I define some variables to make adjustments easier.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Variables for Org Mode configuration
-(setq C4/org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
-
-#+END_SRC
-
-**** Setup
+*** Setup
 
 To keep things clean in this section, I use the =noweb= property of Org-babel so I can define more complex
 settings in their own section.
@@ -1396,7 +1366,6 @@ flow becomes more personal.
 
 ;;; Org setup
 (use-package org
-  :straight org-plus-contrib
   :ryo
   ("SPC o" nil :name "org")
   (:mode 'org-mode)
@@ -1446,7 +1415,7 @@ flow becomes more personal.
 
 #+END_SRC
 
-**** Breadcrumbs
+*** Breadcrumbs
 
 I'm including an Org breadcrumb setup so I don't lose track of what heading I'm actually in.
 
@@ -1479,7 +1448,7 @@ The code is lifted directly from [[https://emacs.stackexchange.com/a/61107][this
 
 #+END_SRC
 
-**** Agenda
+*** Agenda
 
 Now, I set up Org for task management.
 
@@ -1555,7 +1524,7 @@ Now, I set up Org for task management.
 
 #+END_SRC
 
-**** Refiling
+*** Refiling
 
 Refiling is a feature that can help me for more than moving things across files. It can also help me
 restructure current files, so I'm setting it up for that. This is taken from Sacha Chua's dotemacs.
@@ -1580,7 +1549,7 @@ restructure current files, so I'm setting it up for that. This is taken from Sac
 
 #+END_SRC
 
-**** Capture Templates
+*** Capture Templates
 
 In this section, I'm defining my Org-capture templates. It's just the one right now, but more will be added as
 I need them.
@@ -1596,7 +1565,7 @@ I need them.
 
 #+END_SRC
 
-**** Literate Programming
+*** Literate Programming
 
 Finally, I set my configuration up for Org-babel so I can do literate programming in any language I want.
 
@@ -1621,8 +1590,8 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
 
 #+END_SRC
 
-**** Interface Addons
-***** org-superstar
+*** Interface Addons
+**** org-superstar
 
 Org Superstar is a package that makes Org Mode bullets (even lists) much prettier.
 
@@ -1641,7 +1610,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
 
 #+END_SRC
 
-***** visual-fill-column
+**** visual-fill-column
 
 This package provides a more pleasant writing experience with Org Mode. I used darkroom for a while,
 but it does a little too much and doesn't seem to play nice with org-indent-mode.
@@ -1660,7 +1629,7 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
 
 #+END_SRC
 
-***** toc-org
+**** toc-org
 
 This package enables me to add a table of contents to Org files.
 
@@ -1674,7 +1643,7 @@ This package enables me to add a table of contents to Org files.
 
 #+END_SRC
 
-**** Journaling
+*** Journaling
 
 I include Org Journal, because I want to commit to keeping better notes and cultivate a habit of
 note-taking in an environment I know I won't abandon easily.
@@ -1714,8 +1683,8 @@ note-taking in an environment I know I won't abandon easily.
 
 #+END_SRC
 
-**** Notes
-***** org-roam
+*** Notes
+**** org-roam
 
 Another vital component of my note-taking workflow: org-roam.
 
@@ -1740,7 +1709,7 @@ Another vital component of my note-taking workflow: org-roam.
 
 #+END_SRC
 
-***** deft
+**** deft
 
 The final piece of the puzzle is deft. This package allows me to perform fast text searches across
 all of my Org notes. The main advantage: I get an overview of topics and thoughts I fixate on by how
@@ -1761,8 +1730,29 @@ many times they recur, for better or worse.
 
 #+END_SRC
 
-*** Markdown
-*** LaTeX
+*** Publishing
+
+Sometimes, I want to share thoughts with people. This section features packages that help me get my
+voice out into the world a bit more.
+
+**** weblorg
+
+This is a fairly new package in the vein of =ox-hugo= or =org-page=. It's a full Emacs Lisp
+static site generator from Org Mode! Some of the features that really excite me include completely
+custom HTML templates. I mean, I did start as a web designer.
+
+Weblorg allows me to use my entire front-end development toolkit to build and publish a sweet Org
+Mode website. Publishing a thought is as easy as writing one.
+
+So I have no excuse not to write anymore.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; An Org Mode static site generator
+(use-package weblorg)
+
+#+END_SRC
+
 * Programming Modes
 
 The richer programming experience offered by Emacs and the lovely ecosystem of community packages was a huge
