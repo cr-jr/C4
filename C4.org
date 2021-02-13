@@ -1181,7 +1181,8 @@ I also make some adjustments to the UI faces. Mainly to clean it up.
 
 ** Theme
 
-To promote and encourage a literate programming workflow, C4 uses Poet by default.
+To promote and encourage a literate programming workflow, C4 uses Poet by default. The =theme-changer=
+package is also set up so I can have day and night themes based on my location.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1193,6 +1194,15 @@ To promote and encourage a literate programming workflow, C4 uses Poet by defaul
 
 ;; Load in dark monochrome for quick toggling
 (load-theme 'poet-dark-monochrome t t)
+
+;; Setup theme-changer
+(use-package theme-changer
+  :config
+  (setq calendar-location-name "Bridgeport, CT")
+  (setq calendar-latitude "41.223000")
+  (setq calendar-longitude "-73.193980")
+
+  (change-theme 'poet-monochrome 'poet-dark-monochrome))
 
 #+END_SRC
 
@@ -1784,6 +1794,9 @@ The richer programming experience offered by Emacs and the lovely ecosystem of c
 part of why I switched over from Vim after nearly a decade of use. It requires a bit of setup, but now I have a
 development workstation I can grow with and easily expand.
 
+I also have a much, /much/ easier time understanding and modifying Emacs Lisp packages for my personal
+ends than I ever did with VimScript.
+
 I looked around for packages that set a solid base for programming in general before I started looking for
 language-specific support. That way each language I use gets a good starting point from which I can selectively
 improve the workflow as needed.
@@ -1822,7 +1835,7 @@ highlighted, it means I can judiciously add syntax information that actually hel
 
 *** Faces
 
-I'm going to adjust some of the faces provided by tree-sitter now.
+I'm going to adjust a few faces provided by tree-sitter now.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1881,7 +1894,7 @@ C4 uses flycheck for code linting.
 ** Formatting
 *** apheleia
 
-C4 uses Apheleia for code formating. It's a language-agnostic formatting package that allows the support of
+C4 uses Apheleia for code formatting. It's a language-agnostic formatting package that allows the support of
 new formatters as well.
 
 #+BEGIN_SRC emacs-lisp
@@ -1898,7 +1911,7 @@ new formatters as well.
 
 *** smartparens
 
-This package autopairs delimiters for a variety of programming modes.
+This package auto-pairs delimiters for a variety of programming modes.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -2213,7 +2226,7 @@ For editing Racket source, racket-mode is the way to go.
 
 For web development, essential packages include: emmet-mode, skewer-mode, and impatient-mode.
 
-Web mode is popular, but conflicts with skewer and I don't often use specialized web templates.
+I don't use specialized template syntax, so I don't have much use for web-mode.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -2274,7 +2287,7 @@ Web mode is popular, but conflicts with skewer and I don't often use specialized
 
 *** JavaScript/TypeScript
 
-Now I'll beef up the JS dev experience. I'm investing heavily into =deno= this year, so my
+Now, I'll beef up the JS dev experience. I'm investing heavily into =deno= this year, so my
 configuration optimizes for a =deno= workflow.
 
 **** Setup
@@ -2288,8 +2301,8 @@ need. Deno LSP handles a lot of things already, so I just need basic TypeScript 
 I wire up eglot to trigger on every JS/TS buffer in the current project. As well as let it know about
 =deno lsp= and what settings it expects to work.
 
-taiju of GitHub already wrote =ob-deno= for [[https://github.com/taiju/ob-deno][literate JS programming powered by the Deno runtime]], so I don't
-have to. Though, I did fork it so I could make my own adjustments.
+@taiju already wrote =ob-deno= for [[https://github.com/taiju/ob-deno][literate JS programming powered by the Deno runtime]], so I don't
+have to. Though, I did fork it for my own adjustments.
 
 #+BEGIN_SRC emacs-lisp
 

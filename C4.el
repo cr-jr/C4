@@ -593,6 +593,15 @@
 
 ;; Load in dark monochrome for quick toggling
 (load-theme 'poet-dark-monochrome t t)
+
+;; Setup theme-changer
+(use-package theme-changer
+  :config
+  (setq calendar-location-name "Bridgeport, CT")
+  (setq calendar-latitude "41.223000")
+  (setq calendar-longitude "-73.193980")
+
+  (change-theme 'poet-monochrome 'poet-dark-monochrome))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*User Settings][User Settings:1]]
@@ -660,14 +669,14 @@
 ;; forge:1 ends here
 
 ;; [[file:C4.org::*diff-hl][diff-hl:1]]
-;;; Show how files have changed between commits
-(use-package diff-hl
-  :after magit
-  :hook
-  (magit-pre-refresh . diff-hl-magit-pre-refresh)
-  (magit-post-refresh . diff-hl-magit-post-refresh)
-  :config
-  (global-diff-hl-mode 1))
+  ;;; Show how files have changed between commits
+  (use-package diff-hl
+    :after magit
+    :hook
+    (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    (magit-post-refresh . diff-hl-magit-post-refresh)
+    :config
+    (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
 ;; [[file:C4.org::*langtool][langtool:1]]
@@ -681,22 +690,21 @@
   ("SPC d"
    (("d" langtool-check :name "check")
     ("D" langtool-check-done :name "done")
-    ("c" langtool-correct-buffer :name "corrections")) :name "spelling/grammar")
+    ("i" langtool-show-message-at-point :name "info")
+    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant")
   :init
-  (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar")
-  :config
-  (defun langtool-autoshow-detail-popup (overlays)
-    (when (require 'popup nil t)
-      ;; Do not interrupt current popup
-      (unless (or popup-instances
-                  ;; suppress popup after type `C-g` .
-                  (memq last-command '(keyboard-quit)))
-  (let ((msg (langtool-details-error-message overlays)))
-          (popup-tip msg)))))
-
-  (setq langtool-autoshow-message-function
-  'langtool-autoshow-detail-popup))
+  (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar"))
 ;; langtool:1 ends here
+
+;; [[file:C4.org::*mw-thesaurus][mw-thesaurus:1]]
+;; Setup mw-thesaurus
+(use-package mw-thesaurus
+  :ryo
+  (:mode 'text-mode)
+  ("SPC d w" mw-thesaurus-lookup-dwim :name "word lookup")
+  :custom
+  (mw-thesaurus--api-key "629ccc6a-d13c-47dc-a3bd-4f807b3b90a6"))
+;; mw-thesaurus:1 ends here
 
 ;; [[file:C4.org::*Setup][Setup:1]]
 (defhydra org-trek (:timeout 30)
@@ -1046,7 +1054,7 @@
 ;; Faces:1 ends here
 
 ;; [[file:C4.org::*rainbow-delimiters][rainbow-delimiters:1]]
-;;; When I'm knee deep in parens
+  ;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
   (prog-mode . rainbow-delimiters-mode)
