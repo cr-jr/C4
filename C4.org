@@ -4,7 +4,7 @@
 #+PROPERTY: header-args :mkdirp yes
 #+PROPERTY: header-args:emacs-lisp :comments link :tangle yes
 
-* Summary
+* Summary  :noexport:
 
 This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
 environment and learn how to do more with it.
@@ -19,18 +19,6 @@ If something doesn't add value to my workflow, it simply isn't here.
 Custom variables and procedures in this config are always prefixed with =C4=.
 
 * Table of Contents                                                   :TOC@4:
-- [[#summary][Summary]]
-- [[#debugging-the-configuration][Debugging the Configuration]]
-  - [[#esup][esup]]
-  - [[#elisp-bug-hunter][elisp-bug-hunter]]
-  - [[#explain-pause-mode][explain-pause-mode]]
-- [[#startup-performance][Startup Performance]]
-  - [[#garbage-collection][Garbage collection]]
-- [[#housekeeping][Housekeeping]]
-  - [[#inhibit-lockfiles-and-custom-files][Inhibit lockfiles and custom files]]
-  - [[#no-littering][no-littering]]
-  - [[#create-parent-directories-automatically][Create parent directories automatically]]
-  - [[#whitespace-cleanup-mode][whitespace-cleanup-mode]]
 - [[#keybindings][Keybindings]]
   - [[#why][Why?]]
   - [[#setup][Setup]]
@@ -56,6 +44,17 @@ Custom variables and procedures in this config are always prefixed with =C4=.
       - [[#session-q][Session (=q=)]]
       - [[#toggle-t][Toggle (=t=)]]
       - [[#window-w][Window (=w=)]]
+- [[#debugging-the-configuration][Debugging the Configuration]]
+  - [[#esup][esup]]
+  - [[#elisp-bug-hunter][elisp-bug-hunter]]
+  - [[#explain-pause-mode][explain-pause-mode]]
+- [[#startup-performance][Startup Performance]]
+  - [[#garbage-collection][Garbage collection]]
+- [[#housekeeping][Housekeeping]]
+  - [[#inhibit-lockfiles-and-custom-files][Inhibit lockfiles and custom files]]
+  - [[#no-littering][no-littering]]
+  - [[#create-parent-directories-automatically][Create parent directories automatically]]
+  - [[#whitespace-cleanup-mode][whitespace-cleanup-mode]]
 - [[#utilities][Utilities]]
   - [[#crux][crux]]
 - [[#defaults][Defaults]]
@@ -142,152 +141,6 @@ Custom variables and procedures in this config are always prefixed with =C4=.
   - [[#addons][Addons]]
     - [[#application-launcher][application-launcher]]
     - [[#desktop-environment-1][desktop-environment]]
-
-* Debugging the Configuration
-
-When things break, I need ways of figuring out the problem. And without measurements, I can't make
-improvements.
-
-** esup
-
-ESUP (Emacs Start Up Profiler) is an invaluable package for benchmarking how quickly Emacs loads. My
-aim: make C4 feature complete for my needs while also loading fast enough for my slightly older laptop.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Benchmark Emacs startup to debug performance
-(use-package esup
-  :ryo
-  ("SPC c d"
-   (("d" esup :name "startup")) :name "debug"))
-
-#+END_SRC
-
-** elisp-bug-hunter
-
-elisp-bug-hunter is a package that allows me to track down and eliminate bugs in C4 that might be
-hiding in the tall grass.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Debug init file errors
-(use-package bug-hunter
-  :ryo
-  ("SPC c d"
-   (("e" bug-hunter-init-file :name "errors"))))
-
-#+END_SRC
-
-** explain-pause-mode
-
-explain-pause-mode is like =top= (more accurately =htop=) for Emacs. It allows you see all recently
-run operations and discover which ones are making Emacs lag. This ensures tight performance carries
-over for more than just startup times.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Check running processes in Emacs for slowdowns
-(use-package explain-pause-mode
-  :ryo
-  ("SPC c d"
-   (("p" explain-pause-top :name "processes")))
-  :config
-  (explain-pause-mode))
-
-#+END_SRC
-* Startup Performance
-** Garbage collection
-
-The first optimization involves increasing the Emacs garbage collection threshold to =100MB= on
-startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
-the threshold back to its approximate initial state.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Raise the garbage collection threshold high as emacs starts
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
-
-;;; Drop it down once loaded
-(add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
-
-#+END_SRC
-
-* Housekeeping
-
-Now I want to do some decluttering. Emacs has a way of operating with files that can leave a lot of
-crap behind in my filesystem, so I needed to do a little cleanup and ordering of where and if it
-generates temporary files and directories.
-
-** Inhibit lockfiles and custom files
-
-My experience with lockfiles is that they add a lot of noise to my directories and projects, so I'm
-just going to disable them entirely. The same goes for custom files, because I prefer to do all of
-my customizations with Emacs Lisp.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Lockfiles do more harm than good
-(setq create-lockfiles nil)
-
-;;; Custom files just add clutter
-(setq custom-file null-device)
-
-#+END_SRC
-
-** no-littering
-
-no-littering is a great package that ensures files and directories generated by Emacs or its
-packages are allocated to their proper places. The killer feature is how it allows you to set a
-central directory for all autosaved files.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Put temporary and data files in proper locations
-(use-package no-littering
-  :custom
-  (auto-save-file-name-transforms
-   `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
-
-#+END_SRC
-
-** Create parent directories automatically
-
-One great thing about Emacs is that I can manage my ideas and work as they come. I streamline this
-by telling Emacs to automatically create directories that don't exist for new files. This allows me
-to build the file structure for my projects on the fly.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Create parent dirs when opening new files
-(add-to-list 'find-file-not-found-functions #'C4/create-parent)
-
-(defun C4/create-parent ()
-  "Ensures that the parent dirs are created for a nonexistent file."
-  (let ((parent-directory (file-name-directory buffer-file-name)))
-    (when (and (not (file-exists-p parent-directory))
-               (y-or-n-p (format
-                          "Directory `%s' does not exist! Create it?"
-                          parent-directory)))
-      (make-directory parent-directory t))))
-
-#+END_SRC
-
-** whitespace-cleanup-mode
-
-whitespace-cleanup-mode is a package that intelligently checks files for errant whitespace and
-cleans it up before saving. By default, C4 enables this behavior globally.
-
-Some modes can be set to disable this behavior as exceptions.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Clean up whitespace in all major modes on save
-(use-package whitespace-cleanup-mode
-  :config
-  (global-whitespace-cleanup-mode t))
-
-#+END_SRC
 
 * Keybindings
 
@@ -734,6 +587,152 @@ background until called into another window.
     (("s" split-window-below :name "horizontal")
      ("S" split-window-right :name "vertical")) :name "split"))
   :name "window"))
+
+#+END_SRC
+
+* Debugging the Configuration
+
+When things break, I need ways of figuring out the problem. And without measurements, I can't make
+improvements.
+
+** esup
+
+ESUP (Emacs Start Up Profiler) is an invaluable package for benchmarking how quickly Emacs loads. My
+aim: make C4 feature complete for my needs while also loading fast enough for my slightly older laptop.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Benchmark Emacs startup to debug performance
+(use-package esup
+  :ryo
+  ("SPC c d"
+   (("d" esup :name "startup")) :name "debug"))
+
+#+END_SRC
+
+** elisp-bug-hunter
+
+elisp-bug-hunter is a package that allows me to track down and eliminate bugs in C4 that might be
+hiding in the tall grass.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Debug init file errors
+(use-package bug-hunter
+  :ryo
+  ("SPC c d"
+   (("e" bug-hunter-init-file :name "errors"))))
+
+#+END_SRC
+
+** explain-pause-mode
+
+explain-pause-mode is like =top= (more accurately =htop=) for Emacs. It allows you see all recently
+run operations and discover which ones are making Emacs lag. This ensures tight performance carries
+over for more than just startup times.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Check running processes in Emacs for slowdowns
+(use-package explain-pause-mode
+  :ryo
+  ("SPC c d"
+   (("p" explain-pause-top :name "processes")))
+  :config
+  (explain-pause-mode))
+
+#+END_SRC
+* Startup Performance
+** Garbage collection
+
+The first optimization involves increasing the Emacs garbage collection threshold to =100MB= on
+startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
+the threshold back to its approximate initial state.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Raise the garbage collection threshold high as emacs starts
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
+;;; Drop it down once loaded
+(add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
+
+#+END_SRC
+
+* Housekeeping
+
+Now I want to do some decluttering. Emacs has a way of operating with files that can leave a lot of
+crap behind in my filesystem, so I needed to do a little cleanup and ordering of where and if it
+generates temporary files and directories.
+
+** Inhibit lockfiles and custom files
+
+My experience with lockfiles is that they add a lot of noise to my directories and projects, so I'm
+just going to disable them entirely. The same goes for custom files, because I prefer to do all of
+my customizations with Emacs Lisp.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Lockfiles do more harm than good
+(setq create-lockfiles nil)
+
+;;; Custom files just add clutter
+(setq custom-file null-device)
+
+#+END_SRC
+
+** no-littering
+
+no-littering is a great package that ensures files and directories generated by Emacs or its
+packages are allocated to their proper places. The killer feature is how it allows you to set a
+central directory for all autosaved files.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Put temporary and data files in proper locations
+(use-package no-littering
+  :custom
+  (auto-save-file-name-transforms
+   `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+
+#+END_SRC
+
+** Create parent directories automatically
+
+One great thing about Emacs is that I can manage my ideas and work as they come. I streamline this
+by telling Emacs to automatically create directories that don't exist for new files. This allows me
+to build the file structure for my projects on the fly.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Create parent dirs when opening new files
+(add-to-list 'find-file-not-found-functions #'C4/create-parent)
+
+(defun C4/create-parent ()
+  "Ensures that the parent dirs are created for a nonexistent file."
+  (let ((parent-directory (file-name-directory buffer-file-name)))
+    (when (and (not (file-exists-p parent-directory))
+               (y-or-n-p (format
+                          "Directory `%s' does not exist! Create it?"
+                          parent-directory)))
+      (make-directory parent-directory t))))
+
+#+END_SRC
+
+** whitespace-cleanup-mode
+
+whitespace-cleanup-mode is a package that intelligently checks files for errant whitespace and
+cleans it up before saving. By default, C4 enables this behavior globally.
+
+Some modes can be set to disable this behavior as exceptions.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Clean up whitespace in all major modes on save
+(use-package whitespace-cleanup-mode
+  :config
+  (global-whitespace-cleanup-mode t))
 
 #+END_SRC
 
