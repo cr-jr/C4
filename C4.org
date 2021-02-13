@@ -88,9 +88,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#forge][forge]]
     - [[#diff-hl][diff-hl]]
 - [[#document-modes][Document Modes]]
-  - [[#spelling][Spelling]]
-  - [[#grammar][Grammar]]
-  - [[#dictionary--thesaurus][Dictionary & Thesaurus]]
+  - [[#langtool][langtool]]
   - [[#org][Org]]
     - [[#setup-1][Setup]]
     - [[#breadcrumbs][Breadcrumbs]]
@@ -1321,9 +1319,29 @@ modifications or deletions since the last commit.
 
 This section includes all the settings and packages I use for everyday writing and publishing.
 
-** Spelling
-** Grammar
-** Dictionary & Thesaurus
+** langtool
+
+My configuration uses =langtool= to help me tighten my prose and say what I mean.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Writing improvement tools
+
+;; Setup langtool
+(use-package langtool
+  :commands (langtool-check)
+  :ryo
+  (:mode 'text-mode)
+  ("SPC d"
+   (("d" langtool-check :name "check")
+    ("D" langtool-check-done :name "done")
+    ("i" langtool-show-message-at-point :name "info")
+    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant")
+  :init
+  (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar"))
+
+#+END_SRC
+
 ** Org
 
 My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured and includes

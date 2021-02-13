@@ -670,6 +670,34 @@
   (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
+;; [[file:C4.org::*langtool][langtool:1]]
+;;; Writing improvement tools
+
+;; Setup langtool
+(use-package langtool
+  :commands (langtool-check)
+  :ryo
+  (:mode 'text-mode)
+  ("SPC d"
+   (("d" langtool-check :name "check")
+    ("D" langtool-check-done :name "done")
+    ("c" langtool-correct-buffer :name "corrections")) :name "spelling/grammar")
+  :init
+  (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar")
+  :config
+  (defun langtool-autoshow-detail-popup (overlays)
+    (when (require 'popup nil t)
+      ;; Do not interrupt current popup
+      (unless (or popup-instances
+                  ;; suppress popup after type `C-g` .
+                  (memq last-command '(keyboard-quit)))
+  (let ((msg (langtool-details-error-message overlays)))
+          (popup-tip msg)))))
+
+  (setq langtool-autoshow-message-function
+  'langtool-autoshow-detail-popup))
+;; langtool:1 ends here
+
 ;; [[file:C4.org::*Setup][Setup:1]]
 (defhydra org-trek (:timeout 30)
   "A transient mode to logically browse an Org file"
