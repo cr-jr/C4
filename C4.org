@@ -89,6 +89,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#diff-hl][diff-hl]]
 - [[#document-modes][Document Modes]]
   - [[#langtool][langtool]]
+  - [[#mw-thesaurus][mw-thesaurus]]
   - [[#org][Org]]
     - [[#setup-1][Setup]]
     - [[#breadcrumbs][Breadcrumbs]]
@@ -1339,6 +1340,23 @@ My configuration uses =langtool= to help me tighten my prose and say what I mean
     ("c" langtool-correct-buffer :name "correct")) :name "writing assistant")
   :init
   (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar"))
+
+#+END_SRC
+
+** mw-thesaurus
+
+I also use =mw-thesaurus= and the Merriam-Webster dictionary API to help me discover better ways to
+say it.
+
+#+BEGIN_SRC emacs-lisp
+
+;; Setup mw-thesaurus
+(use-package mw-thesaurus
+  :ryo
+  (:mode 'text-mode)
+  ("SPC d w" mw-thesaurus-lookup-dwim :name "word lookup")
+  :custom
+  (mw-thesaurus--api-key "629ccc6a-d13c-47dc-a3bd-4f807b3b90a6"))
 
 #+END_SRC
 
