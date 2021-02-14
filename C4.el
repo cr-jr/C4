@@ -24,7 +24,11 @@
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
   ;; C-i needs to be its own keybinding
-  (keyboard-translate ?\C-i ?\M-i))
+  (keyboard-translate ?\C-i ?\M-i)
+
+  ;; Change the cursor
+  (setq ryo-modal-cursor-type 'box)
+  (setq ryo-modal-cursor-color "fuchsia"))
 ;; ryo-modal:1 ends here
 
 ;; [[file:C4.org::*hydra][hydra:1]]
@@ -588,10 +592,8 @@
 ;;; Setup poet-themes
 (use-package poet-theme)
 
-;; Light monochrome by default
-(load-theme 'poet-monochrome t)
-
-;; Load in dark monochrome for quick toggling
+;; Load in themes for quick toggling
+(load-theme 'poet-monochrome t t)
 (load-theme 'poet-dark-monochrome t t)
 
 ;; Setup theme-changer
@@ -601,7 +603,9 @@
   (setq calendar-latitude "41.223000")
   (setq calendar-longitude "-73.193980")
 
-  (change-theme 'poet-monochrome 'poet-dark-monochrome))
+  (change-theme 'poet-monochrome 'poet-dark-monochrome 'poet-monochrome)
+
+  (set-cursor-color "fuchsia"))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*User Settings][User Settings:1]]

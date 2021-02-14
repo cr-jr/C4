@@ -185,7 +185,7 @@ RYO modal allows me to create modal keybindings of my own design.
 
 ;;; Command mode initialization
 (use-package ryo-modal
-  :commands ryo-modal-mode
+  :commands (ryo-modal-mode)
   :bind
   ("C-SPC" . ryo-modal-mode)
   ("<menu>" . ryo-modal-mode)
@@ -197,7 +197,10 @@ RYO modal allows me to create modal keybindings of my own design.
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
   ;; C-i needs to be its own keybinding
-  (keyboard-translate ?\C-i ?\M-i))
+  (keyboard-translate ?\C-i ?\M-i)
+
+  ;; Change the cursor globally
+  (setq ryo-modal-default-cursor-color "red"))
 
 #+END_SRC
 
@@ -1189,10 +1192,8 @@ package is also set up so I can have day and night themes based on my location.
 ;;; Setup poet-themes
 (use-package poet-theme)
 
-;; Light monochrome by default
-(load-theme 'poet-monochrome t)
-
-;; Load in dark monochrome for quick toggling
+;; Load in themes for quick toggling
+(load-theme 'poet-monochrome t t)
 (load-theme 'poet-dark-monochrome t t)
 
 ;; Setup theme-changer
@@ -1202,7 +1203,10 @@ package is also set up so I can have day and night themes based on my location.
   (setq calendar-latitude "41.223000")
   (setq calendar-longitude "-73.193980")
 
-  (change-theme 'poet-monochrome 'poet-dark-monochrome))
+  (change-theme 'poet-monochrome 'poet-dark-monochrome 'poet-monochrome))
+
+;; Set cursor
+(set-face-attribute 'cursor nil :background "red")
 
 #+END_SRC
 
