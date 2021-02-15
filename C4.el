@@ -12,7 +12,7 @@
 ;; [[file:C4.org::*ryo-modal][ryo-modal:1]]
 ;;; Command mode initialization
 (use-package ryo-modal
-  :commands ryo-modal-mode
+  :commands (ryo-modal-mode)
   :bind
   ("C-SPC" . ryo-modal-mode)
   ("<menu>" . ryo-modal-mode)
@@ -26,9 +26,8 @@
   ;; C-i needs to be its own keybinding
   (keyboard-translate ?\C-i ?\M-i)
 
-  ;; Change the cursor
-  (setq ryo-modal-cursor-type 'box)
-  (setq ryo-modal-cursor-color "fuchsia"))
+  ;; Change the cursor globally
+  (setq ryo-modal-default-cursor-color "red"))
 ;; ryo-modal:1 ends here
 
 ;; [[file:C4.org::*hydra][hydra:1]]
@@ -340,7 +339,8 @@
   ("<C-return>" crux-smart-open-line-above :name "insert new line above" :exit t)
   ("SPC f"
    (("x" crux-create-scratch-buffer :name "scratch")
-    ("r" crux-rename-file-and-buffer :name "rename")))
+    ("r" crux-rename-file-and-buffer :name "rename")
+    ("D" crux-delete-file-and-buffer :name "delete")))
   :hook
   (find-file . crux-reopen-as-root-mode))
 ;; crux:1 ends here
@@ -603,9 +603,7 @@
   (setq calendar-latitude "41.223000")
   (setq calendar-longitude "-73.193980")
 
-  (change-theme 'poet-monochrome 'poet-dark-monochrome 'poet-monochrome)
-
-  (set-cursor-color "fuchsia"))
+  (change-theme 'poet-monochrome 'poet-dark-monochrome 'poet-monochrome))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*User Settings][User Settings:1]]
@@ -721,6 +719,14 @@
   ("V" org-previous-visible-heading "jump to prev heading")
   ("RET" nil "exit state: org-trek" :exit t))
 
+(defhydra org-reorg (:timeout 30)
+  "A transient mode to rearrange things"
+  ("i" org-move-item-up "move item up")
+  ("I" org-move-subtree-up "move subtree up")
+  ("k" org-move-item-down "move item down")
+  ("K" org-move-subtree-down "move subtree down")
+  ("RET" nil "exit state: org-reorg" :exit t))
+
 
 (defun ndk/heading-title ()
   "Get the heading title."
@@ -781,6 +787,7 @@
      (("n" org-toggle-narrow-to-subtree :name "subtree")
       ("b" org-narrow-to-block :name "block")
       ("e" org-narrow-to-element :name "element")) :name "narrow")
+    ("m" org-reorg/body :name "state: org-reorg")
     ("s" org-trek/body :name "state: org-trek")) :name "buffer")
   ("SPC o d"
    (("d" org-deadline :name "deadline")
@@ -1167,6 +1174,7 @@
 (use-package auto-yasnippet
   :ryo
   (:mode 'prog-mode)
+  (:mode 'html-mode)
   ("SPC s"
    (("s" aya-create :name "create")
     ("e" C4/expand-snippet :name "expand" :exit t)
