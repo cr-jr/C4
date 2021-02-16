@@ -558,28 +558,18 @@
 ;; vterm:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
-;;; Set some variables for my settings and styles
-(defconst C4/font "Input Sans-13"
-  "The default UI and fixed-width font for my config.")
-
-(defconst C4/document-font "Merriweather-16"
-  "The default variable pitch font for my config.")
-
-(defconst C4/linum-font "Input Mono-13"
-  "linum-mode requires a monospaced font.")
-
 ;; By default, use Input Sans family at 13px
-(set-face-attribute 'default nil :font C4/font)
+(set-face-attribute 'default nil :font "Input Sans-13")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font C4/font)
+(set-face-attribute 'fixed-pitch nil :font "Input Sans-13")
 
 ;; Set default document font as Merriweather family at 16px
-(set-face-attribute 'variable-pitch nil :font C4/document-font)
+(set-face-attribute 'variable-pitch nil :font "Merriweather-16")
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font C4/linum-font)
-(set-face-attribute 'line-number-current-line nil :weight 'black :font C4/linum-font)
+(set-face-attribute 'line-number nil :font "Input Mono-13")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-13")
 ;; Typography:1 ends here
 
 ;; [[file:C4.org::*UI][UI:1]]
@@ -806,6 +796,10 @@
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
+  (org-table ((t (:font "Input Mono-13"))))
+  (org-verbatim ((t (:inherit 'org-table))))
+  (org-code ((t (:inherit 'org-table))))
+  (org-ellipsis ((t (:underline nil))))
   (org-meta-line ((t (:extend t))))
   (org-block-begin-line ((t (:extend t))))
   (org-block ((t (:extend t))))
