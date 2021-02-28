@@ -1499,7 +1499,7 @@ Now, I set up Org for task management.
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
 
-(setq org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
+(setq org-agenda-files '("~/Documents/Org/Projects.org" "~/Documents/Org/Done.org"))
 
 (setq org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
@@ -2420,6 +2420,9 @@ udiskie &
 
 # Notifications
 dunst &
+
+# Bluetooth
+blueman-applet &
 
 # Start EXWM
 exec dbus-launch --exit-with-session emacs -mm --debug-init -f exwm-enable

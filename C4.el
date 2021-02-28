@@ -814,7 +814,7 @@
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   
-  (setq org-agenda-files '("~/Documents/Org/Tasks.org" "~/Documents/Org/Projects.org"))
+  (setq org-agenda-files '("~/Documents/Org/Projects.org" "~/Documents/Org/Done.org"))
   
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
