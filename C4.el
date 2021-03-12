@@ -583,17 +583,8 @@
 (use-package poet-theme)
 
 ;; Load in themes for quick toggling
-(load-theme 'poet-monochrome t t)
+(load-theme 'poet-monochrome t)
 (load-theme 'poet-dark-monochrome t t)
-
-;; Setup theme-changer
-(use-package theme-changer
-  :config
-  (setq calendar-location-name "Bridgeport, CT")
-  (setq calendar-latitude "41.223000")
-  (setq calendar-longitude "-73.193980")
-
-  (change-theme 'poet-monochrome 'poet-dark-monochrome 'poet-monochrome))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*User Settings][User Settings:1]]

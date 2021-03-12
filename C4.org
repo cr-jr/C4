@@ -643,6 +643,7 @@ over for more than just startup times.
   (explain-pause-mode))
 
 #+END_SRC
+
 * Startup Performance
 ** Garbage collection
 
@@ -1174,8 +1175,7 @@ I also make some adjustments to the UI faces. Mainly to clean it up.
 
 ** Theme
 
-To promote and encourage a literate programming workflow, C4 uses Poet by default. The =theme-changer=
-package is also set up so I can have day and night themes based on my location.
+To promote and encourage a literate programming workflow, C4 uses Poet by default.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1183,17 +1183,8 @@ package is also set up so I can have day and night themes based on my location.
 (use-package poet-theme)
 
 ;; Load in themes for quick toggling
-(load-theme 'poet-monochrome t t)
+(load-theme 'poet-monochrome t)
 (load-theme 'poet-dark-monochrome t t)
-
-;; Setup theme-changer
-(use-package theme-changer
-  :config
-  (setq calendar-location-name "Bridgeport, CT")
-  (setq calendar-latitude "41.223000")
-  (setq calendar-longitude "-73.193980")
-
-  (change-theme 'poet-monochrome 'poet-dark-monochrome 'poet-monochrome))
 
 #+END_SRC
 
