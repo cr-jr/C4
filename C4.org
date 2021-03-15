@@ -2392,7 +2392,7 @@ To actually use Emacs as my desktop environment, I need to create a =.xinitrc=.
 setxkbmap -option ctrl:nocaps
 
 # Disable touchpad
-xinput set-prop 12 "Device Enabled" 0
+xinput set-prop 11 "Device Enabled" 0
 
 # Default cursor
 xsetroot -cursor_name left_ptr
