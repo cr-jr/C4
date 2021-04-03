@@ -2392,7 +2392,7 @@ To actually use Emacs as my desktop environment, I need to create a =.xinitrc=.
 setxkbmap -option ctrl:nocaps
 
 # Disable touchpad
-xinput set-prop 11 "Device Enabled" 0
+xinput set-prop 12 "Device Enabled" 0
 
 # Default cursor
 xsetroot -cursor_name left_ptr
@@ -2414,6 +2414,9 @@ dunst &
 
 # Bluetooth
 blueman-applet &
+
+# Syncthing server
+syncthing &
 
 # Start EXWM
 exec dbus-launch --exit-with-session emacs -mm --debug-init -f exwm-enable
