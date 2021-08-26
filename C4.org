@@ -19,46 +19,40 @@ If something doesn't add value to my workflow, it simply isn't here.
 Custom variables and procedures in this config are always prefixed with =C4=.
 
 * Table of Contents                                                   :TOC@4:
-- [[#keybindings][Keybindings]]
-  - [[#why][Why?]]
-  - [[#setup][Setup]]
-    - [[#which-key][which-key]]
-    - [[#ryo-modal][ryo-modal]]
-    - [[#hydra][hydra]]
-  - [[#structure][Structure]]
-    - [[#command-mode][Command Mode]]
-    - [[#actions][Actions]]
-      - [[#exiting-command-mode][Exiting Command Mode]]
-      - [[#modifiers][Modifiers]]
-      - [[#movement][Movement]]
-      - [[#markingselecting][Marking/selecting]]
-      - [[#killingcutting][Killing/cutting]]
-      - [[#copypaste][Copy/paste]]
-      - [[#deletion][Deletion]]
-    - [[#commands][Commands]]
-      - [[#modifiers-1][Modifiers]]
-      - [[#buffer-b][Buffer (=b=)]]
-      - [[#config-c][Config (=c=)]]
-      - [[#file-f][File (=f=)]]
-      - [[#help-h][Help (=h=)]]
-      - [[#session-q][Session (=q=)]]
-      - [[#toggle-t][Toggle (=t=)]]
-      - [[#window-w][Window (=w=)]]
-- [[#debugging-the-configuration][Debugging the Configuration]]
+- [[#startup][Startup]]
+  - [[#initial-settings][Initial Settings]]
+  - [[#theme][Theme]]
+    - [[#typography][Typography]]
+    - [[#ui][UI]]
+  - [[#user-identity][User Identity]]
+  - [[#keybindings][Keybindings]]
+    - [[#why][Why?]]
+    - [[#setup][Setup]]
+      - [[#which-key][which-key]]
+      - [[#ryo-modal][ryo-modal]]
+      - [[#hydra][hydra]]
+    - [[#structure][Structure]]
+      - [[#command-mode][Command Mode]]
+      - [[#actions][Actions]]
+      - [[#commands][Commands]]
+- [[#performance][Performance]]
+  - [[#garbage-collection][Garbage collection]]
+- [[#debugging][Debugging]]
   - [[#esup][esup]]
   - [[#elisp-bug-hunter][elisp-bug-hunter]]
   - [[#explain-pause-mode][explain-pause-mode]]
-- [[#startup-performance][Startup Performance]]
-  - [[#garbage-collection][Garbage collection]]
 - [[#housekeeping][Housekeeping]]
   - [[#inhibit-lockfiles-and-custom-files][Inhibit lockfiles and custom files]]
   - [[#no-littering][no-littering]]
   - [[#create-parent-directories-automatically][Create parent directories automatically]]
   - [[#whitespace-cleanup-mode][whitespace-cleanup-mode]]
 - [[#utilities][Utilities]]
-  - [[#crux][crux]]
-- [[#defaults][Defaults]]
-  - [[#user-identity][User Identity]]
+  - [[#enhancements][Enhancements]]
+    - [[#mood-line][mood-line]]
+    - [[#helpful][helpful]]
+    - [[#editorconfig][editorconfig]]
+    - [[#vterm][vterm]]
+    - [[#crux][crux]]
   - [[#undoredo][Undo/Redo]]
     - [[#undo-fu][undo-fu]]
   - [[#text-manipulation][Text Manipulation]]
@@ -71,16 +65,6 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#embark][embark]]
     - [[#marginalia][marginalia]]
     - [[#ctrlf][ctrlf]]
-  - [[#enhancements][Enhancements]]
-    - [[#mood-line][mood-line]]
-    - [[#helpful][helpful]]
-    - [[#editorconfig][editorconfig]]
-    - [[#vterm][vterm]]
-  - [[#faces][Faces]]
-    - [[#typography][Typography]]
-    - [[#ui][UI]]
-  - [[#theme][Theme]]
-  - [[#asdf-vm][asdf-vm]]
 - [[#projects][Projects]]
   - [[#user-settings][User Settings]]
   - [[#management][Management]]
@@ -109,9 +93,11 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#publishing][Publishing]]
       - [[#weblorg][weblorg]]
 - [[#programming-modes][Programming Modes]]
+  - [[#paths][Paths]]
+    - [[#asdf-vm][asdf-vm]]
   - [[#parsing][Parsing]]
   - [[#syntax-highlighting][Syntax Highlighting]]
-    - [[#faces-1][Faces]]
+    - [[#faces][Faces]]
     - [[#rainbow-delimiters][rainbow-delimiters]]
     -  [[#color-identifiers-mode][color-identifiers-mode]]
   - [[#linting][Linting]]
@@ -132,12 +118,127 @@ Custom variables and procedures in this config are always prefixed with =C4=.
       - [[#setup-2][Setup]]
     - [[#rainbow-mode][rainbow-mode]]
 
-* Keybindings
+* Startup
+** Initial Settings
+
+I start working out the look and feel of my workspace as well as establish some global settings.
+
+#+BEGIN_SRC emacs-lisp
+
+(setq-default cursor-type 'bar) ; default cursor as bar
+(setq-default frame-title-format '("%b")) ; window title is the buffer name
+
+(setq linum-format "%4d ") ; line number format
+(column-number-mode 1) ; set column number display
+(show-paren-mode 1) ; show closing parens by default
+
+(menu-bar-mode -1) ; disable the menubar
+(scroll-bar-mode -1) ; disable the scroll bar
+(set-fringe-mode 8) ; Set fringe
+(tool-bar-mode -1) ; disable toolbar
+(tooltip-mode -1) ; disable tooltips
+
+(setq inhibit-startup-message t) ; inhibit startup message
+(setq initial-scratch-message "") ; no scratch message
+(setq initial-major-mode 'text-mode) ; set scratch to generic text mode
+(setq visible-bell t)             ; enable visual bell
+(global-auto-revert-mode t) ; autosave buffer on file change
+(delete-selection-mode 1) ; Selected text will be overwritten on typing
+(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
+
+;; Show line numbers in programming modes
+(add-hook 'prog-mode-hook
+          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
+              #'display-line-numbers-mode
+            #'linum-mode))
+
+;; Disable for document and terminal modes
+(dolist (mode '(
+                org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                vterm-mode
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Give buffers unique names
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
+;; Make some icons available
+(use-package all-the-icons)
+
+#+END_SRC
+
+** Theme
+
+For my theme, I've updated to my custom .Xresources palette.
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package xresources-theme)
+
+(load-theme 'xresources  t)
+
+#+END_SRC
+
+*** Typography
+
+The typography of C4 is entirely based on Input. I use an assortment of weights, styles, and widths
+to get exactly the effect I want.
+
+Yes, I'm coding with proportional fonts instead of monospaced ones.
+
+#+BEGIN_SRC emacs-lisp
+
+;; By default, use Input Sans family at 12px
+(set-face-attribute 'default nil :font "Input Sans-12")
+(set-face-attribute 'org-default nil :font "Input Serif-14")
+
+;; Code font is the same as UI font
+(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
+
+;; Set default document font as Merriweather family at 14px
+(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
+
+;; Set monospace font to correctly render linum and bold to track position
+(set-face-attribute 'line-number nil :font "Input Mono-12")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
+
+#+END_SRC
+
+*** UI
+
+I also make some adjustments to the UI faces. Mainly to clean it up.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Disable the fringe background
+(set-face-attribute 'fringe nil
+                    :background nil)
+
+;;; Eliminate all mode line decorations
+(set-face-attribute 'mode-line nil :box nil :overline (xresources-theme-color "color8"))
+(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
+
+#+END_SRC
+
+** User Identity
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Set full name and email address
+(setq user-full-name "Chatman R. Jr")
+(setq user-mail-address "crjr.code@protonmail.com")
+
+#+END_SRC
+
+** Keybindings
 
 This configuration sets up keybindings with a non-evil modal setup bound either to a global modal
 state or major/minor modes.
 
-** Why?
+*** Why?
 
 Emacs is slowly pushing me to think less like a Vimmer, and because of this, evil-mode feels limiting.
 
@@ -148,8 +249,8 @@ than by toggling arbitrary states.
 That said, I do like the modal editing workflow. It's better for my health than many of the default
 Emacs keybinding contortions.
 
-** Setup
-*** which-key
+*** Setup
+**** which-key
 
 which-key provides an interface for discovering keybindings in Emacs. Both built-in and user
 defined. It's absolutely essential since I'm building an evolving custom modal setup and can't keep
@@ -168,7 +269,7 @@ it all in my head.
 
 #+END_SRC
 
-*** ryo-modal
+**** ryo-modal
 
 RYO modal allows me to create modal keybindings of my own design.
 
@@ -190,11 +291,11 @@ RYO modal allows me to create modal keybindings of my own design.
   (keyboard-translate ?\C-i ?\M-i)
 
   ;; Change the cursor globally
-  (setq ryo-modal-default-cursor-color (xresources-theme-color "color14"))
+  (setq ryo-modal-default-cursor-color (xresources-theme-color "color14")))
 
 #+END_SRC
 
-*** hydra
+**** hydra
 
 This package allows me to create keybinding sandboxes for more complex operations. Kind of like a
 mode within a mode.
@@ -206,8 +307,8 @@ mode within a mode.
 
 #+END_SRC
 
-** Structure
-*** Command Mode
+*** Structure
+**** Command Mode
 
 Command Mode is defined by =ryo= in the modeline and is the global "normal" state from where I can
 issue actions or mnemonic commands. With C4, Emacs loads in this state.
@@ -217,12 +318,12 @@ When Command mode is disabled, Emacs works as usual.
 Built-in commands are bound in the following sections, while package-supplied commands are bound
 alongside the installation and configuration of those packages.
 
-*** Actions
+**** Actions
 
 Actions are low level commands. These include moving around the buffer, toggling command mode,
 undo/redo motions and more.
 
-**** Exiting Command Mode
+***** Exiting Command Mode
 
 Command Mode has a few simple escape hatches for when I'm ready to enter some text:
 
@@ -239,7 +340,7 @@ Command Mode has a few simple escape hatches for when I'm ready to enter some te
 
 #+END_SRC
 
-**** Modifiers
+***** Modifiers
 
 I set two kinds of action modifiers: numeric and procedural.
 
@@ -272,7 +373,7 @@ numeric modifier. This is the expected Emacs behavior for =digit-argument=.
 
 #+END_SRC
 
-**** Movement
+***** Movement
 
 These actions help me get around the buffer quickly. They're somewhat modeled after Xah Fly Keys but
 use modifiers to change the scope of the action. So I can use the same four keys to hop around.
@@ -298,7 +399,7 @@ use modifiers to change the scope of the action. So I can use the same four keys
 
 #+END_SRC
 
-**** Marking/selecting
+***** Marking/selecting
 
 These actions are mapped to marking regions and text selection.
 
@@ -321,7 +422,7 @@ These actions are mapped to marking regions and text selection.
 
 #+END_SRC
 
-**** Killing/cutting
+***** Killing/cutting
 
 Now, some actions for killing and cutting text.
 
@@ -334,7 +435,7 @@ Now, some actions for killing and cutting text.
 
 #+END_SRC
 
-**** Copy/paste
+***** Copy/paste
 
 Some actions for copying and pasting text.
 
@@ -349,7 +450,7 @@ Some actions for copying and pasting text.
 
 #+END_SRC
 
-**** Deletion
+***** Deletion
 
 Finally, some actions for deleting text. This is the final manipulation. Deleted text will
 /not/ be saved to the kill ring or anywhere else. It's gone.
@@ -368,7 +469,7 @@ for deletion. In this case, it begins deletion chords.
 
 #+END_SRC
 
-*** Commands
+**** Commands
 
 The C4 command keybindings all share =SPC= as a prefix.
 
@@ -381,7 +482,7 @@ those of a major programming mode, define their own major prefixes.
 
 C4 uses command prefixes to group bindings to their area of influence.
 
-**** Modifiers
+***** Modifiers
 
 Similar to actions, each command optionally takes modifiers.
 
@@ -393,7 +494,7 @@ Similar to actions, each command optionally takes modifiers.
 
 #+END_SRC
 
-**** Buffer (=b=)
+***** Buffer (=b=)
 
 This prefix wraps all commands that affect buffers Lowercase bindings affect only the current
 buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local command.
@@ -419,7 +520,7 @@ buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local 
 
 #+END_SRC
 
-**** Config (=c=)
+***** Config (=c=)
 
 This prefix wraps all commands that make it easier to work with my configuration itself. This
 includes quickly opening and reloading my config.
@@ -457,7 +558,7 @@ place as I try out new settings.
 
 #+END_SRC
 
-**** File (=f=)
+***** File (=f=)
 
 This prefix wraps all commands that affect the filesystem. It includes finding and renaming files.
 
@@ -472,7 +573,7 @@ This prefix wraps all commands that affect the filesystem. It includes finding a
 
 #+END_SRC
 
-**** Help (=h=)
+***** Help (=h=)
 
 This domain wraps all commands that query Emacs for help about its functionality. It also allows me
 to quickly bring up the Emacs manual for browsing.
@@ -487,7 +588,7 @@ to quickly bring up the Emacs manual for browsing.
 
 #+END_SRC
 
-**** Session (=q=)
+***** Session (=q=)
 
 This domain wraps commands that affect Emacs sessions
 
@@ -501,7 +602,7 @@ This domain wraps commands that affect Emacs sessions
 
 #+END_SRC
 
-**** Toggle (=t=)
+***** Toggle (=t=)
 
 This domain wraps interface toggles and micro-adjustments.
 
@@ -520,7 +621,7 @@ This domain wraps interface toggles and micro-adjustments.
 
 #+END_SRC
 
-**** Window (=w=)
+***** Window (=w=)
 
 This domain wraps all commands that affect windows.
 
@@ -578,7 +679,25 @@ background until called into another window.
 
 #+END_SRC
 
-* Debugging the Configuration
+* Performance
+** Garbage collection
+
+The first optimization involves increasing the Emacs garbage collection threshold to =100MB= on
+startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
+the threshold back to its approximate initial state.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Raise the garbage collection threshold high as emacs starts
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
+;;; Drop it down once loaded
+(add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
+
+#+END_SRC
+
+* Debugging
 
 When things break, I need ways of figuring out the problem. And without measurements, I can't make
 improvements.
@@ -628,24 +747,6 @@ over for more than just startup times.
    (("p" explain-pause-top :name "processes")))
   :config
   (explain-pause-mode))
-
-#+END_SRC
-
-* Startup Performance
-** Garbage collection
-
-The first optimization involves increasing the Emacs garbage collection threshold to =100MB= on
-startup. This gives a slight boost in initialization. After Emacs starts up, we use a hook to reduce
-the threshold back to its approximate initial state.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Raise the garbage collection threshold high as emacs starts
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
-
-;;; Drop it down once loaded
-(add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
 
 #+END_SRC
 
@@ -726,7 +827,106 @@ Some modes can be set to disable this behavior as exceptions.
 #+END_SRC
 
 * Utilities
-** crux
+** Enhancements
+
+Now I'll add some improvements to my baseline experience.
+
+*** mood-line
+
+mood-line is a minimal, zero-dependency mode line that replicates the clean look and functionality
+of doom-modeline.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Lightweight mode line goodness
+(use-package mood-line :config (mood-line-mode))
+
+#+END_SRC
+
+*** helpful
+
+Helpful provides better help documentation for the many description functions in Emacs. It also
+includes its own extremely /helpful/ utilities like checking a symbol at its point.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Help documentation enhancements
+(use-package helpful
+  :ryo
+  ("SPC h"
+   (("h" helpful-at-point :name "symbol at point")
+    ("f" helpful-function :name "function")
+    ("c" helpful-command :name "command")
+    ("C" helpful-callable :name "callable")
+    ("v" helpful-variable :name "variable")
+    ("k" helpful-key :name "keybinding"))))
+
+#+END_SRC
+
+*** editorconfig
+
+Editorconfig is a utility that normalizes basic syntax considerations for file types across editors. It ensures
+you only have to maintain one file to have a solid base for editing plain text and programming source
+languages.
+
+First, install the plugin for Emacs.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Universal editor settings
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
+#+END_SRC
+
+Then set some basic options. These are the ones I use:
+
+#+BEGIN_SRC editorconfig-conf :tangle "~/.editorconfig"
+# Environment-wide editorconfig
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+max_line_length = 80
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{cmd,bat}]
+end_of_line = crlf
+
+[*.sh]
+end_of_line = lf
+
+# Documents
+[*.{md,markdown,org}]
+max_line_length = 100
+#+END_SRC
+
+*** vterm
+
+The vterm package provide libvterm emulation to Emacs. This means that terminals opened in Emacs
+will mirror my actual shell configuration.
+
+I could use a lighter terminal enhancement package, but since Emacs is also my window manager, it
+makes sense to have a rich terminal package instead of opening an external terminal emulator.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Rich terminal experience
+(use-package vterm
+  :ryo
+  ("SPC '" vterm :name "vterm: open terminal from current dir")
+  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
+
+#+END_SRC
+
+*** crux
 
 This configuration includes the crux package. It's way too useful not to use. Especially since I
 opted out of Vim emulation.
@@ -748,67 +948,6 @@ opted out of Vim emulation.
 #+END_SRC
 
 Crux supplies the commands for insertion actions that open a new line.
-
-* Defaults
-
-I start working out the look and feel of my workspace as well as establish some global settings.
-
-#+BEGIN_SRC emacs-lisp
-
-(setq-default cursor-type 'bar) ; default cursor as bar
-(setq-default frame-title-format '("%b")) ; window title is the buffer name
-
-(setq linum-format "%4d ") ; line number format
-(column-number-mode 1) ; set column number display
-(show-paren-mode 1) ; show closing parens by default
-
-(menu-bar-mode -1) ; disable the menubar
-(scroll-bar-mode -1) ; disable the scroll bar
-(set-fringe-mode 8) ; Set fringe
-(tool-bar-mode -1) ; disable toolbar
-(tooltip-mode -1) ; disable tooltips
-
-(setq inhibit-startup-message t) ; inhibit startup message
-(setq initial-scratch-message "") ; no scratch message
-(setq initial-major-mode 'text-mode) ; set scratch to generic text mode
-(setq visible-bell t)             ; enable visual bell
-(global-auto-revert-mode t) ; autosave buffer on file change
-(delete-selection-mode 1) ; Selected text will be overwritten on typing
-(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
-
-;; Show line numbers in programming modes
-(add-hook 'prog-mode-hook
-          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
-              #'display-line-numbers-mode
-            #'linum-mode))
-
-;; Disable for document and terminal modes
-(dolist (mode '(
-                org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                treemacs-mode-hook
-                vterm-mode
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-;; Give buffers unique names
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
-
-;; Make some icons available
-(use-package all-the-icons)
-
-#+END_SRC
-
-** User Identity
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Set full name and email address
-(setq user-full-name "Chatman R. Jr")
-(setq user-mail-address "crjr.code@protonmail.com")
-
-#+END_SRC
 
 ** Undo/Redo
 
@@ -1008,174 +1147,6 @@ narrowing the search until there's only one result: the correct one.
 #+END_SRC
 
 This package provides the buffer-local keybindings for incremental search.
-
-** Enhancements
-
-Now I'll add some improvements to my baseline experience.
-
-*** mood-line
-
-mood-line is a minimal, zero-dependency mode line that replicates the clean look and functionality
-of doom-modeline.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Lightweight mode line goodness
-(use-package mood-line :config (mood-line-mode))
-
-#+END_SRC
-
-*** helpful
-
-Helpful provides better help documentation for the many description functions in Emacs. It also
-includes its own extremely /helpful/ utilities like checking a symbol at its point.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Help documentation enhancements
-(use-package helpful
-  :ryo
-  ("SPC h"
-   (("h" helpful-at-point :name "symbol at point")
-    ("f" helpful-function :name "function")
-    ("c" helpful-command :name "command")
-    ("C" helpful-callable :name "callable")
-    ("v" helpful-variable :name "variable")
-    ("k" helpful-key :name "keybinding"))))
-
-#+END_SRC
-
-*** editorconfig
-
-Editorconfig is a utility that normalizes basic syntax considerations for file types across editors. It ensures
-you only have to maintain one file to have a solid base for editing plain text and programming source
-languages.
-
-First, install the plugin for Emacs.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Universal editor settings
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
-
-#+END_SRC
-
-Then set some basic options. These are the ones I use:
-
-#+BEGIN_SRC editorconfig-conf :tangle "~/.editorconfig"
-# Environment-wide editorconfig
-root = true
-
-[*]
-charset = utf-8
-indent_style = space
-indent_size = 2
-max_line_length = 80
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-[*.md]
-trim_trailing_whitespace = false
-
-[*.{cmd,bat}]
-end_of_line = crlf
-
-[*.sh]
-end_of_line = lf
-
-# Documents
-[*.{md,markdown,org}]
-max_line_length = 100
-#+END_SRC
-
-*** vterm
-
-The vterm package provide libvterm emulation to Emacs. This means that terminals opened in Emacs
-will mirror my actual shell configuration.
-
-I could use a lighter terminal enhancement package, but since Emacs is also my window manager, it
-makes sense to have a rich terminal package instead of opening an external terminal emulator.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Rich terminal experience
-(use-package vterm
-  :ryo
-  ("SPC '" vterm :name "vterm: open terminal from current dir")
-  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
-
-#+END_SRC
-
-** Faces
-
-Faces in Emacs allow you to change how it looks. In fact, an Emacs theme is simply a user-defined
-package of face customizations.
-
-*** Typography
-
-The typography of C4 is entirely based on Input. I use an assortment of weights, styles, and widths
-to get exactly the effect I want.
-
-Yes, I'm coding with proportional fonts instead of monospaced ones.
-
-#+BEGIN_SRC emacs-lisp
-
-;; By default, use Input Sans family at 12px
-(set-face-attribute 'default nil :font "Input Sans-12")
-(set-face-attribute 'org-default nil :font "Input Serif-14")
-
-;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
-
-;; Set default document font as Merriweather family at 14px
-(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
-
-;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Input Mono-12")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
-
-#+END_SRC
-
-*** UI
-
-I also make some adjustments to the UI faces. Mainly to clean it up.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Disable the fringe background
-(set-face-attribute 'fringe nil
-                    :background nil)
-
-;;; Eliminate all mode line decorations
-(set-face-attribute 'mode-line nil :box nil :overline "orange")
-(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
-
-#+END_SRC
-
-** Theme
-
-For my theme, I've updated to my custom .Xresources palette.
-
-#+BEGIN_SRC emacs-lisp
-
-(use-package xresources-theme)
-
-(load-theme 'xresources  t)
-
-#+END_SRC
-
-** asdf-vm
-
-I've recently found that I needed to explicitly set the path for ASDF binaries and shims so I can
-use it with Emacs.
-
-#+BEGIN_SRC emacs-lisp
-(use-package exec-path-from-shell
-  :if window-system
-  :config (exec-path-from-shell-initialize))
-#+END_SRC
 
 * Projects
 ** User Settings
@@ -1421,7 +1392,9 @@ flow becomes more personal.
   (org-code ((t (:inherit 'org-table))))
   (org-ellipsis ((t (:underline nil))))
   (org-meta-line ((t (:extend t))))
-  (org-block ((t (:inherit 'org-table :background ,(xresources-theme-color "color8")))))
+  (org-block ((t (:inherit 'org-table
+         :background ,(xresources-theme-color "color8")
+         :foreground ,(xresources-theme-color "foreground")))))
   (org-block-begin-line ((t (:inherit 'org-block))))
   (org-block-end-line ((t (:inherit 'org-block))))
   :config
@@ -1788,6 +1761,18 @@ language-specific support. That way each language I use gets a good starting poi
 improve the workflow as needed.
 
 Each programming major mode I use wraps its frequently-used commands under =SPC l=.
+
+** Paths
+*** asdf-vm
+
+I've recently found that I needed to explicitly set the path for ASDF binaries and shims so I can
+use it with Emacs.
+
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell
+  :if window-system
+  :config (exec-path-from-shell-initialize))
+#+END_SRC
 
 ** Parsing
 

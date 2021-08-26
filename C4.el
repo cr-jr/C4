@@ -1,3 +1,86 @@
+;; [[file:C4.org::*Initial Settings][Initial Settings:1]]
+(setq-default cursor-type 'bar) ; default cursor as bar
+(setq-default frame-title-format '("%b")) ; window title is the buffer name
+
+(setq linum-format "%4d ") ; line number format
+(column-number-mode 1) ; set column number display
+(show-paren-mode 1) ; show closing parens by default
+
+(menu-bar-mode -1) ; disable the menubar
+(scroll-bar-mode -1) ; disable the scroll bar
+(set-fringe-mode 8) ; Set fringe
+(tool-bar-mode -1) ; disable toolbar
+(tooltip-mode -1) ; disable tooltips
+
+(setq inhibit-startup-message t) ; inhibit startup message
+(setq initial-scratch-message "") ; no scratch message
+(setq initial-major-mode 'text-mode) ; set scratch to generic text mode
+(setq visible-bell t)             ; enable visual bell
+(global-auto-revert-mode t) ; autosave buffer on file change
+(delete-selection-mode 1) ; Selected text will be overwritten on typing
+(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
+
+;; Show line numbers in programming modes
+(add-hook 'prog-mode-hook
+          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
+              #'display-line-numbers-mode
+            #'linum-mode))
+
+;; Disable for document and terminal modes
+(dolist (mode '(
+                org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                treemacs-mode-hook
+                vterm-mode
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+;; Give buffers unique names
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
+;; Make some icons available
+(use-package all-the-icons)
+;; Initial Settings:1 ends here
+
+;; [[file:C4.org::*Theme][Theme:1]]
+(use-package xresources-theme)
+
+(load-theme 'xresources  t)
+;; Theme:1 ends here
+
+;; [[file:C4.org::*Typography][Typography:1]]
+;; By default, use Input Sans family at 12px
+(set-face-attribute 'default nil :font "Input Sans-12")
+(set-face-attribute 'org-default nil :font "Input Serif-14")
+
+;; Code font is the same as UI font
+(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
+
+;; Set default document font as Merriweather family at 14px
+(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
+
+;; Set monospace font to correctly render linum and bold to track position
+(set-face-attribute 'line-number nil :font "Input Mono-12")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
+;; Typography:1 ends here
+
+;; [[file:C4.org::*UI][UI:1]]
+;;; Disable the fringe background
+(set-face-attribute 'fringe nil
+                    :background nil)
+
+;;; Eliminate all mode line decorations
+(set-face-attribute 'mode-line nil :box nil :overline (xresources-theme-color "color8"))
+(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
+;; UI:1 ends here
+
+;; [[file:C4.org::*User Identity][User Identity:1]]
+;;; Set full name and email address
+(setq user-full-name "Chatman R. Jr")
+(setq user-mail-address "crjr.code@protonmail.com")
+;; User Identity:1 ends here
+
 ;; [[file:C4.org::*which-key][which-key:1]]
 ;;; Setup which-key for keybinding discoverability
 (use-package which-key
@@ -26,7 +109,7 @@
   (keyboard-translate ?\C-i ?\M-i)
 
   ;; Change the cursor globally
-  (setq ryo-modal-default-cursor-color "red"))
+  (setq ryo-modal-default-cursor-color (xresources-theme-color "color14")))
 ;; ryo-modal:1 ends here
 
 ;; [[file:C4.org::*hydra][hydra:1]]
@@ -258,6 +341,15 @@
   :name "window"))
 ;; Window (=w=):1 ends here
 
+;; [[file:C4.org::*Garbage collection][Garbage collection:1]]
+;;; Raise the garbage collection threshold high as emacs starts
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
+;;; Drop it down once loaded
+(add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
+;; Garbage collection:1 ends here
+
 ;; [[file:C4.org::*esup][esup:1]]
 ;;; Benchmark Emacs startup to debug performance
 (use-package esup
@@ -283,15 +375,6 @@
   :config
   (explain-pause-mode))
 ;; explain-pause-mode:1 ends here
-
-;; [[file:C4.org::*Garbage collection][Garbage collection:1]]
-;;; Raise the garbage collection threshold high as emacs starts
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
-
-;;; Drop it down once loaded
-(add-hook 'after-init-hook #'(lambda () (setq gc-cons-threshold 1000000)))
-;; Garbage collection:1 ends here
 
 ;; [[file:C4.org::*Inhibit lockfiles and custom files][Inhibit lockfiles and custom files:1]]
 ;;; Lockfiles do more harm than good
@@ -330,6 +413,39 @@
   (global-whitespace-cleanup-mode t))
 ;; whitespace-cleanup-mode:1 ends here
 
+;; [[file:C4.org::*mood-line][mood-line:1]]
+;;; Lightweight mode line goodness
+(use-package mood-line :config (mood-line-mode))
+;; mood-line:1 ends here
+
+;; [[file:C4.org::*helpful][helpful:1]]
+;;; Help documentation enhancements
+(use-package helpful
+  :ryo
+  ("SPC h"
+   (("h" helpful-at-point :name "symbol at point")
+    ("f" helpful-function :name "function")
+    ("c" helpful-command :name "command")
+    ("C" helpful-callable :name "callable")
+    ("v" helpful-variable :name "variable")
+    ("k" helpful-key :name "keybinding"))))
+;; helpful:1 ends here
+
+;; [[file:C4.org::*editorconfig][editorconfig:1]]
+;;; Universal editor settings
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+;; editorconfig:1 ends here
+
+;; [[file:C4.org::*vterm][vterm:1]]
+;;; Rich terminal experience
+(use-package vterm
+  :ryo
+  ("SPC '" vterm :name "vterm: open terminal from current dir")
+  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
+;; vterm:1 ends here
+
 ;; [[file:C4.org::*crux][crux:1]]
 ;;; Utilities for useful Emacs functions
 (use-package crux
@@ -343,57 +459,6 @@
   :hook
   (find-file . crux-reopen-as-root-mode))
 ;; crux:1 ends here
-
-;; [[file:C4.org::*Defaults][Defaults:1]]
-(setq-default cursor-type 'bar) ; default cursor as bar
-(setq-default frame-title-format '("%b")) ; window title is the buffer name
-
-(setq linum-format "%4d ") ; line number format
-(column-number-mode 1) ; set column number display
-(show-paren-mode 1) ; show closing parens by default
-
-(menu-bar-mode -1) ; disable the menubar
-(scroll-bar-mode -1) ; disable the scroll bar
-(set-fringe-mode 8) ; Set fringe
-(tool-bar-mode -1) ; disable toolbar
-(tooltip-mode -1) ; disable tooltips
-
-(setq inhibit-startup-message t) ; inhibit startup message
-(setq initial-scratch-message "") ; no scratch message
-(setq initial-major-mode 'text-mode) ; set scratch to generic text mode
-(setq visible-bell t)             ; enable visual bell
-(global-auto-revert-mode t) ; autosave buffer on file change
-(delete-selection-mode 1) ; Selected text will be overwritten on typing
-(fset 'yes-or-no-p 'y-or-n-p) ; convert "yes" or "no" confirms to "y" and "n"
-
-;; Show line numbers in programming modes
-(add-hook 'prog-mode-hook
-          (if (and (fboundp 'display-line-numbers-mode) (display-graphic-p))
-              #'display-line-numbers-mode
-            #'linum-mode))
-
-;; Disable for document and terminal modes
-(dolist (mode '(
-                org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                treemacs-mode-hook
-                vterm-mode
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-;; Give buffers unique names
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
-
-;; Make some icons available
-(use-package all-the-icons)
-;; Defaults:1 ends here
-
-;; [[file:C4.org::*User Identity][User Identity:1]]
-;;; Set full name and email address
-(setq user-full-name "Chatman R. Jr")
-(setq user-mail-address "crjr.code@protonmail.com")
-;; User Identity:1 ends here
 
 ;; [[file:C4.org::*undo-fu][undo-fu:1]]
 ;;; Better undo/redo
@@ -512,77 +577,6 @@
   (org-mode . ctrlf-mode))
 ;; ctrlf:1 ends here
 
-;; [[file:C4.org::*mood-line][mood-line:1]]
-;;; Lightweight mode line goodness
-(use-package mood-line :config (mood-line-mode))
-;; mood-line:1 ends here
-
-;; [[file:C4.org::*helpful][helpful:1]]
-;;; Help documentation enhancements
-(use-package helpful
-  :ryo
-  ("SPC h"
-   (("h" helpful-at-point :name "symbol at point")
-    ("f" helpful-function :name "function")
-    ("c" helpful-command :name "command")
-    ("C" helpful-callable :name "callable")
-    ("v" helpful-variable :name "variable")
-    ("k" helpful-key :name "keybinding"))))
-;; helpful:1 ends here
-
-;; [[file:C4.org::*editorconfig][editorconfig:1]]
-;;; Universal editor settings
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
-;; editorconfig:1 ends here
-
-;; [[file:C4.org::*vterm][vterm:1]]
-;;; Rich terminal experience
-(use-package vterm
-  :ryo
-  ("SPC '" vterm :name "vterm: open terminal from current dir")
-  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
-;; vterm:1 ends here
-
-;; [[file:C4.org::*Typography][Typography:1]]
-;; By default, use Input Sans family at 12px
-(set-face-attribute 'default nil :font "Input Sans-12")
-(set-face-attribute 'org-default nil :font "Input Serif-14")
-
-;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
-
-;; Set default document font as Merriweather family at 14px
-(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
-
-;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Input Mono-12")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
-;; Typography:1 ends here
-
-;; [[file:C4.org::*UI][UI:1]]
-;;; Disable the fringe background
-(set-face-attribute 'fringe nil
-                    :background nil)
-
-;;; Eliminate all mode line decorations
-(set-face-attribute 'mode-line nil :box nil :overline "orange")
-(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
-;; UI:1 ends here
-
-;; [[file:C4.org::*Theme][Theme:1]]
-(use-package xresources-theme)
-
-(load-theme 'xresources  t)
-;; Theme:1 ends here
-
-;; [[file:C4.org::*asdf-vm][asdf-vm:1]]
-(use-package exec-path-from-shell
-  :if window-system
-  :config (exec-path-from-shell-initialize))
-;; asdf-vm:1 ends here
-
 ;; [[file:C4.org::*User Settings][User Settings:1]]
 ;;; Set variables for my root project directory and GitHub username
 (setq C4/project-root '("~/Code"))
@@ -648,14 +642,14 @@
 ;; forge:1 ends here
 
 ;; [[file:C4.org::*diff-hl][diff-hl:1]]
-;;; Show how files have changed between commits
-(use-package diff-hl
-  :after magit
-  :hook
-  (magit-pre-refresh . diff-hl-magit-pre-refresh)
-  (magit-post-refresh . diff-hl-magit-post-refresh)
-  :config
-  (global-diff-hl-mode 1))
+  ;;; Show how files have changed between commits
+  (use-package diff-hl
+    :after magit
+    :hook
+    (magit-pre-refresh . diff-hl-magit-pre-refresh)
+    (magit-post-refresh . diff-hl-magit-post-refresh)
+    :config
+    (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
 ;; [[file:C4.org::*langtool][langtool:1]]
@@ -788,7 +782,9 @@
   (org-code ((t (:inherit 'org-table))))
   (org-ellipsis ((t (:underline nil))))
   (org-meta-line ((t (:extend t))))
-  (org-block ((t (:inherit 'org-table :background ,(xresources-theme-color "color8")))))
+  (org-block ((t (:inherit 'org-table
+         :background ,(xresources-theme-color "color8")
+         :foreground ,(xresources-theme-color "foreground")))))
   (org-block-begin-line ((t (:inherit 'org-block))))
   (org-block-end-line ((t (:inherit 'org-block))))
   :config
@@ -1010,6 +1006,12 @@
 ;;; An Org Mode static site generator
 (use-package weblorg)
 ;; weblorg:1 ends here
+
+;; [[file:C4.org::*asdf-vm][asdf-vm:1]]
+(use-package exec-path-from-shell
+  :if window-system
+  :config (exec-path-from-shell-initialize))
+;; asdf-vm:1 ends here
 
 ;; [[file:C4.org::*Parsing][Parsing:1]]
 ;;; A full on parser in Emacs with highlighting definitions
