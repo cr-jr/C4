@@ -548,6 +548,7 @@
 ;; [[file:C4.org::*Typography][Typography:1]]
 ;; By default, use Input Sans family at 12px
 (set-face-attribute 'default nil :font "Input Sans-12")
+(set-face-attribute 'org-default nil :font "Input Serif-14")
 
 ;; Code font is the same as UI font
 (set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
@@ -782,14 +783,14 @@
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-table ((t (:font "Input Mono-10"))))
+  (org-table ((t (:inherit 'fixed-pitch))))
   (org-verbatim ((t (:inherit 'org-table))))
   (org-code ((t (:inherit 'org-table))))
   (org-ellipsis ((t (:underline nil))))
   (org-meta-line ((t (:extend t))))
-  (org-block-begin-line ((t (:extend t))))
-  (org-block ((t (:extend t))))
-  (org-block-end-line ((t (:extend t))))
+  (org-block ((t (:inherit 'org-table :background ,(xresources-theme-color "color8")))))
+  (org-block-begin-line ((t (:inherit 'org-block))))
+  (org-block-end-line ((t (:inherit 'org-block))))
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
