@@ -19,7 +19,6 @@
   :hook
   (text-mode . ryo-modal-mode)
   (prog-mode . ryo-modal-mode)
-  (exwm-mode . ryo-modal-mode)
   :config
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
@@ -354,10 +353,10 @@
 (show-paren-mode 1) ; show closing parens by default
 
 (menu-bar-mode -1) ; disable the menubar
-(scroll-bar-mode -1) ; disable visible scroll bar
+(scroll-bar-mode -1) ; disable the scroll bar
+(set-fringe-mode 8) ; Set fringe
 (tool-bar-mode -1) ; disable toolbar
 (tooltip-mode -1) ; disable tooltips
-(set-fringe-mode 8) ; allow some space
 
 (setq inhibit-startup-message t) ; inhibit startup message
 (setq initial-scratch-message "") ; no scratch message
@@ -513,22 +512,10 @@
   (org-mode . ctrlf-mode))
 ;; ctrlf:1 ends here
 
-;; [[file:C4.org::*smart-mode-line][smart-mode-line:1]]
+;; [[file:C4.org::*mood-line][mood-line:1]]
 ;;; Lightweight mode line goodness
-(use-package smart-mode-line
-  :init
-  (setq sml/theme 'respectful)
-  (setq sml/no-confirm-load-theme t)
-  (setq sml/name-width '(16 . 32))
-  (setq sml/mode-width 'full)
-  (setq rm-blacklist nil)
-  (setq rm-whitelist '(" ryo"))
-  :config
-  (sml/setup)
-  (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
-;; smart-mode-line:1 ends here
+(use-package mood-line :config (mood-line-mode))
+;; mood-line:1 ends here
 
 ;; [[file:C4.org::*helpful][helpful:1]]
 ;;; Help documentation enhancements
@@ -554,38 +541,46 @@
 ;;; Rich terminal experience
 (use-package vterm
   :ryo
-  ("SPC '" vterm-other-window :name "vterm: open terminal from current dir"))
+  ("SPC '" vterm :name "vterm: open terminal from current dir")
+  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
 ;; vterm:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
-;; By default, use Input Sans family at 13px
-(set-face-attribute 'default nil :font "Input Sans-13")
+;; By default, use Input Sans family at 12px
+(set-face-attribute 'default nil :font "Input Sans-12")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Input Sans-13")
+(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
 
-;; Set default document font as Merriweather family at 16px
-(set-face-attribute 'variable-pitch nil :font "Merriweather-16")
+;; Set default document font as Merriweather family at 14px
+(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Input Mono-13")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-13")
+(set-face-attribute 'line-number nil :font "Input Mono-12")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
 ;; Typography:1 ends here
 
 ;; [[file:C4.org::*UI][UI:1]]
 ;;; Disable the fringe background
 (set-face-attribute 'fringe nil
                     :background nil)
+
+;;; Eliminate all mode line decorations
+(set-face-attribute 'mode-line nil :box nil :overline "orange")
+(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
 ;; UI:1 ends here
 
 ;; [[file:C4.org::*Theme][Theme:1]]
-;;; Setup poet-themes
-(use-package poet-theme)
+(use-package xresources-theme)
 
-;; Load in themes for quick toggling
-(load-theme 'poet-monochrome t)
-(load-theme 'poet-dark-monochrome t t)
+(load-theme 'xresources  t)
 ;; Theme:1 ends here
+
+;; [[file:C4.org::*asdf-vm][asdf-vm:1]]
+(use-package exec-path-from-shell
+  :if window-system
+  :config (exec-path-from-shell-initialize))
+;; asdf-vm:1 ends here
 
 ;; [[file:C4.org::*User Settings][User Settings:1]]
 ;;; Set variables for my root project directory and GitHub username
@@ -652,14 +647,14 @@
 ;; forge:1 ends here
 
 ;; [[file:C4.org::*diff-hl][diff-hl:1]]
-  ;;; Show how files have changed between commits
-  (use-package diff-hl
-    :after magit
-    :hook
-    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-    (magit-post-refresh . diff-hl-magit-post-refresh)
-    :config
-    (global-diff-hl-mode 1))
+;;; Show how files have changed between commits
+(use-package diff-hl
+  :after magit
+  :hook
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
 ;; [[file:C4.org::*langtool][langtool:1]]
@@ -787,7 +782,7 @@
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-table ((t (:font "Input Mono-13"))))
+  (org-table ((t (:font "Input Mono-10"))))
   (org-verbatim ((t (:inherit 'org-table))))
   (org-code ((t (:inherit 'org-table))))
   (org-ellipsis ((t (:underline nil))))
@@ -992,7 +987,9 @@
   :hook
   (after-init . org-roam-mode)
   :custom
-  (org-roam-directory "~/Documents/Org/Notes/Roam/"))
+  (org-roam-directory "~/Documents/Org/Notes/Roam/")
+  :init
+  (setq org-roam-v2-ack t))
 ;; org-roam:1 ends here
 
 ;; [[file:C4.org::*deft][deft:1]]
@@ -1028,10 +1025,10 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow-13:italic" :weight 'extra-light)
+(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow:italic" :weight 'extra-light)
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed-13" :weight 'bold)
+(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed" :weight 'bold)
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil :font "Input Sans" :weight 'black)
@@ -1050,12 +1047,19 @@
 ;; Faces:1 ends here
 
 ;; [[file:C4.org::*rainbow-delimiters][rainbow-delimiters:1]]
-  ;;; When I'm knee deep in parens
+;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
   (prog-mode . rainbow-delimiters-mode)
   (prog-mode . prettify-symbols-mode))
 ;; rainbow-delimiters:1 ends here
+
+;; [[file:C4.org::*color-identifiers-mode][color-identifiers-mode:1]]
+;;; Helps me remember the names of things
+(use-package color-identifiers-mode
+  :hook
+  (prog-mode . color-identifiers-mode))
+;; color-identifiers-mode:1 ends here
 
 ;; [[file:C4.org::*Linting][Linting:1]]
 ;;; Code linting package that flies
@@ -1088,27 +1092,6 @@
   :hook
   (prog-mode . aggressive-indent-mode))
 ;; aggressive-indent-mode:1 ends here
-
-;; [[file:C4.org::*Autocompletion][Autocompletion:1]]
-;;; Code autocomplete with Company
-(use-package company
-  :config
-  (setq
-   company-idle-delay 0.25
-   company-minimum-prefix-length 1
-   company-selection-wrap-around t
-   company-show-numbers t
-   company-dabbrev-downcase nil
-   company-echo-delay 0
-   company-tooltip-limit 14
-   company-transformers '(company-sort-by-occurrence)
-   company-begin-commands '(self-insert-command))
-  (global-company-mode 1))
-
-;;; A nice Company interface
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-;; Autocompletion:1 ends here
 
 ;; [[file:C4.org::*Language Server Protocol][Language Server Protocol:1]]
 ;;; Language Server Protocol package for rich IDE features
@@ -1272,7 +1255,7 @@
   :hook
   (lisp-mode . sly-mode)
   :config
-  (setq inferior-lisp-program "/usr/local/bin/sbcl")
+  (setq inferior-lisp-program "~/.local/bin/sbcl")
 
   (sly))
 ;; Common Lisp:1 ends here
@@ -1449,124 +1432,8 @@
   ("\\.jsonp\\'" . json-mode))
 ;; Setup:1 ends here
 
-;; [[file:C4.org::*Configuration][Configuration:1]]
-;;; Initialize EXWM if GUI Emacs
-(use-package exwm
-  :if window-system
-  :ryo
-  (:mode 'exwm-mode)
-  ("s-SPC"
-   (("SPC" exwm-workspace-switch-to-buffer :name "switch buffer")
-    ("r" exwm-reset :name "reset")
-    ("q" exwm-restart :name "restart")
-    ("Q" kill-emacs :name "quit session")
-    ("w" exwm-workspace-switch :name "switch workspace")
-    ("W" exwm-workspace-swap :name "swap workspace")
-    ("o" exwm-workspace-move-window :name "move window to workspace")
-    ("f" exwm-floating-toggle-floating :name "toggle floating window")
-    ("F" exwm-layout-toggle-fullscreen :name "toggle fullscreen")
-    ("k" exwm-layout-toggle-keyboard :name "toggle keyboard state")
-    ("m" exwm-layout-toggle-mode-line :name "toggle mode line")
-    ("M" exwm-layout-toggle-minibuffer :name "toggle minibuffer")
-    ("c" kill-this-buffer :name "kill application")
-    ("C" kill-some-buffers :name "kill multiple")
-    ("s" split-window-below :name "split window horizontal")
-    ("S" split-window-right :name "split window vertical"))
-   :name "EXWM")
-  :config
-  
-  ;; Wallpaper setup
-  (start-process-shell-command
-   "nitrogen" nil "nitrogen --restore")
-  
-
-  (display-time-mode t)
-
-  (setq exwm-workspace-number 4)
-  (setq display-time-default-load-average nil)
-  (setq exwm-workspace-warp-cursor t)
-  (setq focus-follows-mouse t)
-
-  
-  ;;; Ensure these keys work everywhere
-  (setq exwm-input-prefix-keys
-        '(?\C-x
-          ?\C-u
-          ?\C-h
-          ?\C-\
-          ?\M-x
-          ?\M-`
-          ?\M-&
-          ?\M-:
-          ?\s-\ ))
-  
-    ;;; Global keys for getting around in EXWM
-  (setq exwm-input-global-keys
-        `(([?\s-I] . windmove-swap-states-up)
-          ([?\s-i] . windmove-up)
-          ([?\s-L] . windmove-swap-states-right)
-          ([?\s-l] . windmove-right)
-          ([?\s-K] . windmove-swap-states-down)
-          ([?\s-k] . windmove-down)
-          ([?\s-J] . windmove-swap-states-left)
-          ([?\s-j] . windmove-left)
-          ([?\s-s] . split-window-below)
-          ([?\s-S] . split-window-right)
-          ([?\s-r] . exwm-reset)
-          ([?\s-Q] . kill-emacs)
-          ([?\s-q] . exwm-restart)
-          ([?\s-W] . exwm-workspace-swap)
-          ([?\s-w] . exwm-workspace-switch)
-          ([?\s-D] . app-launcher-run-app)
-          ([?\s-d] . (lambda (cmd)
-                       (interactive (list (read-shell-command "$ ")))
-                       (start-process-shell-command cmd nil cmd)))
-          ,@(mapcar (lambda (i)
-                      `(,(kbd (format "s-%d" i)) .
-                        (lambda ()
-                          (interactive)
-                          (exwm-workspace-switch-create ,i))))
-                    (number-sequence 0 9))))
-  
-  (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
-  
-
-  ;; Update window class with the buffer name
-  (add-hook 'exwm-update-class-hook #'C4/exwm-update-class)
-
-  
-  ;;; Multi monitor workspaces
-  (require 'exwm-randr)
-  (setq exwm-randr-workspace-monitor-plist
-        '(0 "LVDS" 1 "LVDS" 2 "HDMI-0" 3 "HDMI-0"))
-  (start-process-shell-command "xrandr" nil
-                               (concat user-emacs-directory "desktop/multihead.sh"))
-  (exwm-randr-enable)
-  
-  
-  ;;; Enable a system tray in EXWM
-  (require 'exwm-systemtray)
-  (setq exwm-systemtray-height 16)
-  (exwm-systemtray-enable)
-  )
-
-(defun C4/exwm-update-class ()
-  (exwm-workspace-rename-buffer (concat "X Window: " exwm-class-name)))
-;; Configuration:1 ends here
-
-;; [[file:C4.org::*application-launcher][application-launcher:1]]
-;; Application launcher
-(use-package app-launcher
-  :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
-;; application-launcher:1 ends here
-
-;; [[file:C4.org::*desktop-environment][desktop-environment:1]]
-;; EXWM: Desktop Environment
-(use-package desktop-environment
-  :after exwm
-  :diminish
-  :bind
-  ("s-l" . windmove-right)
-  :config
-  (desktop-environment-mode))
-;; desktop-environment:1 ends here
+;; [[file:C4.org::*rainbow-mode][rainbow-mode:1]]
+(use-package rainbow-mode
+  :hook
+  (prog-mode . rainbow-mode))
+;; rainbow-mode:1 ends here

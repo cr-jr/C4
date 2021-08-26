@@ -72,7 +72,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#marginalia][marginalia]]
     - [[#ctrlf][ctrlf]]
   - [[#enhancements][Enhancements]]
-    - [[#smart-mode-line][smart-mode-line]]
+    - [[#mood-line][mood-line]]
     - [[#helpful][helpful]]
     - [[#editorconfig][editorconfig]]
     - [[#vterm][vterm]]
@@ -80,6 +80,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#typography][Typography]]
     - [[#ui][UI]]
   - [[#theme][Theme]]
+  - [[#asdf-vm][asdf-vm]]
 - [[#projects][Projects]]
   - [[#user-settings][User Settings]]
   - [[#management][Management]]
@@ -112,6 +113,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
   - [[#syntax-highlighting][Syntax Highlighting]]
     - [[#faces-1][Faces]]
     - [[#rainbow-delimiters][rainbow-delimiters]]
+    -  [[#color-identifiers-mode][color-identifiers-mode]]
   - [[#linting][Linting]]
   - [[#formatting][Formatting]]
     - [[#apheleia][apheleia]]
@@ -128,18 +130,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#web-dev][Web Dev]]
     - [[#javascripttypescript][JavaScript/TypeScript]]
       - [[#setup-2][Setup]]
-- [[#desktop-environment][Desktop Environment]]
-  - [[#setup-3][Setup]]
-    - [[#xinitrc][.xinitrc]]
-    - [[#multi-monitor][multi-monitor]]
-  - [[#configuration][Configuration]]
-    - [[#startup][startup]]
-    - [[#keybindings-1][keybindings]]
-    - [[#randr][randr]]
-    - [[#systemtray][systemtray]]
-  - [[#addons][Addons]]
-    - [[#application-launcher][application-launcher]]
-    - [[#desktop-environment-1][desktop-environment]]
+    - [[#rainbow-mode][rainbow-mode]]
 
 * Keybindings
 
@@ -192,7 +183,6 @@ RYO modal allows me to create modal keybindings of my own design.
   :hook
   (text-mode . ryo-modal-mode)
   (prog-mode . ryo-modal-mode)
-  (exwm-mode . ryo-modal-mode)
   :config
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
@@ -219,8 +209,8 @@ mode within a mode.
 ** Structure
 *** Command Mode
 
-Command Mode is defined by RYO and is the global "normal" state from where I can issue actions
-or mnemonic commands. With C4, Emacs loads in this state.
+Command Mode is defined by =ryo= in the modeline and is the global "normal" state from where I can
+issue actions or mnemonic commands. With C4, Emacs loads in this state.
 
 When Command mode is disabled, Emacs works as usual.
 
@@ -380,10 +370,7 @@ for deletion. In this case, it begins deletion chords.
 
 *** Commands
 
-The C4 command keybindings all share =SPC= as a prefix and =s-SPC= to issue these keybindings in X
-windows launched by EXWM.
-
-I create a few global commands and then the rest are encapsulated in domains of influence.
+The C4 command keybindings all share =SPC= as a prefix.
 
 Some of the commands will trigger a transient state with its own local keybindings.
 
@@ -516,7 +503,7 @@ This domain wraps commands that affect Emacs sessions
 
 **** Toggle (=t=)
 
-This domain wraps commands that can be toggled.
+This domain wraps interface toggles and micro-adjustments.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -776,10 +763,10 @@ I start working out the look and feel of my workspace as well as establish some 
 (show-paren-mode 1) ; show closing parens by default
 
 (menu-bar-mode -1) ; disable the menubar
-(scroll-bar-mode -1) ; disable visible scroll bar
+(scroll-bar-mode -1) ; disable the scroll bar
+(set-fringe-mode 8) ; Set fringe
 (tool-bar-mode -1) ; disable toolbar
 (tooltip-mode -1) ; disable tooltips
-(set-fringe-mode 8) ; allow some space
 
 (setq inhibit-startup-message t) ; inhibit startup message
 (setq initial-scratch-message "") ; no scratch message
@@ -1026,27 +1013,15 @@ This package provides the buffer-local keybindings for incremental search.
 
 Now I'll add some improvements to my baseline experience.
 
-*** smart-mode-line
+*** mood-line
 
-smart-mode-line is the lightest mode line package I have used so far. It's perfect for me, because I
-really have no need for anything but basic information about the buffer and slight customizations.
+mood-line is a minimal, zero-dependency mode line that replicates the clean look and functionality
+of doom-modeline.
 
 #+BEGIN_SRC emacs-lisp
 
 ;;; Lightweight mode line goodness
-(use-package smart-mode-line
-  :init
-  (setq sml/theme 'respectful)
-  (setq sml/no-confirm-load-theme t)
-  (setq sml/name-width '(16 . 32))
-  (setq sml/mode-width 'full)
-  (setq rm-blacklist nil)
-  (setq rm-whitelist '(" ryo"))
-  :config
-  (sml/setup)
-  (add-to-list 'sml/replacer-regexp-list '("^~/.config/emacs/" ":Emacs:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/Workbench/" ":Code:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/Org/" ":Org:") t))
+(use-package mood-line :config (mood-line-mode))
 
 #+END_SRC
 
@@ -1128,7 +1103,8 @@ makes sense to have a rich terminal package instead of opening an external termi
 ;;; Rich terminal experience
 (use-package vterm
   :ryo
-  ("SPC '" vterm-other-window :name "vterm: open terminal from current dir"))
+  ("SPC '" vterm :name "vterm: open terminal from current dir")
+  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
 
 #+END_SRC
 
@@ -1146,18 +1122,18 @@ Yes, I'm coding with proportional fonts instead of monospaced ones.
 
 #+BEGIN_SRC emacs-lisp
 
-;; By default, use Input Sans family at 13px
-(set-face-attribute 'default nil :font "Input Sans-13")
+;; By default, use Input Sans family at 12px
+(set-face-attribute 'default nil :font "Input Sans-12")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Input Sans-13")
+(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
 
-;; Set default document font as Merriweather family at 16px
-(set-face-attribute 'variable-pitch nil :font "Merriweather-16")
+;; Set default document font as Merriweather family at 14px
+(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Input Mono-13")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-13")
+(set-face-attribute 'line-number nil :font "Input Mono-12")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
 
 #+END_SRC
 
@@ -1171,21 +1147,33 @@ I also make some adjustments to the UI faces. Mainly to clean it up.
 (set-face-attribute 'fringe nil
                     :background nil)
 
+;;; Eliminate all mode line decorations
+(set-face-attribute 'mode-line nil :box nil :overline "orange")
+(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
+
 #+END_SRC
 
 ** Theme
 
-To promote and encourage a literate programming workflow, C4 uses Poet by default.
+For my theme, I've updated to my custom .Xresources palette.
 
 #+BEGIN_SRC emacs-lisp
 
-;;; Setup poet-themes
-(use-package poet-theme)
+(use-package xresources-theme)
 
-;; Load in themes for quick toggling
-(load-theme 'poet-monochrome t)
-(load-theme 'poet-dark-monochrome t t)
+(load-theme 'xresources  t)
 
+#+END_SRC
+
+** asdf-vm
+
+I've recently found that I needed to explicitly set the path for ASDF binaries and shims so I can
+use it with Emacs.
+
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell
+  :if window-system
+  :config (exec-path-from-shell-initialize))
 #+END_SRC
 
 * Projects
@@ -1427,7 +1415,7 @@ flow becomes more personal.
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-table ((t (:font "Input Mono-13"))))
+  (org-table ((t (:font "Input Mono-10"))))
   (org-verbatim ((t (:inherit 'org-table))))
   (org-code ((t (:inherit 'org-table))))
   (org-ellipsis ((t (:underline nil))))
@@ -1735,7 +1723,9 @@ Another vital component of my note-taking workflow: org-roam.
   :hook
   (after-init . org-roam-mode)
   :custom
-  (org-roam-directory "~/Documents/Org/Notes/Roam/"))
+  (org-roam-directory "~/Documents/Org/Notes/Roam/")
+  :init
+  (setq org-roam-v2-ack t))
 
 #+END_SRC
 
@@ -1785,9 +1775,9 @@ So I have no excuse not to write anymore.
 
 * Programming Modes
 
-The richer programming experience offered by Emacs and the lovely ecosystem of community packages was a huge
-part of why I switched over from Vim after nearly a decade of use. It requires a bit of setup, but now I have a
-development workstation I can grow with and easily expand.
+The richer programming experience offered by Emacs and the lovely ecosystem of community packages
+was a huge part of why I switched over from Vim after nearly a decade of use. It requires a bit of
+setup, but now I have a development workstation I can grow with and easily expand.
 
 I also have a much, /much/ easier time understanding and modifying Emacs Lisp packages for my personal
 ends than I ever did with VimScript.
@@ -1837,10 +1827,10 @@ I'm going to adjust a few faces provided by tree-sitter now.
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow-13:italic" :weight 'extra-light)
+(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow:italic" :weight 'extra-light)
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed-13" :weight 'bold)
+(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed" :weight 'bold)
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil :font "Input Sans" :weight 'black)
@@ -1866,11 +1856,26 @@ helps a little in other ways, too.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; When I'm knee deep in parens
+;;; When I'm knee deep in parens
 (use-package rainbow-delimiters
   :hook
   (prog-mode . rainbow-delimiters-mode)
   (prog-mode . prettify-symbols-mode))
+
+#+END_SRC
+
+***  color-identifiers-mode
+
+This package is another highlighting enhancement that enables semantic highlighting by identifiers
+instead of syntax. Another one of those little things that helps me code and keep track of things in
+source.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Helps me remember the names of things
+(use-package color-identifiers-mode
+  :hook
+  (prog-mode . color-identifiers-mode))
 
 #+END_SRC
 
@@ -1934,30 +1939,8 @@ Automatic indentation is another sanity check for overall programming. Especiall
 
 ** Autocompletion
 
-Autocompletion is included via Company with an interface provided by company-box.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Code autocomplete with Company
-(use-package company
-  :config
-  (setq
-   company-idle-delay 0.25
-   company-minimum-prefix-length 1
-   company-selection-wrap-around t
-   company-show-numbers t
-   company-dabbrev-downcase nil
-   company-echo-delay 0
-   company-tooltip-limit 14
-   company-transformers '(company-sort-by-occurrence)
-   company-begin-commands '(self-insert-command))
-  (global-company-mode 1))
-
-;;; A nice Company interface
-(use-package company-box
-  :hook (company-mode . company-box-mode))
-
-#+END_SRC
+Autocompletion used to be provided by Company, but then I realized the built-in =eldoc= really ain't
+that bad at its job and, unlike Company, only shows up when I need it.
 
 ** Language Server Protocol
 
@@ -2160,7 +2143,7 @@ fork called SLY in my configuration.
   :hook
   (lisp-mode . sly-mode)
   :config
-  (setq inferior-lisp-program "/usr/local/bin/sbcl")
+  (setq inferior-lisp-program "~/.local/bin/sbcl")
 
   (sly))
 
@@ -2291,9 +2274,6 @@ configuration optimizes for a =deno= workflow.
 The main package for JS is js2-mode. This either replaces or augments the built-in =js-mode=. I'm
 choosing to do the latter. For LSP features, Deno =>=1.6= includes its own server: =deno lsp=.
 
-For TS, I'm using typescript.el instead of Tide. While a great package, Tide does way more than I
-need. Deno LSP handles a lot of things already, so I just need basic TypeScript support.
-
 I wire up eglot to trigger on every JS/TS buffer in the current project. As well as let it know about
 =deno lsp= and what settings it expects to work.
 
@@ -2373,230 +2353,13 @@ have to. Though, I did fork it for my own adjustments.
 
 #+END_SRC
 
-* Desktop Environment
 
-Yes, Emacs is my window manager. And so far, I'm loving EXWM. If you don't love it, add a properties drawer to
-this heading similar to the one at the very top of this file. Then change =:tangle= to =no=. The configuration
-won't build anything in this section after that.
+*** rainbow-mode
 
-** Setup
-
-For my machine, I need to do a few things before I can even use EXWM.
-
-*** .xinitrc
-
-To actually use Emacs as my desktop environment, I need to create a =.xinitrc=.
-
-#+BEGIN_SRC sh :tangle "~/.xinitrc"
-# Caps to CTRL
-setxkbmap -option ctrl:nocaps
-
-# Disable touchpad
-xinput set-prop 12 "Device Enabled" 0
-
-# Default cursor
-xsetroot -cursor_name left_ptr
-
-# Xresources
-xrdb ~/.Xresources
-
-# Settings
-gnome-settings-daemon &
-
-# Autostart programs
-dex -a
-
-# Removable media
-udiskie &
-
-# Notifications
-dunst &
-
-# Bluetooth
-blueman-applet &
-
-# Syncthing server
-syncthing &
-
-# Start EXWM
-exec dbus-launch --exit-with-session emacs -mm --debug-init -f exwm-enable
-#+END_SRC
-
-*** multi-monitor
-
-I also use software (ARandR) to configure my multi-monitor setup.
-
-#+BEGIN_SRC sh :tangle "./desktop/multihead.sh" :tangle-mode (identity #o755)
-#!/bin/sh
-xrandr --output LVDS --primary --mode 1366x768 --pos 241x1080 --rotate normal --output VGA-0 --off --output HDMI-0 --mode 1920x1080 --pos 0x0 --rotate normal
-#+END_SRC
-
-Finally, I need to load in the main desktop package.
-
-** Configuration
-
-Now, I'll actually configure EXWM.
-
-Like the Org section, I'm breaking up this monolithic block of code into smaller bits.
-
-#+BEGIN_SRC emacs-lisp :noweb yes
-
-;;; Initialize EXWM if GUI Emacs
-(use-package exwm
-  :if window-system
-  :ryo
-  (:mode 'exwm-mode)
-  ("s-SPC"
-   (("SPC" exwm-workspace-switch-to-buffer :name "switch buffer")
-    ("r" exwm-reset :name "reset")
-    ("q" exwm-restart :name "restart")
-    ("Q" kill-emacs :name "quit session")
-    ("w" exwm-workspace-switch :name "switch workspace")
-    ("W" exwm-workspace-swap :name "swap workspace")
-    ("o" exwm-workspace-move-window :name "move window to workspace")
-    ("f" exwm-floating-toggle-floating :name "toggle floating window")
-    ("F" exwm-layout-toggle-fullscreen :name "toggle fullscreen")
-    ("k" exwm-layout-toggle-keyboard :name "toggle keyboard state")
-    ("m" exwm-layout-toggle-mode-line :name "toggle mode line")
-    ("M" exwm-layout-toggle-minibuffer :name "toggle minibuffer")
-    ("c" kill-this-buffer :name "kill application")
-    ("C" kill-some-buffers :name "kill multiple")
-    ("s" split-window-below :name "split window horizontal")
-    ("S" split-window-right :name "split window vertical"))
-   :name "EXWM")
-  :config
-  <<exwm-startup>>
-
-  (display-time-mode t)
-
-  (setq exwm-workspace-number 4)
-  (setq display-time-default-load-average nil)
-  (setq exwm-workspace-warp-cursor t)
-  (setq focus-follows-mouse t)
-
-  <<exwm-keybindings>>
-
-  ;; Update window class with the buffer name
-  (add-hook 'exwm-update-class-hook #'C4/exwm-update-class)
-
-  <<exwm-randr>>
-  <<exwm-systemtray>>)
-
-(defun C4/exwm-update-class ()
-  (exwm-workspace-rename-buffer (concat "X Window: " exwm-class-name)))
-
-#+END_SRC
-
-*** startup
-
-#+NAME: exwm-startup
-#+BEGIN_SRC emacs-lisp :tangle no
-
-;; Wallpaper setup
-(start-process-shell-command
- "nitrogen" nil "nitrogen --restore")
-
-#+END_SRC
-
-*** keybindings
-
-#+NAME: exwm-keybindings
-#+BEGIN_SRC emacs-lisp :tangle no
-
-;;; Ensure these keys work everywhere
-(setq exwm-input-prefix-keys
-      '(?\C-x
-        ?\C-u
-        ?\C-h
-        ?\C-\
-        ?\M-x
-        ?\M-`
-        ?\M-&
-        ?\M-:
-        ?\s-\ ))
-
-  ;;; Global keys for getting around in EXWM
-(setq exwm-input-global-keys
-      `(([?\s-I] . windmove-swap-states-up)
-        ([?\s-i] . windmove-up)
-        ([?\s-L] . windmove-swap-states-right)
-        ([?\s-l] . windmove-right)
-        ([?\s-K] . windmove-swap-states-down)
-        ([?\s-k] . windmove-down)
-        ([?\s-J] . windmove-swap-states-left)
-        ([?\s-j] . windmove-left)
-        ([?\s-s] . split-window-below)
-        ([?\s-S] . split-window-right)
-        ([?\s-r] . exwm-reset)
-        ([?\s-Q] . kill-emacs)
-        ([?\s-q] . exwm-restart)
-        ([?\s-W] . exwm-workspace-swap)
-        ([?\s-w] . exwm-workspace-switch)
-        ([?\s-D] . app-launcher-run-app)
-        ([?\s-d] . (lambda (cmd)
-                     (interactive (list (read-shell-command "$ ")))
-                     (start-process-shell-command cmd nil cmd)))
-        ,@(mapcar (lambda (i)
-                    `(,(kbd (format "s-%d" i)) .
-                      (lambda ()
-                        (interactive)
-                        (exwm-workspace-switch-create ,i))))
-                  (number-sequence 0 9))))
-
-(define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
-
-#+END_SRC
-
-*** randr
-
-#+NAME: exwm-randr
-#+BEGIN_SRC emacs-lisp :tangle no
-
-;;; Multi monitor workspaces
-(require 'exwm-randr)
-(setq exwm-randr-workspace-monitor-plist
-      '(0 "LVDS" 1 "LVDS" 2 "HDMI-0" 3 "HDMI-0"))
-(start-process-shell-command "xrandr" nil
-                             (concat user-emacs-directory "desktop/multihead.sh"))
-(exwm-randr-enable)
-
-#+END_SRC
-
-*** systemtray
-
-#+NAME: exwm-systemtray
-#+BEGIN_SRC emacs-lisp :tangle no
-
-;;; Enable a system tray in EXWM
-(require 'exwm-systemtray)
-(setq exwm-systemtray-height 16)
-(exwm-systemtray-enable)
-
-#+END_SRC
-
-** Addons
-
-*** application-launcher
+Since I work with colors a lot, I thought it would be a great idea to pull in this handy package.
 
 #+BEGIN_SRC emacs-lisp
-
-;; Application launcher
-(use-package app-launcher
-  :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
-
-#+END_SRC
-
-*** desktop-environment
-
-#+BEGIN_SRC emacs-lisp
-
-;; EXWM: Desktop Environment
-(use-package desktop-environment
-  :after exwm
-  :diminish
-  :bind
-  ("s-l" . windmove-right)
-  :config
-  (desktop-environment-mode))
-
+(use-package rainbow-mode
+  :hook
+  (prog-mode . rainbow-mode))
 #+END_SRC
