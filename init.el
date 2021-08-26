@@ -39,7 +39,8 @@
 (straight-use-package 'flymake)
 
 ;; Needed for Org
-(straight-use-package 'org-plus-contrib)
+(straight-use-package 'org)
+(straight-use-package 'org-contrib)
 
 ;;; Load in config
 (org-babel-load-file
