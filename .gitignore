@@ -5,13 +5,9 @@
 !.gitignore
 !README.org
 
-# Include the main init file
+# Include the main init and early init files
 !init.el
+!early-init.el
 
-# Include the configuration Org file and target
+# Include the configuration Org file
 !C4.org
-!C4.el
-
-# Include the generated files and directories
-!modules/
-!desktop/
