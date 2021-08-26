@@ -1026,16 +1026,28 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Input Serif Narrow:italic" :weight 'extra-light)
+(set-face-attribute 'font-lock-comment-face nil
+        :font "Input Serif Narrow:italic"
+        :weight 'extra-light
+        :foreground (xresources-theme-color "foreground"))
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Input Sans Compressed" :weight 'bold)
+(set-face-attribute 'font-lock-keyword-face nil
+        :font "Input Sans Compressed"
+        :weight 'bold
+        :foreground (xresources-theme-color "color1"))
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil :font "Input Sans" :weight 'black)
+(set-face-attribute 'font-lock-function-name-face nil
+        :font "Input Sans"
+        :weight 'black
+        :foreground (xresources-theme-color "foreground"))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :font "Input Serif Compressed" :weight 'normal)
+(set-face-attribute 'font-lock-string-face nil
+        :font "Input Serif Compressed"
+        :weight 'normal
+        :foreground (xresources-theme-color "color10"))
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
