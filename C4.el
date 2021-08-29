@@ -1315,6 +1315,22 @@
   (add-to-list 'org-babel-load-languages '(scribble . t)))
 ;; Racket:1 ends here
 
+;; [[file:C4.org::*Guile][Guile:1]]
+;;; Lang: Guile
+
+(use-package geiser-guile
+  :after geiser
+  :mode ("\\.scm\\'" . scheme-mode)
+  :interpreter ("guile" . scheme-mode)
+  :hook
+  (scheme-mode . geiser-mode)
+  :config
+  (with-eval-after-load 'geiser-guile
+    (add-to-list 'geiser-guile-load-path "~/.config/guix/current/share/guile/3.0")))
+
+(use-package macrostep-geiser :after geiser)
+;; Guile:1 ends here
+
 ;; [[file:C4.org::*Web Dev][Web Dev:1]]
 ;;; Lang: HTML/CSS/Web
 
@@ -1446,3 +1462,11 @@
   :hook
   (prog-mode . rainbow-mode))
 ;; rainbow-mode:1 ends here
+
+;; [[file:C4.org::*Guix][Guix:1]]
+;;; Guix
+
+(use-package guix
+  :hook
+  (scheme-mode . guix-devel-mode))
+;; Guix:1 ends here

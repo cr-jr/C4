@@ -113,10 +113,12 @@ Custom variables and procedures in this config are always prefixed with =C4=.
       - [[#emacs-lisp][Emacs Lisp]]
       - [[#common-lisp][Common Lisp]]
       - [[#racket][Racket]]
+      - [[#guile][Guile]]
     - [[#web-dev][Web Dev]]
     - [[#javascripttypescript][JavaScript/TypeScript]]
       - [[#setup-2][Setup]]
     - [[#rainbow-mode][rainbow-mode]]
+- [[#guix][Guix]]
 
 * Startup
 ** Initial Settings
@@ -2191,6 +2193,28 @@ For editing Racket source, racket-mode is the way to go.
 
 #+END_SRC
 
+**** Guile
+
+Guile came on my radar around the same time I discovered GNU Guix. I'm hype about the possibilities
+of immutable and reproducible system configurations as well as the prospect of planning *future
+systems* for hardware and architectures I /may/ use.
+
+#+BEGIN_SRC emacs-lisp
+;;; Lang: Guile
+
+(use-package geiser-guile
+  :after geiser
+  :mode ("\\.scm\\'" . scheme-mode)
+  :interpreter ("guile" . scheme-mode)
+  :hook
+  (scheme-mode . geiser-mode)
+  :config
+  (with-eval-after-load 'geiser-guile
+    (add-to-list 'geiser-guile-load-path "~/.config/guix/current/share/guile/3.0")))
+
+(use-package macrostep-geiser :after geiser)
+#+END_SRC
+
 *** Web Dev
 
 For web development, essential packages include: emmet-mode, skewer-mode, and impatient-mode.
@@ -2343,7 +2367,6 @@ have to. Though, I did fork it for my own adjustments.
 
 #+END_SRC
 
-
 *** rainbow-mode
 
 Since I work with colors a lot, I thought it would be a great idea to pull in this handy package.
@@ -2352,4 +2375,17 @@ Since I work with colors a lot, I thought it would be a great idea to pull in th
 (use-package rainbow-mode
   :hook
   (prog-mode . rainbow-mode))
+#+END_SRC
+
+* Guix
+
+GNU Guix is a functional package manager written in Guile Scheme. It's also an entire operating
+system. This section is for packages that help me work with Guix much easier.
+
+#+BEGIN_SRC emacs-lisp
+;;; Guix
+
+(use-package guix
+  :hook
+  (scheme-mode . guix-devel-mode))
 #+END_SRC
