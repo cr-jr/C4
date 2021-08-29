@@ -44,25 +44,28 @@
 ;; Initial Settings:1 ends here
 
 ;; [[file:C4.org::*Theme][Theme:1]]
-(use-package xresources-theme)
+;;; Install Base16 theme template
+(use-package base16-theme)
 
-(load-theme 'xresources  t)
+(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
+
+(load-theme 'base16-lilac-quasar t)
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
 ;; By default, use Input Sans family at 12px
-(set-face-attribute 'default nil :font "Input Sans-12")
-(set-face-attribute 'org-default nil :font "Input Serif-14")
+(set-face-attribute 'default nil :font "Input Sans-10")
+(set-face-attribute 'org-default nil :font "Input Serif-12")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Input Sans-12")
+(set-face-attribute 'fixed-pitch nil :font "Input Sans-10")
 
 ;; Set default document font as Merriweather family at 14px
-(set-face-attribute 'variable-pitch nil :font "Input Serif-14")
+(set-face-attribute 'variable-pitch nil :font "Input Serif-12")
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Input Mono-12")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-12")
+(set-face-attribute 'line-number nil :font "Input Mono-10")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-10")
 ;; Typography:1 ends here
 
 ;; [[file:C4.org::*UI][UI:1]]
@@ -71,8 +74,8 @@
                     :background nil)
 
 ;;; Eliminate all mode line decorations
-(set-face-attribute 'mode-line nil :box nil :overline (xresources-theme-color "color8"))
-(set-face-attribute 'mode-line-inactive nil :box nil :overline nil)
+(set-face-attribute 'mode-line nil :box nil)
+(set-face-attribute 'mode-line-inactive nil :box nil)
 ;; UI:1 ends here
 
 ;; [[file:C4.org::*User Identity][User Identity:1]]
@@ -106,10 +109,7 @@
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
   ;; C-i needs to be its own keybinding
-  (keyboard-translate ?\C-i ?\M-i)
-
-  ;; Change the cursor globally
-  (setq ryo-modal-default-cursor-color (xresources-theme-color "color14")))
+  (keyboard-translate ?\C-i ?\M-i))
 ;; ryo-modal:1 ends here
 
 ;; [[file:C4.org::*hydra][hydra:1]]
@@ -782,9 +782,7 @@
   (org-code ((t (:inherit 'org-table))))
   (org-ellipsis ((t (:underline nil))))
   (org-meta-line ((t (:extend t))))
-  (org-block ((t (:inherit 'org-table
-         :background ,(xresources-theme-color "color8")
-         :foreground ,(xresources-theme-color "foreground")))))
+  (org-block ((t (:inherit 'org-table))))
   (org-block-begin-line ((t (:inherit 'org-block))))
   (org-block-end-line ((t (:inherit 'org-block))))
   :config
@@ -1030,26 +1028,22 @@
 ;; set comment face
 (set-face-attribute 'font-lock-comment-face nil
         :font "Input Serif Narrow:italic"
-        :weight 'extra-light
-        :foreground (xresources-theme-color "foreground"))
+        :weight 'extra-light)
 
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil
         :font "Input Sans Compressed"
-        :weight 'bold
-        :foreground (xresources-theme-color "color1"))
+        :weight 'bold)
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil
         :font "Input Sans"
-        :weight 'black
-        :foreground (xresources-theme-color "foreground"))
+        :weight 'black)
 
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil
         :font "Input Serif Compressed"
-        :weight 'normal
-        :foreground (xresources-theme-color "color10"))
+        :weight 'normal)
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
