@@ -1,6 +1,4 @@
 #+TITLE: C4 Configuration
-#+DATE: 2021-01-31
-#+AUTHOR: Chatman R. Jr
 #+PROPERTY: header-args :mkdirp yes
 #+PROPERTY: header-args:emacs-lisp :comments link :tangle yes
 
@@ -2199,6 +2197,8 @@ Guile came on my radar around the same time I discovered GNU Guix. I'm hype abou
 of immutable and reproducible system configurations as well as the prospect of planning *future
 systems* for hardware and architectures I /may/ use.
 
+Also, the Guile flavor or Lisp itself is great.
+
 #+BEGIN_SRC emacs-lisp
 ;;; Lang: Guile
 
@@ -2207,10 +2207,7 @@ systems* for hardware and architectures I /may/ use.
   :mode ("\\.scm\\'" . scheme-mode)
   :interpreter ("guile" . scheme-mode)
   :hook
-  (scheme-mode . geiser-mode)
-  :config
-  (with-eval-after-load 'geiser-guile
-    (add-to-list 'geiser-guile-load-path "~/.config/guix/current/share/guile/3.0")))
+  (scheme-mode . geiser-mode))
 
 (use-package macrostep-geiser :after geiser)
 #+END_SRC
@@ -2387,5 +2384,8 @@ system. This section is for packages that help me work with Guix much easier.
 
 (use-package guix
   :hook
-  (scheme-mode . guix-devel-mode))
+  (scheme-mode . guix-devel-mode)
+  :config
+  (with-eval-after-load 'geiser-guile
+    (add-to-list 'geiser-guile-load-path "~/Source/guix")))
 #+END_SRC

@@ -1323,10 +1323,7 @@
   :mode ("\\.scm\\'" . scheme-mode)
   :interpreter ("guile" . scheme-mode)
   :hook
-  (scheme-mode . geiser-mode)
-  :config
-  (with-eval-after-load 'geiser-guile
-    (add-to-list 'geiser-guile-load-path "~/.config/guix/current/share/guile/3.0")))
+  (scheme-mode . geiser-mode))
 
 (use-package macrostep-geiser :after geiser)
 ;; Guile:1 ends here
@@ -1468,5 +1465,8 @@
 
 (use-package guix
   :hook
-  (scheme-mode . guix-devel-mode))
+  (scheme-mode . guix-devel-mode)
+  :config
+  (with-eval-after-load 'geiser-guile
+    (add-to-list 'geiser-guile-load-path "~/Source/guix")))
 ;; Guix:1 ends here
