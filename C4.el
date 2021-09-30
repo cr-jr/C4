@@ -116,6 +116,10 @@
   :config
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
+
+  ;; Set activated cursor color
+  (setq ryo-modal-cursor-color (ewal-load-color 'red))
+
   ;; C-i needs to be its own keybinding
   (keyboard-translate ?\C-i ?\M-i))
 ;; ryo-modal:1 ends here
@@ -782,6 +786,7 @@
   (org-mode . variable-pitch-mode)
   (org-mode . org-indent-mode)
   (org-mode . visual-line-mode)
+  (org-mode . (lambda () (setq fill-column 180)))
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face

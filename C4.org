@@ -4,13 +4,11 @@
 
 * Summary  :noexport:
 
-This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
-environment and learn how to do more with it.
+This configuration is my personal configuration/sandbox that grows as I use my favorite productivity environment and learn how to do more with it.
 
 C4 prioritizes ease, convenience and performance. A clean, minimal UI is what I love.
 
-This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and
-the =init.el= that loads it on startup.
+This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and the =init.el= that loads it on startup.
 
 If something doesn't add value to my workflow, it simply isn't here.
 
@@ -296,6 +294,10 @@ RYO modal allows me to create modal keybindings of my own design.
   :config
   ;; which-key integration
   (push '((nil . "ryo:.*:") . (nil . "")) which-key-replacement-alist)
+
+  ;; Set activated cursor color
+  (setq ryo-modal-cursor-color (ewal-load-color 'red))
+
   ;; C-i needs to be its own keybinding
   (keyboard-translate ?\C-i ?\M-i))
 
@@ -1390,6 +1392,7 @@ flow becomes more personal.
   (org-mode . variable-pitch-mode)
   (org-mode . org-indent-mode)
   (org-mode . visual-line-mode)
+  (org-mode . (lambda () (setq fill-column 180)))
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
