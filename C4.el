@@ -44,12 +44,20 @@
 ;; Initial Settings:1 ends here
 
 ;; [[file:C4.org::*Theme][Theme:1]]
-;;; Install Base16 theme template
-(use-package base16-theme)
+;; Setup ewal
+(use-package ewal
+  :init
+  (setq ewal-use-built-in-always-p nil)
+  (setq ewal-use-built-in-on-failure-p t)
+  (setq ewal-built-in-palette "sexy-material")
+  (setq ewal-json-file "~/.cache/wal/colors.json")
+  :config (ewal-load-colors))
 
-(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes"))
-
-(load-theme 'base16-lilac-quasar t)
+;; Load in themes
+(use-package ewal-spacemacs-themes
+  :config (load-theme 'ewal-spacemacs-modern t))
+(use-package ewal-doom-themes
+  :config (load-theme 'ewal-doom-vibrant t t))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]

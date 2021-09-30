@@ -11,7 +11,3 @@
 
 # Include the configuration Org file
 !C4.org
-
-# Include the theme directory and theme
-!themes
-!theme.el
