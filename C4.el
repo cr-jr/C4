@@ -61,19 +61,18 @@
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
-;; By default, use Input Sans family at 12px
-(set-face-attribute 'default nil :font "Input Sans-10")
-(set-face-attribute 'org-default nil :font "Input Serif-12")
+;; By default, use Victor Mono family at 10px
+(set-face-attribute 'default nil :font "Victor Mono-10")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Input Sans-10")
+(set-face-attribute 'fixed-pitch nil :font "Victor Mono-10")
 
-;; Set default document font as Merriweather family at 14px
-(set-face-attribute 'variable-pitch nil :font "Input Serif-12")
+;; Font should be larger in Org documents
+(set-face-attribute 'variable-pitch nil :font "Victor Mono-12")
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Input Mono-10")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Input Mono-10")
+(set-face-attribute 'line-number nil :font "Victor Mono-10")
+(set-face-attribute 'line-number-current-line nil :weight 'black :font "Victor Mono-10")
 ;; Typography:1 ends here
 
 ;; [[file:C4.org::*UI][UI:1]]
@@ -1039,24 +1038,16 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil
-        :font "Input Serif Narrow:italic"
-        :weight 'extra-light)
+(set-face-attribute 'font-lock-comment-face nil :font "Victor Mono Light:italic")
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil
-        :font "Input Sans Compressed"
-        :weight 'bold)
+(set-face-attribute 'font-lock-keyword-face nil :font "Victor Mono Thin")
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil
-        :font "Input Sans"
-        :weight 'black)
+(set-face-attribute 'font-lock-function-name-face nil :font "Victor Mono Oblique")
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil
-        :font "Input Serif Compressed"
-        :weight 'normal)
+(set-face-attribute 'font-lock-string-face nil :font "Victor Mono:italic")
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
