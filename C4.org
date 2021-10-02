@@ -122,7 +122,6 @@ Custom variables and procedures in this config are always prefixed with =C4=.
 I start working out the look and feel of my workspace as well as establish some global settings.
 
 #+BEGIN_SRC emacs-lisp
-
 (setq-default cursor-type 'bar) ; default cursor as bar
 (setq-default frame-title-format '("%b")) ; window title is the buffer name
 
@@ -183,10 +182,8 @@ For my theme, I extend my wpgtk theme into Emacs with ewal.
   :config (ewal-load-colors))
 
 ;; Load in themes
-(use-package ewal-spacemacs-themes
-  :config (load-theme 'ewal-spacemacs-modern t))
 (use-package ewal-doom-themes
-  :config (load-theme 'ewal-doom-vibrant t t))
+  :config (load-theme 'ewal-doom-one t))
 #+END_SRC
 
 *** Typography
@@ -194,20 +191,16 @@ For my theme, I extend my wpgtk theme into Emacs with ewal.
 The typography of C4 is entirely based on Victor Mono using varied weights and sizes for contrast.
 
 #+BEGIN_SRC emacs-lisp
-
 ;; By default, use Victor Mono family at 10px
-(set-face-attribute 'default nil :font "Victor Mono-10")
+(set-face-attribute 'default nil :font "Victor Mono")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Victor Mono-10")
-
-;; Font should be larger in Org documents
-(set-face-attribute 'variable-pitch nil :font "Victor Mono-12")
+(set-face-attribute 'fixed-pitch nil :inherit 'default)
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Victor Mono-10")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Victor Mono-10")
-
+(set-face-attribute 'line-number nil :font "Victor Mono")
+(set-face-attribute 'line-number-current-line nil
+        :font "Victor Mono Bold" :foreground (ewal-load-color 'white))
 #+END_SRC
 
 *** UI
@@ -1392,14 +1385,15 @@ flow becomes more personal.
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
+  (org-tag ((t (:inherit 'fixed-pitch))))
   (org-table ((t (:inherit 'fixed-pitch))))
-  (org-verbatim ((t (:inherit 'org-table))))
-  (org-code ((t (:inherit 'org-table))))
+  (org-verbatim ((t (:inherit 'fixed-pitch))))
+  (org-code ((t (:inherit 'fixed-pitch))))
   (org-ellipsis ((t (:underline nil))))
-  (org-meta-line ((t (:extend t))))
-  (org-block ((t (:inherit 'org-table))))
-  (org-block-begin-line ((t (:inherit 'org-block))))
-  (org-block-end-line ((t (:inherit 'org-block))))
+  (org-meta-line ((t (:inherit 'fixed-pitch :extend t))))
+  (org-block ((t (:inherit 'fixed-pitch))))
+  (org-block-begin-line ((t (:inherit 'fixed-pitch))))
+  (org-block-end-line ((t (:inherit 'org-block-begin-line))))
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
@@ -1815,17 +1809,24 @@ I'm going to adjust a few faces provided by tree-sitter now.
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Victor Mono Thin:italic"
-        :foreground (ewal-load-color 'foreground))
+(set-face-attribute 'font-lock-comment-face nil
+        :font "Victor Mono Thin:italic"
+        :foreground (ewal-load-color 'white))
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Victor Mono" :foreground (ewal-load-color 'yellow))
+(set-face-attribute 'font-lock-keyword-face nil
+        :font "Victor Mono" :foreground (ewal-load-color 'comment))
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil :font "Victor Mono Oblique")
+(set-face-attribute 'font-lock-function-name-face nil
+        :font "Victor Mono Bold" :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :font "Victor Mono:italic")
+(set-face-attribute 'font-lock-string-face nil
+        :font "Victor Mono:italic" :foreground (ewal-load-color 'green))
+
+;; set docstring face
+(set-face-attribute 'font-lock-doc-face nil :font "Victor Mono")
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)

@@ -54,25 +54,21 @@
   :config (ewal-load-colors))
 
 ;; Load in themes
-(use-package ewal-spacemacs-themes
-  :config (load-theme 'ewal-spacemacs-modern t))
 (use-package ewal-doom-themes
-  :config (load-theme 'ewal-doom-vibrant t t))
+  :config (load-theme 'ewal-doom-one t))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
 ;; By default, use Victor Mono family at 10px
-(set-face-attribute 'default nil :font "Victor Mono-10")
+(set-face-attribute 'default nil :font "Victor Mono")
 
 ;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :font "Victor Mono-10")
-
-;; Font should be larger in Org documents
-(set-face-attribute 'variable-pitch nil :font "Victor Mono-12")
+(set-face-attribute 'fixed-pitch nil :inherit 'default)
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Victor Mono-10")
-(set-face-attribute 'line-number-current-line nil :weight 'black :font "Victor Mono-10")
+(set-face-attribute 'line-number nil :font "Victor Mono")
+(set-face-attribute 'line-number-current-line nil
+        :font "Victor Mono Bold" :foreground (ewal-load-color 'white))
 ;; Typography:1 ends here
 
 ;; [[file:C4.org::*UI][UI:1]]
@@ -789,14 +785,15 @@
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
+  (org-tag ((t (:inherit 'fixed-pitch))))
   (org-table ((t (:inherit 'fixed-pitch))))
-  (org-verbatim ((t (:inherit 'org-table))))
-  (org-code ((t (:inherit 'org-table))))
+  (org-verbatim ((t (:inherit 'fixed-pitch))))
+  (org-code ((t (:inherit 'fixed-pitch))))
   (org-ellipsis ((t (:underline nil))))
-  (org-meta-line ((t (:extend t))))
-  (org-block ((t (:inherit 'org-table))))
-  (org-block-begin-line ((t (:inherit 'org-block))))
-  (org-block-end-line ((t (:inherit 'org-block))))
+  (org-meta-line ((t (:inherit 'fixed-pitch :extend t))))
+  (org-block ((t (:inherit 'fixed-pitch))))
+  (org-block-begin-line ((t (:inherit 'fixed-pitch))))
+  (org-block-end-line ((t (:inherit 'org-block-begin-line))))
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
@@ -1038,17 +1035,24 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Victor Mono Thin:italic"
-        :foreground (ewal-load-color 'foreground))
+(set-face-attribute 'font-lock-comment-face nil
+        :font "Victor Mono Thin:italic"
+        :foreground (ewal-load-color 'white))
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Victor Mono" :foreground (ewal-load-color 'yellow))
+(set-face-attribute 'font-lock-keyword-face nil
+        :font "Victor Mono" :foreground (ewal-load-color 'comment))
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil :font "Victor Mono Oblique")
+(set-face-attribute 'font-lock-function-name-face nil
+        :font "Victor Mono Bold" :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :font "Victor Mono:italic")
+(set-face-attribute 'font-lock-string-face nil
+        :font "Victor Mono:italic" :foreground (ewal-load-color 'green))
+
+;; set docstring face
+(set-face-attribute 'font-lock-doc-face nil :font "Victor Mono")
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
