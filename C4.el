@@ -59,11 +59,14 @@
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
-;; By default, use Victor Mono family at 10px
-(set-face-attribute 'default nil :font "Victor Mono")
+;; By default, use Victor Mono
+(set-face-attribute 'default nil :font "Victor Mono-10")
 
-;; Code font is the same as UI font
-(set-face-attribute 'fixed-pitch nil :inherit 'default)
+;; Code font is the same as default font
+(set-face-attribute 'fixed-pitch nil :font "Victor Mono-10")
+
+;; Org mode font is a nice serif
+(set-face-attribute 'variable-pitch nil :font "Noto Serif-14")
 
 ;; Set monospace font to correctly render linum and bold to track position
 (set-face-attribute 'line-number nil :font "Victor Mono")
@@ -781,7 +784,6 @@
   (org-mode . variable-pitch-mode)
   (org-mode . org-indent-mode)
   (org-mode . visual-line-mode)
-  (org-mode . (lambda () (setq fill-column 180)))
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
@@ -923,13 +925,17 @@
 ;; org-superstar:1 ends here
 
 ;; [[file:C4.org::*visual-fill-column][visual-fill-column:1]]
+;;; Org mode line length
+(defvar C4/org-measure 140)
+
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
   :custom
-  (visual-fill-column-width 120)
+  (visual-fill-column-width C4/org-measure)
   (visual-fill-column-center-text t)
   :hook
   (visual-line-mode . visual-fill-column-mode)
+  (org-mode . (lambda () (setq fill-column C4/org-measure)))
   :config
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 ;; visual-fill-column:1 ends here
