@@ -1038,10 +1038,11 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :font "Victor Mono Light:italic")
+(set-face-attribute 'font-lock-comment-face nil :font "Victor Mono Thin:italic"
+        :foreground (ewal-load-color 'foreground))
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil :font "Victor Mono Thin")
+(set-face-attribute 'font-lock-keyword-face nil :font "Victor Mono" :foreground (ewal-load-color 'yellow))
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil :font "Victor Mono Oblique")
