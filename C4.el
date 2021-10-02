@@ -1041,11 +1041,11 @@
 
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil
-        :font "Victor Mono" :foreground (ewal-load-color 'comment))
+        :font "Victor Mono Bold" :foreground (ewal-load-color 'white))
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil
-        :font "Victor Mono Bold" :weight 'bold :foreground (ewal-load-color 'yellow))
+        :font "Victor Mono" :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil
