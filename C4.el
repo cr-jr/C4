@@ -448,13 +448,22 @@
   (editorconfig-mode 1))
 ;; editorconfig:1 ends here
 
-;; [[file:C4.org::*vterm][vterm:1]]
-;;; Rich terminal experience
-(use-package vterm
+;; [[file:C4.org::*eshell][eshell:1]]
+;; Enhanced eshell
+(use-package eshell-prompt-extras
+  :custom
+  (eshell-highlight-prompt nil)
+  (eshell-prompt-function 'epe-theme-lambda))
+
+;; Easy shell access
+(use-package shell-pop
   :ryo
-  ("SPC '" vterm :name "vterm: open terminal from current dir")
-  ("SPC \"" vterm-other-window "vterm: open terminal from current dir (in new window)"))
-;; vterm:1 ends here
+  ("SPC '" shell-pop :name "pop a terminal")
+  ("SPC \"" term :name "open terminal")
+  :custom
+  (shell-pop-window-size 30)
+  (shell-pop-shell-type (quote ("eshell" "*Eshell*" (lambda nil (eshell))))))
+;; eshell:1 ends here
 
 ;; [[file:C4.org::*crux][crux:1]]
 ;;; Utilities for useful Emacs functions
