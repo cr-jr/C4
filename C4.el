@@ -60,10 +60,10 @@
 
 ;; [[file:C4.org::*Typography][Typography:1]]
 ;; By default, use Victor Mono
-(set-face-attribute 'default nil :font "Victor Mono-10")
+(set-face-attribute 'default nil :font "Victor Mono-12")
 
-;; Code font is the same as default font
-(set-face-attribute 'fixed-pitch nil :font "Victor Mono-10")
+;; Code font is the same as default font, but slightly larger
+(set-face-attribute 'fixed-pitch nil :font "Victor Mono-12")
 
 ;; Org mode font is a nice serif
 (set-face-attribute 'variable-pitch nil :font "Noto Serif-14")
@@ -796,12 +796,12 @@
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-tag ((t (:inherit 'fixed-pitch))))
-  (org-table ((t (:inherit 'fixed-pitch))))
-  (org-verbatim ((t (:inherit 'fixed-pitch))))
-  (org-code ((t (:inherit 'fixed-pitch))))
+  (org-code ((t (:font "Victor Mono-14"))))
+  (org-tag ((t (:inherit 'org-code))))
+  (org-table ((t (:inherit 'org-code))))
+  (org-verbatim ((t (:inherit 'org-code))))
   (org-ellipsis ((t (:underline nil))))
-  (org-meta-line ((t (:inherit 'fixed-pitch :extend t))))
+  (org-meta-line ((t (:inherit 'org-code :extend t))))
   (org-block ((t (:inherit 'fixed-pitch))))
   (org-block-begin-line ((t (:inherit 'fixed-pitch))))
   (org-block-end-line ((t (:inherit 'org-block-begin-line))))
@@ -1492,5 +1492,5 @@
   (scheme-mode . guix-devel-mode)
   :config
   (with-eval-after-load 'geiser-guile
-    (add-to-list 'geiser-guile-load-path "~/Source/guix")))
+    (add-to-list 'geiser-guile-load-path "~/Code/guix")))
 ;; Guix:1 ends here
