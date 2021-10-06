@@ -1433,8 +1433,10 @@
      (cache (expand-file-name ".deno/lsp/cache/" root)))
       (list :enable t :lint t)))
 
+  ;; Note: The deno lsp JavaScript language identifier is NOT "js", so eglot's
+  ;; guess ("js" for js-mode) was incorrect and the server wouldn't load
   (add-to-list
-   'eglot-server-programs '(js-mode . (eglot-deno "deno" "lsp")))
+   'eglot-server-programs '((js-mode :language-id "javascript") . (eglot-deno "deno" "lsp")))
 
   (add-hook
    'js-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer))))
