@@ -1582,7 +1582,8 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
    (lisp . t)
    (C . t)
    (shell . t)
-   (js . t)))
+   (js . t)
+   (scheme . t)))
 
 #+END_SRC
 
@@ -2217,7 +2218,10 @@ Also, the Guile flavor or Lisp itself is great.
   :mode ("\\.scm\\'" . scheme-mode)
   :interpreter ("guile" . scheme-mode)
   :hook
-  (scheme-mode . geiser-mode))
+  (scheme-mode . geiser-mode)
+  :config
+  (setq geiser-default-implementation 'guile)
+  (add-to-list 'org-babel-load-languages '(scheme . t)))
 
 (use-package macrostep-geiser :after geiser)
 #+END_SRC

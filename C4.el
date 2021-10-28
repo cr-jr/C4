@@ -899,7 +899,8 @@
      (lisp . t)
      (C . t)
      (shell . t)
-     (js . t)))
+     (js . t)
+     (scheme . t)))
   )
 ;; Setup:1 ends here
 
@@ -1347,7 +1348,10 @@
   :mode ("\\.scm\\'" . scheme-mode)
   :interpreter ("guile" . scheme-mode)
   :hook
-  (scheme-mode . geiser-mode))
+  (scheme-mode . geiser-mode)
+  :config
+  (setq geiser-default-implementation 'guile)
+  (add-to-list 'org-babel-load-languages '(scheme . t)))
 
 (use-package macrostep-geiser :after geiser)
 ;; Guile:1 ends here
