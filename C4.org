@@ -1580,10 +1580,10 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
  'org-babel-load-languages
  '((emacs-lisp . t)
    (lisp . t)
+   (scheme . t) ;; TODO: figure out how to load Scheme with Geiser
    (C . t)
    (shell . t)
-   (js . t)
-   (scheme . t)))
+   (js . t)))
 
 #+END_SRC
 
@@ -2220,8 +2220,7 @@ Also, the Guile flavor or Lisp itself is great.
   :hook
   (scheme-mode . geiser-mode)
   :config
-  (setq geiser-default-implementation 'guile)
-  (add-to-list 'org-babel-load-languages '(scheme . t)))
+  (setq geiser-default-implementation 'guile))
 
 (use-package macrostep-geiser :after geiser)
 #+END_SRC
@@ -2282,10 +2281,12 @@ I don't use specialized template syntax, so I don't have much use for web-mode.
   (html-mode . impatient-mode))
 
 ;; Add support for Org babel
-(use-package ob-browser
+(use-package ob-html
+  :straight (ob-html :host github :repo "misohena/ob-html")
   :after org
   :config
-  (append '((browser . t)) org-babel-load-languages))
+  (setq org-babel-html-chrome-executable "/home/cr-jr/.guix-profile/bin/chromium")
+  (append '((html . t)) org-babel-load-languages))
 
 #+END_SRC
 

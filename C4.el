@@ -897,10 +897,10 @@
    'org-babel-load-languages
    '((emacs-lisp . t)
      (lisp . t)
+     (scheme . t) ;; TODO: figure out how to load Scheme with Geiser
      (C . t)
      (shell . t)
-     (js . t)
-     (scheme . t)))
+     (js . t)))
   )
 ;; Setup:1 ends here
 
@@ -1350,8 +1350,7 @@
   :hook
   (scheme-mode . geiser-mode)
   :config
-  (setq geiser-default-implementation 'guile)
-  (add-to-list 'org-babel-load-languages '(scheme . t)))
+  (setq geiser-default-implementation 'guile))
 
 (use-package macrostep-geiser :after geiser)
 ;; Guile:1 ends here
@@ -1405,10 +1404,12 @@
   (html-mode . impatient-mode))
 
 ;; Add support for Org babel
-(use-package ob-browser
+(use-package ob-html
+  :straight (ob-html :host github :repo "misohena/ob-html")
   :after org
   :config
-  (append '((browser . t)) org-babel-load-languages))
+  (setq org-babel-html-chrome-executable "/home/cr-jr/.guix-profile/bin/chromium")
+  (append '((html . t)) org-babel-load-languages))
 ;; Web Dev:1 ends here
 
 ;; [[file:C4.org::*Setup][Setup:1]]
