@@ -188,22 +188,22 @@ For my theme, I extend my wpgtk theme into Emacs with ewal.
 
 *** Typography
 
-The typography of C4 is entirely based on Victor Mono using varied weights and sizes for contrast.
+The typography of C4 is entirely based on Cousine using varied weights and sizes for contrast.
 
 #+BEGIN_SRC emacs-lisp
-;; By default, use Victor Mono
-(set-face-attribute 'default nil :font "Victor Mono-12")
+;; By default, use Cousine
+(set-face-attribute 'default nil :font "Cousine-12")
 
 ;; Code font is the same as default font, but slightly larger
-(set-face-attribute 'fixed-pitch nil :font "Victor Mono-12")
+(set-face-attribute 'fixed-pitch nil :font "Cousine-12")
 
 ;; Org mode font is a nice serif
 (set-face-attribute 'variable-pitch nil :font "Noto Serif-14")
 
 ;; Set monospace font to correctly render linum and bold to track position
-(set-face-attribute 'line-number nil :font "Victor Mono")
+(set-face-attribute 'line-number nil :font "Cousine")
 (set-face-attribute 'line-number-current-line nil
-        :font "Victor Mono Bold" :foreground (ewal-load-color 'white))
+        :font "Cousine Bold" :foreground (ewal-load-color 'white))
 #+END_SRC
 
 *** UI
@@ -1392,7 +1392,7 @@ flow becomes more personal.
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-code ((t (:font "Victor Mono-14"))))
+  (org-code ((t (:font "Cousine-14"))))
   (org-tag ((t (:inherit 'org-code))))
   (org-table ((t (:inherit 'org-code))))
   (org-verbatim ((t (:inherit 'org-code))))
@@ -1821,23 +1821,23 @@ I'm going to adjust a few faces provided by tree-sitter now.
 
 ;; set comment face
 (set-face-attribute 'font-lock-comment-face nil
-        :font "Victor Mono Thin:italic"
+        :font "Cousine:italic"
         :foreground (ewal-load-color 'white))
 
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil
-        :font "Victor Mono Bold" :foreground (ewal-load-color 'white))
+        :font "Cousine Bold" :foreground (ewal-load-color 'white))
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil
-        :font "Victor Mono" :weight 'bold :foreground (ewal-load-color 'yellow))
+        :font "Cousine" :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil
-        :font "Victor Mono:italic" :foreground (ewal-load-color 'green))
+        :font "Cousine:italic" :foreground (ewal-load-color 'green))
 
 ;; set docstring face
-(set-face-attribute 'font-lock-doc-face nil :font "Victor Mono")
+(set-face-attribute 'font-lock-doc-face nil :font "Cousine")
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
@@ -2144,7 +2144,7 @@ fork called SLY in my configuration.
   :hook
   (lisp-mode . sly-mode)
   :config
-  (setq inferior-lisp-program "~/.local/bin/sbcl")
+  (setq inferior-lisp-program "/home/cr-jr/.guix-extra-profiles/work/work/bin/sbcl")
 
   (sly))
 
