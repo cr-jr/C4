@@ -55,20 +55,22 @@
 
 ;; Load in themes
 (use-package ewal-doom-themes
-  :config (load-theme 'ewal-doom-one t))
+  :config (load-theme 'ewal-doom-vibrant t))
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
-;; By default, use Cousine
+;;; Use Cousine for all the things
+
+;; Default font
 (set-face-attribute 'default nil :font "Cousine-12")
 
-;; Code font is the same as default font, but slightly larger
-(set-face-attribute 'fixed-pitch nil :font "Cousine-12")
+;; Code font
+(set-face-attribute 'fixed-pitch nil :font "Cousine-10")
 
-;; Org mode font is a nice serif
-(set-face-attribute 'variable-pitch nil :font "Noto Serif-14")
+;; Enlarge for Org-mode
+(set-face-attribute 'variable-pitch nil :font "Cousine-14")
 
-;; Set monospace font to correctly render linum and bold to track position
+;; Set a line number style
 (set-face-attribute 'line-number nil :font "Cousine")
 (set-face-attribute 'line-number-current-line nil
         :font "Cousine Bold" :foreground (ewal-load-color 'white))
@@ -1030,11 +1032,11 @@
 (use-package weblorg)
 ;; weblorg:1 ends here
 
-;; [[file:C4.org::*asdf-vm][asdf-vm:1]]
+;; [[file:C4.org::*Paths][Paths:1]]
 (use-package exec-path-from-shell
   :if window-system
   :config (exec-path-from-shell-initialize))
-;; asdf-vm:1 ends here
+;; Paths:1 ends here
 
 ;; [[file:C4.org::*Parsing][Parsing:1]]
 ;;; A full on parser in Emacs with highlighting definitions
@@ -1052,23 +1054,23 @@
 
 ;; set comment face
 (set-face-attribute 'font-lock-comment-face nil
-        :font "Cousine:italic"
-        :foreground (ewal-load-color 'white))
+        :font "Cousine-12:italic"
+        :foreground (ewal-load-color 'red))
 
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil
-        :font "Cousine Bold" :foreground (ewal-load-color 'white))
+        :font "Cousine-10" :foreground (ewal-load-color 'blue))
 
 ;; set function name face
 (set-face-attribute 'font-lock-function-name-face nil
-        :font "Cousine" :weight 'bold :foreground (ewal-load-color 'yellow))
+        :font "Cousine-10" :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
 (set-face-attribute 'font-lock-string-face nil
-        :font "Cousine:italic" :foreground (ewal-load-color 'green))
+        :font "Cousine-10:italic" :foreground (ewal-load-color 'green))
 
 ;; set docstring face
-(set-face-attribute 'font-lock-doc-face nil :font "Cousine")
+(set-face-attribute 'font-lock-doc-face nil :font "Cousine-12" :weight 'bold)
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
@@ -1206,7 +1208,6 @@
 ;; Setup SLY
 (use-package sly
   :mode ("\\.lisp\\'" . lisp-mode)
-  :interpreter ("sbcl" . lisp-mode)
   :ryo
   (:mode 'sly-mode)
   ("SPC l"
@@ -1292,6 +1293,9 @@
   (setq inferior-lisp-program "/home/cr-jr/.guix-extra-profiles/work/work/bin/sbcl")
 
   (sly))
+
+;; Org-babel setup
+(setq org-babel-lisp-eval-fn #'sly-eval)
 ;; Common Lisp:1 ends here
 
 ;; [[file:C4.org::*Racket][Racket:1]]
@@ -1322,7 +1326,7 @@
       ("z" racket-fold-all-tests :name "fold")
       ("Z" racket-unfold-all-tests :name "unfold")) :name "tests")) :name "racket")
   :custom
-  (racket-program "~/.asdf/shims/racket")
+  (racket-program "~/.guix-extra-profiles/work/work/bin/racket")
   :init
   (setq tab-always-indent 'complete)
   :hook
