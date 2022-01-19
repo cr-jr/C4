@@ -4,7 +4,8 @@
 
 * Summary  :noexport:
 
-This configuration is my personal configuration/sandbox that grows as I use my favorite productivity environment and learn how to do more with it.
+This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
+environment and learn how to do more with it.
 
 C4 prioritizes ease, convenience and performance. A clean, minimal UI is what I love.
 
@@ -198,10 +199,10 @@ The typography of C4 is entirely based on Cousine using varied weights and sizes
 (set-face-attribute 'default nil :font "Cousine-12")
 
 ;; Code font
-(set-face-attribute 'fixed-pitch nil :font "Cousine-10")
+(set-face-attribute 'fixed-pitch nil :font "Cousine-12")
 
 ;; Enlarge for Org-mode
-(set-face-attribute 'variable-pitch nil :font "Cousine-14")
+(set-face-attribute 'variable-pitch nil :font "Cousine-16")
 
 ;; Set a line number style
 (set-face-attribute 'line-number nil :font "Cousine")
@@ -2381,9 +2382,10 @@ have to. Though, I did fork it for my own adjustments.
 
 Raku, formerly known as Perl 6, is uncharted territory. I've never encountered a language like
 it. That in itself excites me enough to dip my toes in. Thankfully, there are basic packages
-available for getting set up, but unfortunately nothing for Org-babel.
+available for getting set up.
 
-That said, maybe I'll end up writing a simple plugin myself.
+I did some more looking around and found a package from @ohmycloud. I'm gonna see how well it covers
+my use cases (for now just learning Raku), but it'll serve as a good base if I want to build on it.
 
 #+BEGIN_SRC emacs-lisp
 ;;; Lang: Raku
@@ -2397,6 +2399,15 @@ That said, maybe I'll end up writing a simple plugin myself.
 
 ;; Add flycheck completion
 (use-package flycheck-raku)
+
+;; Literate programming with Raku
+(use-package ob-raku
+  :after org
+  :straight '(ob-raku :host github :repo "cr-jr/ob-raku")
+  :config
+  (add-to-list 'org-babel-load-languages '(raku . t))
+  (add-to-list 'org-src-lang-modes '("raku" . raku)))
+
 #+END_SRC
 
 ** rainbow-mode

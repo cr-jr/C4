@@ -65,10 +65,10 @@
 (set-face-attribute 'default nil :font "Cousine-12")
 
 ;; Code font
-(set-face-attribute 'fixed-pitch nil :font "Cousine-10")
+(set-face-attribute 'fixed-pitch nil :font "Cousine-12")
 
 ;; Enlarge for Org-mode
-(set-face-attribute 'variable-pitch nil :font "Cousine-14")
+(set-face-attribute 'variable-pitch nil :font "Cousine-16")
 
 ;; Set a line number style
 (set-face-attribute 'line-number nil :font "Cousine")
@@ -1493,6 +1493,14 @@
 
 ;; Add flycheck completion
 (use-package flycheck-raku)
+
+;; Literate programming with Raku
+(use-package ob-raku
+  :after org
+  :straight '(ob-raku :host github :repo "cr-jr/ob-raku")
+  :config
+  (add-to-list 'org-babel-load-languages '(raku . t))
+  (add-to-list 'org-src-lang-modes '("raku" . raku)))
 ;; Raku:1 ends here
 
 ;; [[file:C4.org::*rainbow-mode][rainbow-mode:1]]
