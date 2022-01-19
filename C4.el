@@ -78,8 +78,7 @@
 
 ;; [[file:C4.org::*UI][UI:1]]
 ;;; Disable the fringe background
-(set-face-attribute 'fringe nil
-                    :background nil)
+(set-face-attribute 'fringe nil :background nil)
 
 ;;; Eliminate all mode line decorations
 (set-face-attribute 'mode-line nil :box nil)
@@ -1075,6 +1074,9 @@
 
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
+
+;; set Raku identifier face
+(set-face-attribute 'raku-identifier nil :inherit 'font-lock-builtin-face)
 ;; Faces:1 ends here
 
 ;; [[file:C4.org::*rainbow-delimiters][rainbow-delimiters:1]]

@@ -217,8 +217,7 @@ I also make some adjustments to the UI faces. Mainly to clean it up.
 #+BEGIN_SRC emacs-lisp
 
 ;;; Disable the fringe background
-(set-face-attribute 'fringe nil
-                    :background nil)
+(set-face-attribute 'fringe nil :background nil)
 
 ;;; Eliminate all mode line decorations
 (set-face-attribute 'mode-line nil :box nil)
@@ -1847,6 +1846,8 @@ I'm going to adjust a few faces provided by tree-sitter now.
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
 
+;; set Raku identifier face
+(set-face-attribute 'raku-identifier nil :inherit 'font-lock-builtin-face)
 #+END_SRC
 
 *** rainbow-delimiters
