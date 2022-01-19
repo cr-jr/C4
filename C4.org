@@ -112,7 +112,8 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#web-dev][Web Dev]]
     - [[#javascripttypescript][JavaScript/TypeScript]]
       - [[#setup-2][Setup]]
-    - [[#rainbow-mode][rainbow-mode]]
+    - [[#raku][Raku]]
+  - [[#rainbow-mode][rainbow-mode]]
 - [[#guix][Guix]]
 
 * Startup
@@ -1575,7 +1576,7 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
 (setq org-confirm-babel-evaluate nil)
 (setq org-src-tab-acts-natively t)
 (setq org-src-preserve-indentation t)
-(setq org-babel-lisp-eval-fn "sly-eval")
+(setq org-babel-lisp-eval-fn #'sly-eval)
 
 ;;; Supported languages
 (org-babel-do-load-languages
@@ -1588,6 +1589,8 @@ Finally, I set my configuration up for Org-babel so I can do literate programmin
    (js . t)))
 
 #+END_SRC
+
+#+RESULTS: org-literate
 
 *** Interface Addons
 **** org-superstar
@@ -1820,24 +1823,19 @@ I'm going to adjust a few faces provided by tree-sitter now.
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil
-        :font "Cousine-12:italic"
-        :foreground (ewal-load-color 'red))
+(set-face-attribute 'font-lock-comment-face nil :foreground (ewal-load-color 'red))
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil
-        :font "Cousine-10" :foreground (ewal-load-color 'blue))
+(set-face-attribute 'font-lock-keyword-face nil :foreground (ewal-load-color 'blue))
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil
-        :font "Cousine-10" :weight 'bold :foreground (ewal-load-color 'yellow))
+(set-face-attribute 'font-lock-function-name-face nil :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil
-        :font "Cousine-10:italic" :foreground (ewal-load-color 'green))
+(set-face-attribute 'font-lock-string-face nil :foreground (ewal-load-color 'green))
 
 ;; set docstring face
-(set-face-attribute 'font-lock-doc-face nil :font "Cousine-12" :weight 'bold)
+(set-face-attribute 'font-lock-doc-face nil :weight 'bold)
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
@@ -2062,7 +2060,7 @@ fork called SLY in my configuration.
 (use-package sly
   :mode ("\\.lisp\\'" . lisp-mode)
   :ryo
-  (:mode 'sly-mode)
+  (:mode 'lisp-mode)
   ("SPC l"
    ;; Connections
    (("C"
@@ -2146,9 +2144,6 @@ fork called SLY in my configuration.
   (setq inferior-lisp-program "/home/cr-jr/.guix-extra-profiles/work/work/bin/sbcl")
 
   (sly))
-
-;; Org-babel setup
-(setq org-babel-lisp-eval-fn #'sly-eval)
 #+END_SRC
 
 **** Racket
@@ -2382,7 +2377,29 @@ have to. Though, I did fork it for my own adjustments.
 
 #+END_SRC
 
-*** rainbow-mode
+*** Raku
+
+Raku, formerly known as Perl 6, is uncharted territory. I've never encountered a language like
+it. That in itself excites me enough to dip my toes in. Thankfully, there are basic packages
+available for getting set up, but unfortunately nothing for Org-babel.
+
+That said, maybe I'll end up writing a simple plugin myself.
+
+#+BEGIN_SRC emacs-lisp
+;;; Lang: Raku
+
+;; Setup raku-mode
+(use-package raku-mode
+  :mode
+  ("\\.rakumod\\'" . raku-mode)
+  ("\\.raku\\'" . raku-mode)
+  :interpreter ("raku" . raku-mode))
+
+;; Add flycheck completion
+(use-package flycheck-raku)
+#+END_SRC
+
+** rainbow-mode
 
 Since I work with colors a lot, I thought it would be a great idea to pull in this handy package.
 

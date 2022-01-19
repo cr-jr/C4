@@ -892,7 +892,7 @@
   (setq org-confirm-babel-evaluate nil)
   (setq org-src-tab-acts-natively t)
   (setq org-src-preserve-indentation t)
-  (setq org-babel-lisp-eval-fn "sly-eval")
+  (setq org-babel-lisp-eval-fn #'sly-eval)
   
   ;;; Supported languages
   (org-babel-do-load-languages
@@ -1053,24 +1053,19 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil
-        :font "Cousine-12:italic"
-        :foreground (ewal-load-color 'red))
+(set-face-attribute 'font-lock-comment-face nil :foreground (ewal-load-color 'red))
 
 ;; set keyword face
-(set-face-attribute 'font-lock-keyword-face nil
-        :font "Cousine-10" :foreground (ewal-load-color 'blue))
+(set-face-attribute 'font-lock-keyword-face nil :foreground (ewal-load-color 'blue))
 
 ;; set function name face
-(set-face-attribute 'font-lock-function-name-face nil
-        :font "Cousine-10" :weight 'bold :foreground (ewal-load-color 'yellow))
+(set-face-attribute 'font-lock-function-name-face nil :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil
-        :font "Cousine-10:italic" :foreground (ewal-load-color 'green))
+(set-face-attribute 'font-lock-string-face nil :foreground (ewal-load-color 'green))
 
 ;; set docstring face
-(set-face-attribute 'font-lock-doc-face nil :font "Cousine-12" :weight 'bold)
+(set-face-attribute 'font-lock-doc-face nil :weight 'bold)
 
 ;; set constants face
 (set-face-attribute 'font-lock-constant-face nil :inherit 'font-lock-function-name-face)
@@ -1209,7 +1204,7 @@
 (use-package sly
   :mode ("\\.lisp\\'" . lisp-mode)
   :ryo
-  (:mode 'sly-mode)
+  (:mode 'lisp-mode)
   ("SPC l"
    ;; Connections
    (("C"
@@ -1293,9 +1288,6 @@
   (setq inferior-lisp-program "/home/cr-jr/.guix-extra-profiles/work/work/bin/sbcl")
 
   (sly))
-
-;; Org-babel setup
-(setq org-babel-lisp-eval-fn #'sly-eval)
 ;; Common Lisp:1 ends here
 
 ;; [[file:C4.org::*Racket][Racket:1]]
@@ -1488,6 +1480,20 @@
   ("\\.json\\'" . json-mode)
   ("\\.jsonp\\'" . json-mode))
 ;; Setup:1 ends here
+
+;; [[file:C4.org::*Raku][Raku:1]]
+;;; Lang: Raku
+
+;; Setup raku-mode
+(use-package raku-mode
+  :mode
+  ("\\.rakumod\\'" . raku-mode)
+  ("\\.raku\\'" . raku-mode)
+  :interpreter ("raku" . raku-mode))
+
+;; Add flycheck completion
+(use-package flycheck-raku)
+;; Raku:1 ends here
 
 ;; [[file:C4.org::*rainbow-mode][rainbow-mode:1]]
 (use-package rainbow-mode
