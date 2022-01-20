@@ -1509,7 +1509,9 @@
   :mode
   ("\\.rakumod\\'" . raku-mode)
   ("\\.raku\\'" . raku-mode)
-  :interpreter ("raku" . raku-mode))
+  :interpreter ("raku" . raku-mode)
+  :config
+  (set-face-attribute 'raku-identifier nil :inherit 'font-lock-keyword-face))
 
 ;; Add flycheck completion
 (use-package flycheck-raku)
