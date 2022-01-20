@@ -59,21 +59,27 @@
 ;; Theme:1 ends here
 
 ;; [[file:C4.org::*Typography][Typography:1]]
-;;; Use Cousine for all the things
+;;; Use Input Sans for all the things
+(defvar C4/font "Input Sans")
+(defvar C4/font-mono "Input Mono")
+(defvar C4/font-size 100)
+(defvar C4/font-ratio 1.125)
+(defvar C4/font-size-code (round (* C4/font-size C4/font-ratio)))
+(defvar C4/font-size-org (round (* C4/font-size C4/font-ratio C4/font-ratio)))
 
 ;; Default font
-(set-face-attribute 'default nil :font "Cousine-12")
+(set-face-attribute 'default nil :family C4/font :height C4/font-size)
 
 ;; Code font
-(set-face-attribute 'fixed-pitch nil :font "Cousine-12")
+(set-face-attribute 'fixed-pitch nil :family C4/font :width 'condensed :height C4/font-size-code)
 
 ;; Enlarge for Org-mode
-(set-face-attribute 'variable-pitch nil :font "Cousine-16")
+(set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-org)
 
 ;; Set a line number style
-(set-face-attribute 'line-number nil :font "Cousine")
+(set-face-attribute 'line-number nil  :family C4/font-mono :height C4/font-size-code)
 (set-face-attribute 'line-number-current-line nil
-        :font "Cousine Bold" :foreground (ewal-load-color 'white))
+        :family C4/font-mono :weight 'bold :foreground (ewal-load-color 'white))
 ;; Typography:1 ends here
 
 ;; [[file:C4.org::*UI][UI:1]]
@@ -662,14 +668,14 @@
 ;; forge:1 ends here
 
 ;; [[file:C4.org::*diff-hl][diff-hl:1]]
-  ;;; Show how files have changed between commits
-  (use-package diff-hl
-    :after magit
-    :hook
-    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-    (magit-post-refresh . diff-hl-magit-post-refresh)
-    :config
-    (global-diff-hl-mode 1))
+;;; Show how files have changed between commits
+(use-package diff-hl
+  :after magit
+  :hook
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
 ;; [[file:C4.org::*langtool][langtool:1]]
@@ -797,7 +803,7 @@
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-code ((t (:font "Cousine-14"))))
+  (org-code ((t (:font "Input Sans-14"))))
   (org-tag ((t (:inherit 'org-code))))
   (org-table ((t (:inherit 'org-code))))
   (org-verbatim ((t (:inherit 'org-code))))
@@ -932,12 +938,13 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("§" "☙" "჻")))
+        '("♠" "♥" "♣" "♦")))
 ;; org-superstar:1 ends here
 
 ;; [[file:C4.org::*visual-fill-column][visual-fill-column:1]]
 ;;; Org mode line length
-(defvar C4/org-measure 140)
+(defvar C4/org-measure
+  (round (* C4/font-size C4/font-ratio C4/font-ratio C4/font-ratio C4/font-ratio)))
 
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
@@ -1052,7 +1059,10 @@
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :foreground (ewal-load-color 'red))
+(set-face-attribute 'font-lock-comment-face nil
+        :slant 'italic
+        :weight 'light
+        :foreground (ewal-load-color 'red))
 
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil :foreground (ewal-load-color 'blue))
@@ -1061,7 +1071,7 @@
 (set-face-attribute 'font-lock-function-name-face nil :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :foreground (ewal-load-color 'green))
+(set-face-attribute 'font-lock-string-face nil :slant 'italic :foreground (ewal-load-color 'green))
 
 ;; set docstring face
 (set-face-attribute 'font-lock-doc-face nil :weight 'bold)
@@ -1074,9 +1084,6 @@
 
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
-
-;; set Raku identifier face
-(set-face-attribute 'raku-identifier nil :inherit 'font-lock-builtin-face)
 ;; Faces:1 ends here
 
 ;; [[file:C4.org::*rainbow-delimiters][rainbow-delimiters:1]]

@@ -9,7 +9,8 @@ environment and learn how to do more with it.
 
 C4 prioritizes ease, convenience and performance. A clean, minimal UI is what I love.
 
-This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and the =init.el= that loads it on startup.
+This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and
+the =init.el= that loads it on startup.
 
 If something doesn't add value to my workflow, it simply isn't here.
 
@@ -190,24 +191,30 @@ For my theme, I extend my wpgtk theme into Emacs with ewal.
 
 *** Typography
 
-The typography of C4 is entirely based on Cousine using varied weights and sizes for contrast.
+The typography of C4 is entirely based on Input Sans using varied weights, styles and sizes.
 
 #+BEGIN_SRC emacs-lisp
-;;; Use Cousine for all the things
+;;; Use Input Sans for all the things
+(defvar C4/font "Input Sans")
+(defvar C4/font-mono "Input Mono")
+(defvar C4/font-size 100)
+(defvar C4/font-ratio 1.125)
+(defvar C4/font-size-code (round (* C4/font-size C4/font-ratio)))
+(defvar C4/font-size-org (round (* C4/font-size C4/font-ratio C4/font-ratio)))
 
 ;; Default font
-(set-face-attribute 'default nil :font "Cousine-12")
+(set-face-attribute 'default nil :family C4/font :height C4/font-size)
 
 ;; Code font
-(set-face-attribute 'fixed-pitch nil :font "Cousine-12")
+(set-face-attribute 'fixed-pitch nil :family C4/font :width 'condensed :height C4/font-size-code)
 
 ;; Enlarge for Org-mode
-(set-face-attribute 'variable-pitch nil :font "Cousine-16")
+(set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-org)
 
 ;; Set a line number style
-(set-face-attribute 'line-number nil :font "Cousine")
+(set-face-attribute 'line-number nil  :family C4/font-mono :height C4/font-size-code)
 (set-face-attribute 'line-number-current-line nil
-        :font "Cousine Bold" :foreground (ewal-load-color 'white))
+        :family C4/font-mono :weight 'bold :foreground (ewal-load-color 'white))
 #+END_SRC
 
 *** UI
@@ -348,7 +355,8 @@ Command Mode has a few simple escape hatches for when I'm ready to enter some te
 I set two kinds of action modifiers: numeric and procedural.
 
 + Numeric action modifiers: repeat an action =n= times (ex: =4 i= will move the point 4 lines up)
-+ Procedural action modifier: repeat last action explicitly (ex: =4 i .= will move the point 8 lines up)
++ Procedural action modifier: repeat last action explicitly (ex: =4 i .= will move the point 8 lines
+  up)
 
 #+BEGIN_QUOTE
 Note: giving a numeric modifier to the procedural modifier will give the repeated action a /new/
@@ -1305,8 +1313,7 @@ My configuration uses =langtool= to help me tighten my prose and say what I mean
 
 ** mw-thesaurus
 
-I also use =mw-thesaurus= and the Merriam-Webster dictionary API to help me discover better ways to
-say it.
+I also use =mw-thesaurus= and the Merriam-Webster dictionary API to help me discover better ways to say it.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1395,7 +1402,7 @@ flow becomes more personal.
   (org-mode . auto-fill-mode)
   (org-mode . ndk/set-header-line-format)
   :custom-face
-  (org-code ((t (:font "Cousine-14"))))
+  (org-code ((t (:font "Input Sans-14"))))
   (org-tag ((t (:inherit 'org-code))))
   (org-table ((t (:inherit 'org-code))))
   (org-verbatim ((t (:inherit 'org-code))))
@@ -1608,7 +1615,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("§" "☙" "჻")))
+        '("♠" "♥" "♣" "♦")))
 
 #+END_SRC
 
@@ -1619,7 +1626,8 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
 
 #+BEGIN_SRC emacs-lisp
 ;;; Org mode line length
-(defvar C4/org-measure 140)
+(defvar C4/org-measure
+  (round (* C4/font-size C4/font-ratio C4/font-ratio C4/font-ratio C4/font-ratio)))
 
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
@@ -1769,9 +1777,9 @@ setup, but now I have a development workstation I can grow with and easily expan
 I also have a much, /much/ easier time understanding and modifying Emacs Lisp packages for my personal
 ends than I ever did with VimScript.
 
-I looked around for packages that set a solid base for programming in general before I started looking for
-language-specific support. That way each language I use gets a good starting point from which I can selectively
-improve the workflow as needed.
+I looked around for packages that set a solid base for programming in general before I started
+looking for language-specific support. That way each language I use gets a good starting point from
+which I can selectively improve the workflow as needed.
 
 Each programming major mode I use wraps its frequently-used commands under =SPC l=.
 
@@ -1823,7 +1831,10 @@ I'm going to adjust a few faces provided by tree-sitter now.
 ;;; Set syntax highlighting faces
 
 ;; set comment face
-(set-face-attribute 'font-lock-comment-face nil :foreground (ewal-load-color 'red))
+(set-face-attribute 'font-lock-comment-face nil
+        :slant 'italic
+        :weight 'light
+        :foreground (ewal-load-color 'red))
 
 ;; set keyword face
 (set-face-attribute 'font-lock-keyword-face nil :foreground (ewal-load-color 'blue))
@@ -1832,7 +1843,7 @@ I'm going to adjust a few faces provided by tree-sitter now.
 (set-face-attribute 'font-lock-function-name-face nil :weight 'bold :foreground (ewal-load-color 'yellow))
 
 ;; set string face
-(set-face-attribute 'font-lock-string-face nil :foreground (ewal-load-color 'green))
+(set-face-attribute 'font-lock-string-face nil :slant 'italic :foreground (ewal-load-color 'green))
 
 ;; set docstring face
 (set-face-attribute 'font-lock-doc-face nil :weight 'bold)
@@ -1846,8 +1857,6 @@ I'm going to adjust a few faces provided by tree-sitter now.
 ;; set variable name face
 (set-face-attribute 'font-lock-variable-name-face nil :inherit 'font-lock-function-name-face)
 
-;; set Raku identifier face
-(set-face-attribute 'raku-identifier nil :inherit 'font-lock-builtin-face)
 #+END_SRC
 
 *** rainbow-delimiters
