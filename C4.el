@@ -87,7 +87,7 @@
 (set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-doc)
 
 ;; Set a line number style
-(set-face-attribute 'line-number nil  :family C4/font-mono :height C4/font-size-code)
+(set-face-attribute 'line-number nil  :family C4/font-mono :height C4/font-size)
 (set-face-attribute 'line-number-current-line nil
         :inherit 'line-number :weight 'semi-bold :foreground (ewal-load-color 'white))
 ;; Typography:1 ends here
@@ -954,7 +954,7 @@
 ;; [[file:C4.org::*visual-fill-column][visual-fill-column:1]]
 ;;; Org mode line length
 (defvar C4/org-measure
-  (C4/round-height (* C4/font-size-doc C4/font-ratio C4/font-ratio)))
+  (C4/round-height (* C4/font-size-doc C4/font-ratio)))
 
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
