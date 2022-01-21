@@ -1517,7 +1517,6 @@
       ("r" raku-send-region-to-repl :name "region")
       ("b" raku-send-buffer-to-repl :name "buffer")) :name "eval")
     ("m" raku-mode-menu :name "menu")) :name "raku")
-  :hook (raku-mode . run-raku)
   :config
   (set-face-attribute 'raku-identifier nil :inherit 'fixed-pitch))
 
