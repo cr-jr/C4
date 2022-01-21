@@ -69,11 +69,9 @@
 ;; Font settings
 (defvar C4/font "Input Sans")
 (defvar C4/font-mono "Input Mono")
-(defvar C4/font-size 100)
+(defvar C4/font-size 110)
 (defvar C4/font-ratio 1.125)
 
-(defvar C4/font-size-code
-  (C4/round-height (* C4/font-size C4/font-ratio)))
 (defvar C4/font-size-doc
   (C4/round-height (* C4/font-size C4/font-ratio C4/font-ratio)))
 
@@ -83,7 +81,7 @@
 
 ;; Code font
 (set-face-attribute 'fixed-pitch nil
-        :family C4/font :width 'condensed :height C4/font-size-code :foreground (ewal-load-color 'white))
+        :family C4/font :width 'condensed :height C4/font-size :foreground (ewal-load-color 'white))
 
 ;; Enlarge for Org-mode
 (set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-doc)
