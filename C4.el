@@ -78,11 +78,12 @@
   (C4/round-height (* C4/font-size C4/font-ratio C4/font-ratio)))
 
 ;; Default font
-(set-face-attribute 'default nil :family C4/font :height C4/font-size)
+(set-face-attribute 'default nil
+        :family C4/font :height C4/font-size :foreground (ewal-load-color 'white))
 
 ;; Code font
 (set-face-attribute 'fixed-pitch nil
-        :family C4/font :width 'condensed :height C4/font-size-code)
+        :family C4/font :width 'condensed :height C4/font-size-code :foreground (ewal-load-color 'white))
 
 ;; Enlarge for Org-mode
 (set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-doc)
@@ -1510,8 +1511,17 @@
   ("\\.rakumod\\'" . raku-mode)
   ("\\.raku\\'" . raku-mode)
   :interpreter ("raku" . raku-mode)
+  :ryo
+  (:mode 'raku-mode)
+  ("SPC l"
+   (("e"
+     (("e" raku-send-line-to-repl :name "line")
+      ("r" raku-send-region-to-repl :name "region")
+      ("b" raku-send-buffer-to-repl :name "buffer")) :name "eval")
+    ("m" raku-mode-menu :name "menu")) :name "raku")
+  :hook (raku-mode . run-raku)
   :config
-  (set-face-attribute 'raku-identifier nil :inherit 'font-lock-keyword-face))
+  (set-face-attribute 'raku-identifier nil :inherit 'fixed-pitch))
 
 ;; Add flycheck completion
 (use-package flycheck-raku)
