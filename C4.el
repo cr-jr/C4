@@ -948,7 +948,7 @@
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("♠" "♥" "♣" "♦")))
+        '("〇" "㊀" "㊁" "㊂" "㊃" "㊄" "㊅" "㊆" "㊇" "㊈" "㊉")))
 ;; org-superstar:1 ends here
 
 ;; [[file:C4.org::*visual-fill-column][visual-fill-column:1]]

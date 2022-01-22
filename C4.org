@@ -1625,7 +1625,7 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
   (org-superstar-leading ((t (:inherit 'org-hide))))
   :init
   (setq org-superstar-headline-bullets-list
-        '("♠" "♥" "♣" "♦")))
+        '("〇" "㊀" "㊁" "㊂" "㊃" "㊄" "㊅" "㊆" "㊇" "㊈" "㊉")))
 
 #+END_SRC
 
