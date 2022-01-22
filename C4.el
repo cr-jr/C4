@@ -555,7 +555,7 @@
 (use-package consult
   :ryo
   ("SPC ." consult-complex-command :name "query command history")
-  ("C-v" consult-yank :name "paste from registry")
+  ("C-v" consult-yank-from-kill-ring :name "paste from registry")
   ("SPC b"
    (("b" consult-buffer :name "switch")
     ("B" consult-buffer-other-window :name "other window")))
