@@ -114,8 +114,9 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#web-dev][Web Dev]]
     - [[#javascripttypescript][JavaScript/TypeScript]]
       - [[#setup-2][Setup]]
+      - [[#rainbow-mode][rainbow-mode]]
     - [[#raku][Raku]]
-  - [[#rainbow-mode][rainbow-mode]]
+    - [[#rust][Rust]]
 - [[#guix][Guix]]
 
 * Startup
@@ -1315,9 +1316,7 @@ My configuration uses =langtool= to help me tighten my prose and say what I mean
    (("d" langtool-check :name "check")
     ("D" langtool-check-done :name "done")
     ("i" langtool-show-message-at-point :name "info")
-    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant")
-  :init
-  (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar"))
+    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant"))
 
 #+END_SRC
 
@@ -2398,6 +2397,16 @@ have to. Though, I did fork it for my own adjustments.
 
 #+END_SRC
 
+**** rainbow-mode
+
+Since I work with colors a lot, I thought it would be a great idea to pull in this handy package.
+
+#+BEGIN_SRC emacs-lisp
+(use-package rainbow-mode
+  :hook
+  (prog-mode . rainbow-mode))
+#+END_SRC
+
 *** Raku
 
 Raku, formerly known as Perl 6, is uncharted territory. I've never encountered a language like
@@ -2440,14 +2449,21 @@ my use cases (for now just learning Raku), but it'll serve as a good base if I w
 
 #+END_SRC
 
-** rainbow-mode
+*** Rust
 
-Since I work with colors a lot, I thought it would be a great idea to pull in this handy package.
+Rust is a proven workhorse of a language with near-guaranteed security and reliability. There's no
+reason for me not to learn it as a web developer now that WebAssembly has landed in
+browser. Thankfully, it's not difficult to set up.
 
 #+BEGIN_SRC emacs-lisp
-(use-package rainbow-mode
-  :hook
-  (prog-mode . rainbow-mode))
+;;; Lang: Rust
+
+(use-package rustic
+  :mode ("\\.rs\\'" . rustic-mode)
+  :hook (rustic-mode . eglot-ensure)
+  :config
+  (setq rustic-analyzer-command '("/home/cr-jr/.nix-profile/bin/rust-analyzer"))
+  (setq rustic-lsp-client 'eglot))
 #+END_SRC
 
 * Guix

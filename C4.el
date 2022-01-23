@@ -700,9 +700,7 @@
    (("d" langtool-check :name "check")
     ("D" langtool-check-done :name "done")
     ("i" langtool-show-message-at-point :name "info")
-    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant")
-  :init
-  (setq langtool-language-tool-server-jar "~/Source/LanguageTool-5.2-stable/languagetool-server.jar"))
+    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant"))
 ;; langtool:1 ends here
 
 ;; [[file:C4.org::*mw-thesaurus][mw-thesaurus:1]]
@@ -1500,6 +1498,12 @@
   ("\\.jsonp\\'" . json-mode))
 ;; Setup:1 ends here
 
+;; [[file:C4.org::*rainbow-mode][rainbow-mode:1]]
+(use-package rainbow-mode
+  :hook
+  (prog-mode . rainbow-mode))
+;; rainbow-mode:1 ends here
+
 ;; [[file:C4.org::*Raku][Raku:1]]
 ;;; Lang: Raku
 
@@ -1532,11 +1536,16 @@
   (add-to-list 'org-src-lang-modes '("raku" . raku)))
 ;; Raku:1 ends here
 
-;; [[file:C4.org::*rainbow-mode][rainbow-mode:1]]
-(use-package rainbow-mode
-  :hook
-  (prog-mode . rainbow-mode))
-;; rainbow-mode:1 ends here
+;; [[file:C4.org::*Rust][Rust:1]]
+;;; Lang: Rust
+
+(use-package rustic
+  :mode ("\\.rs\\'" . rustic-mode)
+  :hook (rustic-mode . eglot-ensure)
+  :config
+  (setq rustic-analyzer-command '("/home/cr-jr/.nix-profile/bin/rust-analyzer"))
+  (setq rustic-lsp-client 'eglot))
+;; Rust:1 ends here
 
 ;; [[file:C4.org::*Guix][Guix:1]]
 ;;; Guix
