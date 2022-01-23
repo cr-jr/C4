@@ -688,20 +688,24 @@
     (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
-;; [[file:C4.org::*langtool][langtool:1]]
+;; [[file:C4.org::*languagetool][languagetool:1]]
 ;;; Writing improvement tools
 
-;; Setup langtool
-(use-package langtool
-  :commands (langtool-check)
+;; Setup languagetool
+(use-package languagetool
+  :commands (languagetool-check)
   :ryo
   (:mode 'text-mode)
   ("SPC d"
-   (("d" langtool-check :name "check")
-    ("D" langtool-check-done :name "done")
-    ("i" langtool-show-message-at-point :name "info")
-    ("c" langtool-correct-buffer :name "correct")) :name "writing assistant"))
-;; langtool:1 ends here
+   (("d" languagetool-check :name "check")
+    ("D" languagetool-clear-buffer :name "done")
+    ("c" languagetool-correct-at-point :name "correct")
+    ("C" languagetool-correct-buffer :name "correct buffer")) :name "writing assistant")
+  :init
+  (setq languagetool-java-arguments '("-Dfile.encoding=UTF-8"))
+  (setq languagetool-language-tool-jar "~/Source/LanguageTool-5.6/languagetool-commandline.jar")
+  (setq languagetool-default-language "en-US"))
+;; languagetool:1 ends here
 
 ;; [[file:C4.org::*mw-thesaurus][mw-thesaurus:1]]
 ;; Setup mw-thesaurus
