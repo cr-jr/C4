@@ -4,13 +4,13 @@
 
 * Summary  :noexport:
 
-This configuration is my personal configuration/sandbox that grows as I use my favorite productivity
-environment and learn how to do more with it.
+This configuration is my personal configuration/sandbox that grows as I use my favorite productivity environment and
+learn how to do more with it.
 
 C4 prioritizes ease, convenience and performance. A clean, minimal UI is what I love.
 
-This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and
-the =init.el= that loads it on startup.
+This is an Org-driven configuration consisting of this file (=C4.org=), the generated =C4.el= and the =init.el= that
+loads it on startup.
 
 If something doesn't add value to my workflow, it simply isn't here.
 
@@ -217,7 +217,7 @@ The typography of C4 is entirely based on Input Sans using varied weights, style
 
 ;; Code font
 (set-face-attribute 'fixed-pitch nil
-        :family C4/font :width 'condensed :height C4/font-size :foreground (ewal-load-color 'white))
+        :family C4/font :width 'condensed :weight 'regular :height C4/font-size :foreground (ewal-load-color 'white))
 
 ;; Enlarge for Org-mode
 (set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-doc)
@@ -927,7 +927,7 @@ end_of_line = lf
 
 # Documents
 [*.{md,markdown,org}]
-max_line_length = 100
+max_line_length = 120
 #+END_SRC
 
 *** eshell
@@ -1191,8 +1191,8 @@ I'm going to define some variables for my root project path and my GitHub userna
 
 ** Management
 
-Project management in my configuration is handled by projectile, the best-in-class package for efficently
-working with projects under version control.
+Project management in my configuration is handled by projectile, the best-in-class package for
+efficently working with projects under version control.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1246,13 +1246,15 @@ Magit is probably the last Git repo manager I'll ever need. That's how good it i
 
 *** forge
 
-Forge is a magit extension that integrates Git forges (GitHub, Gitlab) into the magit interface and flow.
+Forge is a magit extension that integrates Git forges (GitHub, Gitlab) into the magit interface and
+flow.
 
-It allows complete remote repo management from right in Emacs. Including *handling issues and pull requests*.
+It allows complete remote repo management from right in Emacs. Including *handling issues and pull
+requests*.
 
 #+BEGIN_QUOTE
-Be aware that none of this configuration will work unless forge can hook into a personal access token from the
-GitHub account defined by  =C4/gh-user=.
+Be aware that none of this configuration will work unless forge can hook into a personal access
+token from the GitHub account defined by =C4/gh-user=.
 #+END_QUOTE
 
 #+BEGIN_SRC emacs-lisp
@@ -1342,16 +1344,16 @@ I also use =mw-thesaurus= and the Merriam-Webster dictionary API to help me disc
 
 ** Org
 
-My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured and includes
-quite a few addons.
+My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured
+and includes quite a few addons.
 
 *** Setup
 
-To keep things clean in this section, I use the =noweb= property of Org-babel. I can define more complex
-settings in their own section.
+To keep things clean in this section, I use the =noweb= property of Org-babel. I can define more
+complex settings in their own section.
 
-A lot of this setup was lifted directly from Emacs from Scratch, and I'll customize it over time as my Org Mode
-flow becomes more personal.
+A lot of this setup was lifted directly from Emacs from Scratch, and I'll customize it over time as
+my Org Mode flow becomes more personal.
 
 #+BEGIN_SRC emacs-lisp :noweb yes
 
@@ -1570,8 +1572,8 @@ restructure current files, so I'm setting it up for that. This is taken from Sac
 
 *** Capture Templates
 
-In this section, I'm defining my Org-capture templates. It's just the one right now, but more will be added as
-I need them.
+In this section, I'm defining my Org-capture templates. It's just the one right now, but more will
+be added as I need them.
 
 #+NAME: org-templates
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -1640,12 +1642,14 @@ but it does a little too much and doesn't seem to play nice with org-indent-mode
 #+BEGIN_SRC emacs-lisp
 ;;; Org mode line length
 (defvar C4/org-measure
-  (C4/round-height (* C4/font-size-doc C4/font-ratio)))
+  (C4/round-height (/ C4/font-size-doc C4/font-ratio C4/font-ratio C4/font-ratio)))
+(defvar C4/org-fill-view
+  (C4/round-height (* C4/org-measure C4/font-ratio C4/font-ratio)))
 
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
   :custom
-  (visual-fill-column-width C4/org-measure)
+  (visual-fill-column-width C4/org-fill-view)
   (visual-fill-column-center-text t)
   :hook
   (visual-line-mode . visual-fill-column-mode)

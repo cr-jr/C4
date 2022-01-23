@@ -81,7 +81,7 @@
 
 ;; Code font
 (set-face-attribute 'fixed-pitch nil
-        :family C4/font :width 'condensed :height C4/font-size :foreground (ewal-load-color 'white))
+        :family C4/font :width 'condensed :weight 'regular :height C4/font-size :foreground (ewal-load-color 'white))
 
 ;; Enlarge for Org-mode
 (set-face-attribute 'variable-pitch nil :family C4/font :height C4/font-size-doc)
@@ -956,12 +956,14 @@
 ;; [[file:C4.org::*visual-fill-column][visual-fill-column:1]]
 ;;; Org mode line length
 (defvar C4/org-measure
-  (C4/round-height (* C4/font-size-doc C4/font-ratio)))
+  (C4/round-height (/ C4/font-size-doc C4/font-ratio C4/font-ratio C4/font-ratio)))
+(defvar C4/org-fill-view
+  (C4/round-height (* C4/org-measure C4/font-ratio C4/font-ratio)))
 
 ;;; visual-fill-column does just enough UI adjustment for Org Mode
 (use-package visual-fill-column
   :custom
-  (visual-fill-column-width C4/org-measure)
+  (visual-fill-column-width C4/org-fill-view)
   (visual-fill-column-center-text t)
   :hook
   (visual-line-mode . visual-fill-column-mode)
