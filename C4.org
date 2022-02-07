@@ -48,7 +48,6 @@ Custom variables and procedures in this config are always prefixed with =C4=.
   - [[#enhancements][Enhancements]]
     - [[#mood-line][mood-line]]
     - [[#helpful][helpful]]
-    - [[#editorconfig][editorconfig]]
     - [[#eshell][eshell]]
     - [[#crux][crux]]
   - [[#undoredo][Undo/Redo]]
@@ -82,7 +81,6 @@ Custom variables and procedures in this config are always prefixed with =C4=.
     - [[#literate-programming][Literate Programming]]
     - [[#interface-addons][Interface Addons]]
       - [[#org-superstar][org-superstar]]
-      - [[#visual-fill-column][visual-fill-column]]
       - [[#toc-org][toc-org]]
     - [[#journaling][Journaling]]
     - [[#notes][Notes]]
@@ -205,11 +203,11 @@ The typography of C4 is entirely based on Input Sans using varied weights, style
 ;; Font settings
 (defvar C4/font "Input Sans")
 (defvar C4/font-mono "Input Mono")
-(defvar C4/font-size 110)
-(defvar C4/font-ratio 1.125)
+(defvar C4/font-size 120)
+(defvar C4/font-ratio 1.25)
 
 (defvar C4/font-size-doc
-  (C4/round-height (* C4/font-size C4/font-ratio C4/font-ratio)))
+  (C4/round-height (* C4/font-size C4/font-ratio)))
 
 ;; Default font
 (set-face-attribute 'default nil
@@ -885,51 +883,6 @@ includes its own extremely /helpful/ utilities like checking a symbol at its poi
 
 #+END_SRC
 
-*** editorconfig
-
-Editorconfig is a utility that normalizes basic syntax considerations for file types across editors. It ensures
-you only have to maintain one file to have a solid base for editing plain text and programming source
-languages.
-
-First, install the plugin for Emacs.
-
-#+BEGIN_SRC emacs-lisp
-
-;;; Universal editor settings
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
-
-#+END_SRC
-
-Then set some basic options. These are the ones I use:
-
-#+BEGIN_SRC editorconfig-conf :tangle "~/.editorconfig"
-# Environment-wide editorconfig
-root = true
-
-[*]
-charset = utf-8
-indent_style = space
-indent_size = 2
-max_line_length = 80
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-[*.md]
-trim_trailing_whitespace = false
-
-[*.{cmd,bat}]
-end_of_line = crlf
-
-[*.sh]
-end_of_line = lf
-
-# Documents
-[*.{md,markdown,org}]
-max_line_length = 120
-#+END_SRC
-
 *** eshell
 
 Eshell is underappreciated and powerful in its own right. The built-in =term= covers most of my use
@@ -1147,12 +1100,12 @@ operations. For example: showing the docstring for interactive commands or the c
 
 I love this package.
 
-CTRLF allows me to find anything—and I mean anything in a buffer. Most describe it as a drop-in
-Swiper replacement, but it's much more than that.
+CTRLF allows me to find anything—and I mean anything in a buffer. Most describe it as a drop-in Swiper replacement, but
+it's much more than that.
 
-For one, I like how it doesn't populate the query results with false positives. I also like how it
-doesn't assume I need to see /all/ the query results right away. I can jump through them and keep
-narrowing the search until there's only one result: the correct one.
+For one, I like how it doesn't populate the query results with false positives. I also like how it doesn't assume I need
+to see /all/ the query results right away. I can jump through them and keep narrowing the search until there's only one
+result: the correct one.
 
 #+BEGIN_SRC emacs-lisp
 
@@ -1344,16 +1297,16 @@ I also use =mw-thesaurus= and the Merriam-Webster dictionary API to help me disc
 
 ** Org
 
-My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured
-and includes quite a few addons.
+My main document mode is Org Mode. I use it for nearly everything, so it's extensively configured and includes quite a
+few addons.
 
 *** Setup
 
-To keep things clean in this section, I use the =noweb= property of Org-babel. I can define more
-complex settings in their own section.
+To keep things clean in this section, I use the =noweb= property of Org-babel. I can define more complex settings in
+their own section.
 
-A lot of this setup was lifted directly from Emacs from Scratch, and I'll customize it over time as
-my Org Mode flow becomes more personal.
+A lot of this setup was lifted directly from Emacs from Scratch, and I'll customize it over time as my Org Mode flow
+becomes more personal.
 
 #+BEGIN_SRC emacs-lisp :noweb yes
 
@@ -1377,6 +1330,9 @@ my Org Mode flow becomes more personal.
 
 <<org-breadcrumbs>>
 <<org-refiling>>
+
+(defvar C4/org-measure
+  (C4/round-height (/ C4/font-size-doc C4/font-ratio)))
 
 ;;; Org setup
 (use-package org
@@ -1429,6 +1385,7 @@ my Org Mode flow becomes more personal.
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
+  (setq fill-column C4/org-measure)
   (setq line-spacing 0.25)
   <<org-agenda>>
   <<org-templates>>
@@ -1631,31 +1588,6 @@ Org Superstar is a package that makes Org Mode bullets (even lists) much prettie
   :init
   (setq org-superstar-headline-bullets-list
         '("〇" "㊀" "㊁" "㊂" "㊃" "㊄" "㊅" "㊆" "㊇" "㊈" "㊉")))
-
-#+END_SRC
-
-**** visual-fill-column
-
-This package provides a more pleasant writing experience with Org Mode. I used darkroom for a while,
-but it does a little too much and doesn't seem to play nice with org-indent-mode.
-
-#+BEGIN_SRC emacs-lisp
-;;; Org mode line length
-(defvar C4/org-measure
-  (C4/round-height (/ C4/font-size-doc C4/font-ratio C4/font-ratio C4/font-ratio)))
-(defvar C4/org-fill-view
-  (C4/round-height (* C4/org-measure C4/font-ratio C4/font-ratio)))
-
-;;; visual-fill-column does just enough UI adjustment for Org Mode
-(use-package visual-fill-column
-  :custom
-  (visual-fill-column-width C4/org-fill-view)
-  (visual-fill-column-center-text t)
-  :hook
-  (visual-line-mode . visual-fill-column-mode)
-  (org-mode . (lambda () (setq fill-column C4/org-measure)))
-  :config
-  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 
 #+END_SRC
 

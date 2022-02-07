@@ -69,11 +69,11 @@
 ;; Font settings
 (defvar C4/font "Input Sans")
 (defvar C4/font-mono "Input Mono")
-(defvar C4/font-size 110)
-(defvar C4/font-ratio 1.125)
+(defvar C4/font-size 120)
+(defvar C4/font-ratio 1.25)
 
 (defvar C4/font-size-doc
-  (C4/round-height (* C4/font-size C4/font-ratio C4/font-ratio)))
+  (C4/round-height (* C4/font-size C4/font-ratio)))
 
 ;; Default font
 (set-face-attribute 'default nil
@@ -458,13 +458,6 @@
     ("k" helpful-key :name "keybinding"))))
 ;; helpful:1 ends here
 
-;; [[file:C4.org::*editorconfig][editorconfig:1]]
-;;; Universal editor settings
-(use-package editorconfig
-  :config
-  (editorconfig-mode 1))
-;; editorconfig:1 ends here
-
 ;; [[file:C4.org::*eshell][eshell:1]]
 ;; Enhanced eshell
 (use-package eshell-prompt-extras
@@ -776,6 +769,9 @@
 (advice-add 'org-refile :after 'org-save-all-org-buffers)
 
 
+(defvar C4/org-measure
+  (C4/round-height (/ C4/font-size-doc C4/font-ratio)))
+
 ;;; Org setup
 (use-package org
   :ryo
@@ -827,6 +823,7 @@
   :config
   (setq org-ellipsis " ➕")
   (setq org-directory "~/Documents/Org/")
+  (setq fill-column C4/org-measure)
   (setq line-spacing 0.25)
   
   ;;; Org agenda flow
@@ -952,25 +949,6 @@
   (setq org-superstar-headline-bullets-list
         '("〇" "㊀" "㊁" "㊂" "㊃" "㊄" "㊅" "㊆" "㊇" "㊈" "㊉")))
 ;; org-superstar:1 ends here
-
-;; [[file:C4.org::*visual-fill-column][visual-fill-column:1]]
-;;; Org mode line length
-(defvar C4/org-measure
-  (C4/round-height (/ C4/font-size-doc C4/font-ratio C4/font-ratio C4/font-ratio)))
-(defvar C4/org-fill-view
-  (C4/round-height (* C4/org-measure C4/font-ratio C4/font-ratio)))
-
-;;; visual-fill-column does just enough UI adjustment for Org Mode
-(use-package visual-fill-column
-  :custom
-  (visual-fill-column-width C4/org-fill-view)
-  (visual-fill-column-center-text t)
-  :hook
-  (visual-line-mode . visual-fill-column-mode)
-  (org-mode . (lambda () (setq fill-column C4/org-measure)))
-  :config
-  (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
-;; visual-fill-column:1 ends here
 
 ;; [[file:C4.org::*toc-org][toc-org:1]]
 ;;; Add support for a table of contents
