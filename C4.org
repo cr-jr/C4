@@ -48,6 +48,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
   - [[#enhancements][Enhancements]]
     - [[#mood-line][mood-line]]
     - [[#helpful][helpful]]
+    - [[#editorconfig][editorconfig]]
     - [[#eshell][eshell]]
     - [[#crux][crux]]
   - [[#undoredo][Undo/Redo]]
@@ -881,6 +882,51 @@ includes its own extremely /helpful/ utilities like checking a symbol at its poi
     ("v" helpful-variable :name "variable")
     ("k" helpful-key :name "keybinding"))))
 
+#+END_SRC
+
+*** editorconfig
+
+Editorconfig is a utility that normalizes basic syntax considerations for file types across editors. It ensures
+you only have to maintain one file to have a solid base for editing plain text and programming source
+languages.
+
+First, install the plugin for Emacs.
+
+#+BEGIN_SRC emacs-lisp
+
+;;; Universal editor settings
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
+#+END_SRC
+
+Then set some basic options. These are the ones I use:
+
+#+BEGIN_SRC editorconfig-conf :tangle "~/.editorconfig"
+# Environment-wide editorconfig
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+max_line_length = 80
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{cmd,bat}]
+end_of_line = crlf
+
+[*.sh]
+end_of_line = lf
+
+# Documents
+[*.{md,markdown}]
+max_line_length = 100
 #+END_SRC
 
 *** eshell

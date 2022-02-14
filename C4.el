@@ -458,6 +458,13 @@
     ("k" helpful-key :name "keybinding"))))
 ;; helpful:1 ends here
 
+;; [[file:C4.org::*editorconfig][editorconfig:1]]
+;;; Universal editor settings
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+;; editorconfig:1 ends here
+
 ;; [[file:C4.org::*eshell][eshell:1]]
 ;; Enhanced eshell
 (use-package eshell-prompt-extras
