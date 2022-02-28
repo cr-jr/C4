@@ -1354,6 +1354,8 @@
   :hook
   (scheme-mode . geiser-mode)
   :config
+  (setq geiser-guile-binary "~/.guix-extra-profiles/work/work/bin/guile")
+  (setq geiser-active-implementations '(guile))
   (setq geiser-default-implementation 'guile))
 
 (use-package macrostep-geiser :after geiser)
@@ -1432,20 +1434,19 @@
   :config
   ;; Setup deno built-in LSP for eglot
   (defclass eglot-deno (eglot-lsp-server) ()
-    :documentation "A custom class for handling Deno's built-in LSP server")
+    :documentation "A custom class deno lsp")
 
   ;; Deno requires the :enable keyword to connect, but I also want to include
   ;; the built-in linting and begin with good habits since I'm new to the space.
   (cl-defmethod eglot-initialization-options ((server eglot-deno))
     "Passes through required deno initialization options."
-    (let* ((root (car (project-roots (eglot--project server))))
-     (cache (expand-file-name ".deno/lsp/cache/" root)))
-      (list :enable t :lint t)))
+    (list :enable t
+    :lint t))
 
   ;; Note: The deno lsp JavaScript language identifier is NOT "js", so eglot's
   ;; guess ("js" for js-mode) was incorrect and the server wouldn't load
   (add-to-list
-   'eglot-server-programs '((js-mode :language-id "javascript") . (eglot-deno "deno" "lsp")))
+   'eglot-server-programs '((js-mode typescript-mode) . (eglot-deno "deno" "lsp")))
 
   (add-hook
    'js-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer))))
@@ -1545,6 +1546,7 @@
   :hook
   (scheme-mode . guix-devel-mode)
   :config
-  (with-eval-after-load 'geiser-guile
-    (add-to-list 'geiser-guile-load-path "~/Code/guix")))
+  ; (with-eval-after-load 'geiser-guile
+    ; (add-to-list 'geiser-guile-load-path "~/Code/guix"))
+  )
 ;; Guix:1 ends here
