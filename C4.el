@@ -695,7 +695,6 @@
 (use-package languagetool
   :commands
   (languagetool-check
-   langaugetool-clear-buffer
    languagetool-clear-suggestions
    languagetool-correct-at-point
    languagetool-correct-buffer
@@ -707,7 +706,7 @@
   (:mode 'text-mode)
   ("SPC d"
    (("d" languagetool-check :name "check")
-    ("D" languagetool-clear-buffer :name "done")
+    ("D" languagetool-clear-suggestions :name "done")
     ("c" languagetool-correct-at-point :name "correct")
     ("C" languagetool-correct-buffer :name "correct buffer")) :name "writing assistant")
   :config
