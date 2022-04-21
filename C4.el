@@ -678,14 +678,14 @@
 ;; forge:1 ends here
 
 ;; [[file:C4.org::*diff-hl][diff-hl:1]]
-  ;;; Show how files have changed between commits
-  (use-package diff-hl
-    :after magit
-    :hook
-    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-    (magit-post-refresh . diff-hl-magit-post-refresh)
-    :config
-    (global-diff-hl-mode 1))
+;;; Show how files have changed between commits
+(use-package diff-hl
+  :after magit
+  :hook
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  (global-diff-hl-mode 1))
 ;; diff-hl:1 ends here
 
 ;; [[file:C4.org::*languagetool][languagetool:1]]

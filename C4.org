@@ -95,7 +95,7 @@ Custom variables and procedures in this config are always prefixed with =C4=.
   - [[#syntax-highlighting][Syntax Highlighting]]
     - [[#faces][Faces]]
     - [[#rainbow-delimiters][rainbow-delimiters]]
-    -  [[#color-identifiers-mode][color-identifiers-mode]]
+    - [[#color-identifiers-mode][color-identifiers-mode]]
   - [[#linting][Linting]]
   - [[#formatting][Formatting]]
     - [[#apheleia][apheleia]]
@@ -1285,14 +1285,14 @@ modifications or deletions since the last commit.
 
 #+BEGIN_SRC emacs-lisp
 
-  ;;; Show how files have changed between commits
-  (use-package diff-hl
-    :after magit
-    :hook
-    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-    (magit-post-refresh . diff-hl-magit-post-refresh)
-    :config
-    (global-diff-hl-mode 1))
+;;; Show how files have changed between commits
+(use-package diff-hl
+  :after magit
+  :hook
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh)
+  :config
+  (global-diff-hl-mode 1))
 
 #+END_SRC
 
@@ -1878,7 +1878,7 @@ helps a little in other ways, too.
 
 #+END_SRC
 
-***  color-identifiers-mode
+*** color-identifiers-mode
 
 This package is another highlighting enhancement that enables semantic highlighting by identifiers
 instead of syntax. Another one of those little things that helps me code and keep track of things in
