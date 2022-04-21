@@ -1455,7 +1455,7 @@
   ;; Note: The deno lsp JavaScript language identifier is NOT "js", so eglot's
   ;; guess ("js" for js-mode) was incorrect and the server wouldn't load
   (add-to-list
-   'eglot-server-programs '((js-mode typescript-mode) . (eglot-deno "deno" "lsp")))
+   'eglot-server-programs '(((js-mode :language-id "javascript") typescript-mode) . (eglot-deno "deno" "lsp")))
 
   (add-hook
    'js-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer))))
@@ -1471,9 +1471,6 @@
   :hook
   (typescript-mode . eglot-ensure)
   :config
-  (add-to-list
-   'eglot-server-programs '(typescript-mode . (eglot-deno "deno" "lsp")))
-
   (add-hook
    'typescript-mode-hook (lambda () (add-hook 'before-save-hook 'eglot-format-buffer))))
 
