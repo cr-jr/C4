@@ -203,7 +203,8 @@
  ("M"
   (("w" mark-word :name "mark word")
    ("l" C4/mark-line :name "mark current line")
-   ("p" mark-paragraph :name "mark paragraph")) :name "semantic mark"))
+   ("p" mark-paragraph :name "mark paragraph")
+   ("r" rectangle-mark-mode :name "mark rectangle")) :name "semantic mark"))
 ;; Marking/selecting:1 ends here
 
 ;; [[file:C4.org::*Killing/cutting][Killing/cutting:1]]

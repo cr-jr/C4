@@ -439,7 +439,8 @@ These actions are mapped to marking regions and text selection.
  ("M"
   (("w" mark-word :name "mark word")
    ("l" C4/mark-line :name "mark current line")
-   ("p" mark-paragraph :name "mark paragraph")) :name "semantic mark"))
+   ("p" mark-paragraph :name "mark paragraph")
+   ("r" rectangle-mark-mode :name "mark rectangle")) :name "semantic mark"))
 
 #+END_SRC
 
@@ -517,7 +518,7 @@ Similar to actions, each command optionally takes modifiers.
 
 ***** Buffer (=b=)
 
-This prefix wraps all commands that affect buffers Lowercase bindings affect only the current
+This prefix wraps all commands that affect buffers. Lowercase bindings affect only the current
 buffer, uppercase bindings affect /all/ active buffers or modify a buffer-local command.
 
 #+BEGIN_SRC emacs-lisp
