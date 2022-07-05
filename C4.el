@@ -1047,6 +1047,10 @@
 (use-package weblorg)
 ;; weblorg:1 ends here
 
+;; [[file:C4.org::*ox-gfm][ox-gfm:1]]
+(use-package ox-gfm)
+;; ox-gfm:1 ends here
+
 ;; [[file:C4.org::*Paths][Paths:1]]
 (use-package exec-path-from-shell
   :if window-system

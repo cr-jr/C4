@@ -89,6 +89,8 @@ Custom variables and procedures in this config are always prefixed with =C4=.
       - [[#deft][deft]]
     - [[#publishing][Publishing]]
       - [[#weblorg][weblorg]]
+    - [[#exporting][Exporting]]
+      - [[#ox-gfm][ox-gfm]]
 - [[#programming-modes][Programming Modes]]
   - [[#paths][Paths]]
   - [[#parsing][Parsing]]
@@ -1757,12 +1759,12 @@ voice out into the world a bit more.
 
 **** weblorg
 
-This is a fairly new package in the vein of =ox-hugo= or =org-page=. It's a full Emacs Lisp
-static site generator from Org Mode! Some of the features that really excite me include completely
-custom HTML templates. I mean, I did start as a web designer.
+This is a fairly new package in the vein of =ox-hugo= or =org-page=. It's a full Emacs Lisp static site generator from
+Org Mode! Some of the features that really excite me include completely custom HTML templates. I mean, I did start as a
+web designer.
 
-Weblorg allows me to use my entire front-end development toolkit to build and publish a sweet Org
-Mode website. Publishing a thought is as easy as writing one.
+Weblorg allows me to use my entire front-end development toolkit to build and publish a sweet Org Mode
+website. Publishing a thought is as easy as writing one.
 
 So I have no excuse not to write anymore.
 
@@ -1771,6 +1773,17 @@ So I have no excuse not to write anymore.
 ;;; An Org Mode static site generator
 (use-package weblorg)
 
+#+END_SRC
+
+*** Exporting
+
+Primarily for FOSS work, I'll need to export from Org to some other format. This section features third-party exporters
+to help me do that.
+
+**** ox-gfm
+
+#+BEGIN_SRC emacs-lisp
+(use-package ox-gfm)
 #+END_SRC
 
 * Programming Modes
