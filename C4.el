@@ -1307,7 +1307,7 @@
   :hook
   (lisp-mode . sly-mode)
   :config
-  (setq inferior-lisp-program "/home/cr-jr/.guix-extra-profiles/work/work/bin/sbcl")
+  (setq inferior-lisp-program "sbcl")
 
   (sly))
 ;; Common Lisp:1 ends here
@@ -1340,7 +1340,7 @@
       ("z" racket-fold-all-tests :name "fold")
       ("Z" racket-unfold-all-tests :name "unfold")) :name "tests")) :name "racket")
   :custom
-  (racket-program "~/.guix-extra-profiles/work/work/bin/racket")
+  (racket-program "racket")
   :init
   (setq tab-always-indent 'complete)
   :hook
@@ -1368,7 +1368,7 @@
   :hook
   (scheme-mode . geiser-mode)
   :config
-  (setq geiser-guile-binary "~/.guix-extra-profiles/work/work/bin/guile")
+  (setq geiser-guile-binary "guile")
   (setq geiser-active-implementations '(guile))
   (setq geiser-default-implementation 'guile))
 
